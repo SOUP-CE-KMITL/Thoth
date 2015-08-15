@@ -19,7 +19,33 @@ Limits เปรียบเสมือนกรอบขอบเขตขอ�
 ```
 	$ vi /etc/kubernetes/manifests/master.json
 ```
+ทำการเพิ่มในส่วนของ apiserver admission_control บรรทัดนึงดังนี้
+```
+	{
+      "name": "apiserver",
+      "image": "gcr.io/google_containers/hyperkube:v1.0.1",
+      "command": [
+              "/hyperkube",
+              "apiserver",
+              "--portal-net=10.0.0.1/24",
+              "--address=127.0.0.1",
+              "--admission_control=LimitRanger,ResourceQuota",
+              "--etcd_servers=http://127.0.0.1:4001",
+              "--cluster_name=kubernetes",
+              "--v=2"
+        ]
+    },
 
-3. สร้าง environment จำลองขึ้นมาเพื่อให้ได้ containner ของ kubernetes ที่ีรันอยู่บน docker ตามลิงค์นี้ [Kubernetes locally intallation ](https://github.com/kubernetes/kubernetes/blob/master/docs/getting-started-guides/docker.md)
+```
+3. ออกมาจาก container และทำการ commit container เพื่อให้ image เปลี่ยนเป็น version ของ container ปัจจุบันดังนี้
+```
+ $ docker commit <เลขimage> gcr.io/google_containers/hyperkube:v1.0.1
+```
+** เลข image สามารถดูได้จากตอนที่ bash เข้าไปใน containner ที่ Prompt root@ เลข containner
 
-2. 
+4. สร้าง environment จำลองขึ้นมาเพื่อให้ได้ containner ของ kubernetes ที่ีรันอยู่บน docker ตามลิงค์นี้ [Kubernetes locally intallation ](https://github.com/kubernetes/kubernetes/blob/master/docs/getting-started-guides/docker.md)
+5. หลังจากนั้นให้ลองทำการกำหนด resource quota และ limitsranger ตามลืงค์นี้
+[kubernetes configure ResourceQuota and LimitsRanger](https://github.com/kubernetes/kubernetes/tree/master/docs/user-guide/resourcequota)
+
+
+นาย ณัฏฐ์ จึงมาริศกุล
