@@ -55,4 +55,4 @@
 ```
   $ kubectl create -f filename.json
 ```
-* สามารถสร้างเป็น json ก็ได้
+* สามารถสร้างเป็น yaml ก็ได้
