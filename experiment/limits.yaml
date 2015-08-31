@@ -7,6 +7,4 @@ spec:
   - default:
       cpu: 100m
       memory: 512Mi
-    max:
-      memory: 1024Mi
-    type: pod
+    type: container
