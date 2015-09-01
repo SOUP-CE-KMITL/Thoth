@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: heapster-controller
+spec:
+  replicas: 2
+  # selector identifies the set of Pods that this
+  # replication controller is responsible for managing
+  selector:
+    app: heapster
+  # podTemplate defines the 'cookie cutter' used for creating
+  # new pods when necessary
+  template:
+    metadata:
+      labels:
+        # Important: these labels need to match the selector above
+        # The api server enforces this constraint.
+        app: heapster
+    spec:
+      containers:
+      - name: heapster
+        image: kubernetes/heapster
+        ports:
+        - containerPort: 4194
+
