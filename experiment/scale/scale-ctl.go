@@ -9,91 +9,95 @@ import (
 	"net/http"
 	"os/exec"
 	"regexp"
+	"time"
 )
 
 type metricsController interface {
-	getThreshold() int
-	setThreshold(metrics int) bool
-	checkMeetThreshold(current int) bool
+	getThreshold() uint64
+	setThreshold(metrics uint64) bool
+	checkMeetThreshold(current uint64) bool
 }
 
 type latencyMet struct {
-	latencyThreshold int
+	latencyThreshold uint64
 }
 
 type memMet struct {
 	// TODO : type should be uint64
-	memThreshold int
+	memThreshold uint64
 }
 
 type cpuMet struct {
 	// TODO : cpu type should be float64
-	cpuThreshold int
-}
-
-// json handler
-type container struct {
+	cpuThreshold uint64
 }
 
 // implement PID Controller
 // Latency implemented
-func (l latencyMet) setThreshold(metrics int) bool {
+func (l latencyMet) setThreshold(metrics uint64) bool {
 	l.latencyThreshold = metrics
 	// TODO : return error if have somethings wrong
 	return true
 }
-func (l latencyMet) getThreshold() int {
+func (l latencyMet) getThreshold() uint64 {
 	return l.latencyThreshold
 }
-func (l latencyMet) checkMeetThreshold(current int) bool {
+func (l latencyMet) checkMeetThreshold(current uint64) bool {
 	return l.latencyThreshold == current
 }
 
 // Memory Resource implemented
-func (rm memMet) setThreshold(metrics int) bool {
+func (rm memMet) setThreshold(metrics uint64) bool {
 	rm.memThreshold = metrics
 	// TODO : return error if have somethings wrong
 	return true
 }
-func (rm memMet) getThreshold() int {
+func (rm memMet) getThreshold() uint64 {
 	return rm.memThreshold
 }
-func (rm memMet) checkMeetThreshold(current int) bool {
+func (rm memMet) checkMeetThreshold(current uint64) bool {
 	return rm.memThreshold == current
 }
 
 // CPU Resource implemented
-func (rc cpuMet) getThreshold() int {
+func (rc cpuMet) getThreshold() uint64 {
 	return rc.cpuThreshold
 }
-func (rc cpuMet) setThreshold(metrics int) bool {
+func (rc cpuMet) setThreshold(metrics uint64) bool {
 	rc.cpuThreshold = metrics
 	// TODO : return error if have somethings wrong
 	return true
 }
-func (rc cpuMet) checkMeetThreshold(current int) bool {
+func (rc cpuMet) checkMeetThreshold(current uint64) bool {
 	return rc.cpuThreshold == current
 }
 
+// TODO : remove this func when finish
 func testScale(m metricsController) {
 	// TODO : delete below line it's just for test
 	fmt.Println(m)
 	fmt.Println("Threshold : ", m.getThreshold())
 }
 
-func GetResourceUsage(resource_type int, res_obj map[string]interface{}) (int, error) {
+/**
+	json encoder for get current resource information
+**/
+func GetResourceUsage(resource_type int, res_obj map[string]interface{}) (uint64, error) {
 	switch resource_type {
 	case 2:
-		return int(res_obj["stats"].([]interface{})[0].(map[string]interface{})["cpu"].(map[string]interface{})["usage"].(map[string]interface{})["total"].(float64)), nil
+		return uint64(res_obj["stats"].([]interface{})[0].(map[string]interface{})["cpu"].(map[string]interface{})["usage"].(map[string]interface{})["total"].(float64)), nil
 	case 3:
-		return int(res_obj["stats"].([]interface{})[0].(map[string]interface{})["memory"].(map[string]interface{})["usage"].(float64)), nil
+		return uint64(res_obj["stats"].([]interface{})[0].(map[string]interface{})["memory"].(map[string]interface{})["usage"].(float64)), nil
 		// TODO : latency is not implement for now.
 	default:
 		return 0, errors.New("invaild choice, Please select between 1-4") // TODO : need to catch this error
 	}
 }
 
-func MetricFactory(metric_type int, threshold int) (metricsController, error) {
+/**
+	Instantiate function for create new metrics controller obj.
+**/
+func MetricFactory(metric_type int, threshold uint64) (metricsController, error) {
 	switch metric_type {
 	case 2:
 		return cpuMet{cpuThreshold: threshold}, nil
@@ -104,9 +108,35 @@ func MetricFactory(metric_type int, threshold int) (metricsController, error) {
 	}
 }
 
+/**
+	api call
+**/
+func GetCurrentResource(url string, metric_type int) (uint64, string, error) {
+	res, err := http.Get(url)
+	if err != nil {
+		fmt.Println("Can't connect to cadvisor")
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		return 0, "", err
+	} else {
+		// json handler type
+		var res_obj map[string]interface{}
+		if err := json.Unmarshal(body, &res_obj); err != nil {
+			return 0, "", err
+		}
+		var res_time = res_obj["stats"].([]interface{})[len(res_obj["stats"].([]interface{}))-1].(map[string]interface{})["timestamp"].(string)
+		var resource_usage uint64
+		if resource_usage, err = GetResourceUsage(metric_type, res_obj); err != nil {
+			return 0, "", err
+		}
+		return resource_usage, res_time, nil // success retrieve resource usage info
+	}
+}
+
 func main() {
-	// intial error for catch any error.
-	var err errors
 
 	fmt.Println("welcome to kubenetes scale-out experiment ... ")
 	scale_num := "1"
@@ -151,7 +181,7 @@ func main() {
 	fmt.Scanf("%d", &metric_type)
 	// TODO : catch invalid choice value
 
-	metric_value := 0
+	var metric_value uint64
 	fmt.Printf("value = ")
 	fmt.Scanf("%d", &metric_value)
 	// TODO : catch invalid value
@@ -164,6 +194,7 @@ func main() {
 
 	// create new metrics object
 	var metric metricsController
+	var err error
 	if metric, err = MetricFactory(metric_type, metric_value); err != nil {
 		panic(err)
 	}
@@ -173,27 +204,13 @@ func main() {
 
 	// ==== looping for check resource usage limits ====
 	// TODO : now I'm hardcode container name ,so it's need to get url wihtout hardcode
-	res, err := http.Get("http://localhost:4194/api/v1.0/containers/docker/8f91896b6d2350d8623ce536ef8c986dd524bc1787813093132ee7d3050a6bf2")
-	if err != nil {
-		fmt.Println("Can't connect to cadvisor")
-		log.Fatal(err)
-	}
-	body, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
-	if err != nil {
-		fmt.Println("Can't read response body")
-		log.Fatal(err)
-	} else {
-		// json handler type
-		var res_obj map[string]interface{}
-		if err := json.Unmarshal(body, &res_obj); err != nil {
-			panic(err)
-		}
+	var container_url = "http://localhost:4194/api/v1.0/containers/docker/339a7596578fcaa1d831e0f28c5bdc7f15e56675ca01120c2f223df928a4e5df"
+	var current_resource uint64
+	var res_time string
 
-		var resource_usage int
-		if resource_usage, err = GetResourceUsage(metric_type, res_obj); err != nil {
-			panic(err)
-		}
-
+	for true {
+		current_resource, res_time, err = GetCurrentResource(container_url, metric_type)
+		fmt.Println("current resource at ", res_time, " : ", current_resource)
+		time.Sleep(1000 * time.Millisecond)
 	}
 }
