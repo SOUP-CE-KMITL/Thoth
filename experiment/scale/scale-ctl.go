@@ -132,14 +132,30 @@ func GetCurrentResource(url string, metric_type int) (uint64, string, error) {
 		if resource_usage, err = GetResourceUsage(metric_type, res_obj); err != nil {
 			return 0, "", err
 		}
-		return resource_usage, res_time, nil // success retrieve resource usage info
+		if resource_usage == 0 {
+
+		}
+		//return resource_usage, res_time, nil // success retrieve resource usage info
+		return uint64(res_obj["stats"].([]interface{})[0].(map[string]interface{})["memory"].(map[string]interface{})["usage"].(float64)), res_time, nil // success retrieve resource usage info
 	}
+}
+
+/**
+* scale-out replicas via cli
+**/
+func scaleOutViaCli(scale_num int, rc_name string) (string, error) {
+	var err error
+	var cmd []byte
+	if cmd, err = exec.Command("kubectl", "scale", "--replicas="+string(scale_num), "rc", rc_name).Output(); err != nil {
+		fmt.Println(err)
+	}
+	return string(cmd), err
 }
 
 func main() {
 
 	fmt.Println("welcome to kubenetes scale-out experiment ... ")
-	scale_num := "1"
+	scale_num := 1
 
 	// check rc is running or not
 	rc_stat, _ := exec.Command("kubectl", "get", "rc").Output()
@@ -168,9 +184,12 @@ func main() {
 
 	// call scale command from kubectl
 	fmt.Printf("replicas : ")
-	fmt.Scanf("%s", &scale_num)
-	cmd, _ := exec.Command("kubectl", "scale", "--replicas="+scale_num, "rc", "nginx-controller").Output()
-	fmt.Println(string(cmd))
+	fmt.Scanf("%d", &scale_num)
+	// TODO: rc name should can select ,for now it's hardcode.
+	rc_name := "nginx-controller"
+	if cmd, err := scaleOutViaCli(scale_num, rc_name); err != nil {
+		fmt.Println(err, cmd)
+	}
 
 	// set Threshold
 	metric_type := 1
@@ -180,7 +199,6 @@ func main() {
 	fmt.Printf("3. Memory Usage \n")
 	fmt.Scanf("%d", &metric_type)
 	// TODO : catch invalid choice value
-
 	var metric_value uint64
 	fmt.Printf("value = ")
 	fmt.Scanf("%d", &metric_value)
@@ -204,12 +222,16 @@ func main() {
 
 	// ==== looping for check resource usage limits ====
 	// TODO : now I'm hardcode container name ,so it's need to get url wihtout hardcode
-	var container_url = "http://localhost:4194/api/v1.0/containers/docker/339a7596578fcaa1d831e0f28c5bdc7f15e56675ca01120c2f223df928a4e5df"
+	var container_url = "http://localhost:4194/api/v1.0/containers/docker/9437e7ecca2ba98415ade96d8eeed53ef745dc10ffd1d766357dffc7a5bee203"
 	var current_resource uint64
 	var res_time string
 
-	for true {
+	for {
 		current_resource, res_time, err = GetCurrentResource(container_url, metric_type)
+		if current_resource >= metric_value {
+			scale_num++
+			scaleOutViaCli(scale_num, rc_name)
+		}
 		fmt.Println("current resource at ", res_time, " : ", current_resource)
 		time.Sleep(1000 * time.Millisecond)
 	}

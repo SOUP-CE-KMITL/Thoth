@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"fmt"
 	"unsafe"
+	"time"
 )
 
 func bigBytes() *[]byte {
@@ -13,19 +14,12 @@ func bigBytes() *[]byte {
 }
 
 func hello(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "Hello world!")
 	a := bigBytes()
         fmt.Printf("memory type:%T address: %p  size: %d\n", a, &a, unsafe.Sizeof(a))
         b := bigBytes()
         fmt.Printf("memory type:%T address: %p  size: %d\n", b, &b, unsafe.Sizeof(b))
-        c := bigBytes()
-        fmt.Printf("memory type:%T address: %p  size: %d\n", c, &c, unsafe.Sizeof(c))
-        d := bigBytes()
-        fmt.Printf("memory type:%T address: %p  size: %d\n", d, &d, unsafe.Sizeof(d))
-        e := bigBytes()
-        fmt.Printf("memory type:%T address: %p  size: %d\n", e, &e, unsafe.Sizeof(e))
-        f := bigBytes()
-        fmt.Printf("memory type:%T address: %p  size: %d\n", f, &f, unsafe.Sizeof(f))
+	time.Sleep(3000 * time.Millisecond)
+	io.WriteString(w, "Hello world!")
 }
 
 func main() {
