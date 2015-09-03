@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os/exec"
 	"regexp"
+	"strconv"
 	"time"
 )
 
@@ -132,11 +133,9 @@ func GetCurrentResource(url string, metric_type int) (uint64, string, error) {
 		if resource_usage, err = GetResourceUsage(metric_type, res_obj); err != nil {
 			return 0, "", err
 		}
-		if resource_usage == 0 {
-
-		}
-		//return resource_usage, res_time, nil // success retrieve resource usage info
-		return uint64(res_obj["stats"].([]interface{})[0].(map[string]interface{})["memory"].(map[string]interface{})["usage"].(float64)), res_time, nil // success retrieve resource usage info
+		return resource_usage, res_time, nil // success retrieve resource usage info
+		// this is for testing
+		//return uint64(res_obj["stats"].([]interface{})[0].(map[string]interface{})["memory"].(map[string]interface{})["usage"].(float64)), res_time, nil // success retrieve resource usage info
 	}
 }
 
@@ -146,7 +145,8 @@ func GetCurrentResource(url string, metric_type int) (uint64, string, error) {
 func scaleOutViaCli(scale_num int, rc_name string) (string, error) {
 	var err error
 	var cmd []byte
-	if cmd, err = exec.Command("kubectl", "scale", "--replicas="+string(scale_num), "rc", rc_name).Output(); err != nil {
+	fmt.Println("s_n : ", scale_num, "rc : ", rc_name)
+	if cmd, err = exec.Command("kubectl", "scale", "--replicas="+strconv.Itoa(scale_num), "rc", rc_name).Output(); err != nil {
 		fmt.Println(err)
 	}
 	return string(cmd), err
@@ -166,12 +166,12 @@ func main() {
 
 	//  create new nginx rc if not created
 	if rc_exist == "" {
-		yml_file := ""
+		var yml_file string
 		fmt.Println("you don't have any nginx rc waiting for a min to create..")
 		fmt.Println("please fill path of nginx yml files")
 		fmt.Scanf("%s", &yml_file)
 		// create new nginx rc from file
-		_, err := exec.Command("kubectl", "run", "-f", yml_file).Output()
+		_, err := exec.Command("kubectl", "create", "-f", yml_file).Output()
 		if err != nil {
 			// TODO: need to real checking is container is already created via this command or not
 			fmt.Println("successful to created nginx rc")
@@ -229,6 +229,7 @@ func main() {
 	for {
 		current_resource, res_time, err = GetCurrentResource(container_url, metric_type)
 		if current_resource >= metric_value {
+			fmt.Println("reached threshold try to scale-out ...")
 			scale_num++
 			scaleOutViaCli(scale_num, rc_name)
 		}
