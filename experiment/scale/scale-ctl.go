@@ -160,7 +160,7 @@ func main() {
 	// check rc is running or not
 	rc_stat, _ := exec.Command("kubectl", "get", "rc").Output()
 	fmt.Println(string(rc_stat))
-	re := regexp.MustCompile("nginx-controller")
+	re := regexp.MustCompile("goweb-controller")
 	rc_exist := re.FindString(string(rc_stat))
 	fmt.Println(string(rc_exist))
 
@@ -168,25 +168,25 @@ func main() {
 	if rc_exist == "" {
 		var yml_file string
 		fmt.Println("you don't have any nginx rc waiting for a min to create..")
-		fmt.Println("please fill path of nginx yml files")
+		fmt.Println("please fill path of rc yml files")
 		fmt.Scanf("%s", &yml_file)
 		// create new nginx rc from file
 		_, err := exec.Command("kubectl", "create", "-f", yml_file).Output()
 		if err != nil {
 			// TODO: need to real checking is container is already created via this command or not
-			fmt.Println("successful to created nginx rc")
+			fmt.Println("successful to created rc")
 		} else {
-			fmt.Println("failed to create nginx rc")
+			fmt.Println("failed to create rc")
 		}
 	} else {
-		fmt.Println("you already have nginx rc ... ")
+		fmt.Println("you already have rc ... ")
 	}
 
 	// call scale command from kubectl
 	fmt.Printf("replicas : ")
 	fmt.Scanf("%d", &scale_num)
 	// TODO: rc name should can select ,for now it's hardcode.
-	rc_name := "nginx-controller"
+	rc_name := "goweb-controller"
 	if cmd, err := scaleOutViaCli(scale_num, rc_name); err != nil {
 		fmt.Println(err, cmd)
 	}
@@ -222,16 +222,20 @@ func main() {
 
 	// ==== looping for check resource usage limits ====
 	// TODO : now I'm hardcode container name ,so it's need to get url wihtout hardcode
-	var container_url = "http://localhost:4194/api/v1.0/containers/docker/9437e7ecca2ba98415ade96d8eeed53ef745dc10ffd1d766357dffc7a5bee203"
+	var container_url = "http://localhost:4194/api/v1.0/containers/docker/7b1fa7a7d61b903a18aa14c230407b7b0302aaa2bc241fec1e3ded3f73cd96a2"
 	var current_resource uint64
 	var res_time string
+	// for test
+	count_scale_time := 0
 
 	for {
 		current_resource, res_time, err = GetCurrentResource(container_url, metric_type)
 		if current_resource >= metric_value {
-			fmt.Println("reached threshold try to scale-out ...")
-			scale_num++
-			scaleOutViaCli(scale_num, rc_name)
+			if count_scale_time%60 == 0 {
+				fmt.Println("reached threshold try to scale-out ...")
+				scale_num++
+				scaleOutViaCli(scale_num, "goweb-controller")
+			}
 		}
 		fmt.Println("current resource at ", res_time, " : ", current_resource)
 		time.Sleep(1000 * time.Millisecond)
