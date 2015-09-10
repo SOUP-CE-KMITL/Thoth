@@ -186,35 +186,46 @@ func GetCurrentResourceCgroup(container_id string, metric_type int) (uint64, err
 }
 
 /**
- *   Get URL
+ *   Get List of ContainerID and pod's ip by replication name and their namespace
  **/
-func GetContainerIDList(rc_name string, namespace string) (string, error) {
-	res, err := http.Get("http://localhost:8080/api/v1/watch/namespaces/" + namespace + "/pods")
+func GetContainerIDList(url string, port string, rc_name string, namespace string) ([]string, []string, error) {
+	// TODO : maybe user want to get container id which map with it's pod
+	// initail rasult array
+	container_ids := []string{}
+	pod_ips := []string{}
+
+	res, err := http.Get(url + ":" + port + "/api/v1/namespaces/" + namespace + "/pods")
 	if err != nil {
 		fmt.Println("Can't connect to cadvisor")
-		log.Fatal(err)
+		panic(err)
 	}
 	body, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	if err != nil {
-		return 0, err
+		return nil, nil, err
 	} else {
 		// json handler type
 		var res_obj map[string]interface{}
 		if err := json.Unmarshal(body, &res_obj); err != nil {
-			return 0, err
+			return nil, nil, err
 		}
-		return
-		//var res_time = res_obj["stats"].([]interface{})[len(res_obj["stats"].([]interface{}))-1].(map[string]interface{})["timestamp"].(string)
-		/*
-			var container_id string
-			if container_id, err = GetContainerIdByReplication(rc_name); err != nil {
-				return 0, err
+		pod_arr := res_obj["items"].([]interface{})
+		// iterate to get pod of specific rc
+		for _, pod := range pod_arr {
+			pod_name := pod.(map[string]interface{})["metadata"].(map[string]interface{})["generateName"]
+			if pod_name != nil {
+				if pod_name == rc_name+"-" {
+					pod_ips = append(pod_ips, pod.(map[string]interface{})["status"].(map[string]interface{})["podIP"].(string))
+					containers := pod.(map[string]interface{})["status"].(map[string]interface{})["containerStatuses"].([]interface{})
+					// one pod can has many container ,so iterate for get each container
+					for _, container := range containers {
+						container_id := container.(map[string]interface{})["containerID"].(string)[9:]
+						container_ids = append(container_ids, container_id)
+					}
+				}
 			}
-			return container_id, nil // success retrieve resource usage info
-		*/
-		// this is for testing
-		//return uint64(res_obj["stats"].([]interface{})[0].(map[string]interface{})["memory"].(map[string]interface{})["usage"].(float64)), res_time, nil // success retrieve resource usage info
+		}
+		return container_ids, pod_ips, nil
 	}
 }
 
@@ -291,12 +302,6 @@ func main() {
 	fmt.Scanf("%d", &metric_value)
 	// TODO : catch invalid value
 
-	// Sample object for testing
-	/*
-		rm := memMet{memThreshold: metric_value}
-		testScale(rm)
-	*/
-
 	// create new metrics object
 	var metric metricsController
 	var err error
@@ -308,18 +313,26 @@ func main() {
 	fmt.Println("Threshold : ", metric.getThreshold())
 
 	// ==== looping for check resource usage limits ====
-	// TODO : now I'm hardcode container name ,so it's need to get url wihtout hardcode
 	//var container_url = "http://localhost:4194/api/v1.0/containers/docker/7b1fa7a7d61b903a18aa14c230407b7b0302aaa2bc241fec1e3ded3f73cd96a2"
 	var current_resource uint64
 	// var res_time string
 	// for test
 	count_scale_time := 0
-	// TODO : average watch container
-	for {
-		//current_resource, res_time, err = GetCurrentResource(container_url, metric_type)
-		// TODO: change to get container id form container name
+	// TODO: change to get container id form container name
+	// intial array of container_id and pod_ip
 
-		current_resource, err = GetCurrentResourceCgroup("c5df808be61d0a64461dc86ef2e44947cc6bb8997453cd34630c305cfb4be87d", metric_type)
+	container_ids, pod_ips, err := GetContainerIDList("http://localhost", "8080", rc_name, "default")
+	if err != nil {
+		fmt.Println(err)
+	}
+	// TODO : remove this print it's for dummy
+	fmt.Println(pod_ips)
+	count_round_robin := 0
+	for {
+		// round robin get resource
+		count_round_robin++
+		count_round_robin = count_round_robin % len(container_ids)
+		current_resource, err = GetCurrentResourceCgroup(container_ids[count_round_robin], metric_type)
 		check(err)
 		fmt.Println("Current usage : ", current_resource)
 		if current_resource >= metric_value {
@@ -331,5 +344,6 @@ func main() {
 		}
 		fmt.Println("current resource at ", " : ", current_resource)
 		time.Sleep(1000 * time.Millisecond)
+
 	}
 }

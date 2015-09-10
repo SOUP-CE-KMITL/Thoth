@@ -1,44 +1,54 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"http"
 	"io/ioutil"
+	"net/http"
 )
 
 func main() {
-
+	contianers, ips, _ := GetContainerIDList("http://localhost", "8080", "goweb-controller", "default")
+	fmt.Println(contianers, ips)
 }
 
-func GetContainerIDList(url string, port string, rc_name string, namespace string) (string, error) {
-	res, err := http.Get(url + ":" + port + "/api/v1/watch/namespaces/" + namespace + "/pods")
+func GetContainerIDList(url string, port string, rc_name string, namespace string) ([]string, []string, error) {
+	// TODO : maybe user want to get container id which map with it's pod
+	// initail rasult array
+	container_ids := []string{}
+	pod_ips := []string{}
+
+	res, err := http.Get(url + ":" + port + "/api/v1/namespaces/" + namespace + "/pods")
 	if err != nil {
 		fmt.Println("Can't connect to cadvisor")
-		log.Fatal(err)
+		panic(err)
 	}
 	body, err := ioutil.ReadAll(res.Body)
 	res.Body.Close()
 	if err != nil {
-		return 0, err
+		return nil, nil, err
 	} else {
-		// TODO: remove
-		fmt.Println("response : " + body)
 		// json handler type
 		var res_obj map[string]interface{}
 		if err := json.Unmarshal(body, &res_obj); err != nil {
-			return 0, err
+			return nil, nil, err
 		}
-		//var res_time = res_obj["stats"].([]interface{})[len(res_obj["stats"].([]interface{}))-1].(map[string]interface{})["timestamp"].(string)
-		/*
-			var container_id string
-			if container_id, err = GetContainerIdByReplication(rc_name); err != nil {
-				return 0, err
+		pod_arr := res_obj["items"].([]interface{})
+		// iterate to get pod of specific rc
+		for _, pod := range pod_arr {
+			pod_name := pod.(map[string]interface{})["metadata"].(map[string]interface{})["generateName"]
+			if pod_name != nil {
+				if pod_name == rc_name+"-" {
+					pod_ips = append(pod_ips, pod.(map[string]interface{})["status"].(map[string]interface{})["podIP"].(string))
+					containers := pod.(map[string]interface{})["status"].(map[string]interface{})["containerStatuses"].([]interface{})
+					// one pod can has many container ,so iterate for get each container
+					for _, container := range containers {
+						container_id := container.(map[string]interface{})["containerID"].(string)[9:]
+						container_ids = append(container_ids, container_id)
+					}
+				}
 			}
-			return container_id, nil // success retrieve resource usage info
-		*/
-		// this is for testing
-		//return uint64(res_obj["stats"].([]interface{})[0].(map[string]interface{})["memory"].(map[string]interface{})["usage"].(float64)), res_time, nil // success retrieve resource usage info
+		}
+		return container_ids, pod_ips, nil
 	}
-	// TODO : remove this it's for dummy return
-	return "error", error.New("dummy error")
 }
