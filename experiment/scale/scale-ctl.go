@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -81,7 +83,17 @@ func testScale(m metricsController) {
 }
 
 /**
-	json encoder for get current resource information
+/	Reader function
+**/
+
+func check(e error) {
+	if e != nil {
+		fmt.Println("ERROR : ", e)
+	}
+}
+
+/**
+/	json encoder for get current resource information
 **/
 func GetResourceUsage(resource_type int, res_obj map[string]interface{}) (uint64, error) {
 	switch resource_type {
@@ -96,7 +108,7 @@ func GetResourceUsage(resource_type int, res_obj map[string]interface{}) (uint64
 }
 
 /**
-	Instantiate function for create new metrics controller obj.
+/	Instantiate function for create new metrics controller obj.
 **/
 func MetricFactory(metric_type int, threshold uint64) (metricsController, error) {
 	switch metric_type {
@@ -110,7 +122,7 @@ func MetricFactory(metric_type int, threshold uint64) (metricsController, error)
 }
 
 /**
-	api call
+/	api call
 **/
 func GetCurrentResource(url string, metric_type int) (uint64, string, error) {
 	res, err := http.Get(url)
@@ -140,6 +152,73 @@ func GetCurrentResource(url string, metric_type int) (uint64, string, error) {
 }
 
 /**
+* 	Get current resource by using cgroup
+**/
+func GetCurrentResourceCgroup(container_id string, metric_type int) (uint64, error) {
+	// TODO : Read Latency from HA Proxy
+
+	// file path prefix
+	var path = "/sys/fs/cgroup/memory/docker/" + container_id + "/"
+
+	if metric_type == 2 {
+		// read cpu usage
+		current_usage, err := ioutil.ReadFile(path + "memory.usage_in_bytes")
+		if err != nil {
+			return binary.BigEndian.Uint64(current_usage), nil
+		} else {
+			return 0, err
+		}
+	} else if metric_type == 3 {
+		// read memory usage
+		current_usage, err := ioutil.ReadFile(path + "memory.usage_in_bytes")
+		if err != nil {
+			return 0, err
+		} else {
+			n := bytes.Index(current_usage, []byte{10})
+			usage_str := string(current_usage[:n])
+			resource_usage, _ := strconv.ParseInt(usage_str, 10, 64)
+			return uint64(resource_usage), nil
+		}
+	} else {
+		// not match any case
+		return 0, errors.New("not match any case")
+	}
+}
+
+/**
+ *   Get URL
+ **/
+func GetContainerIDList(rc_name string, namespace string) (string, error) {
+	res, err := http.Get("http://localhost:8080/api/v1/watch/namespaces/" + namespace + "/pods")
+	if err != nil {
+		fmt.Println("Can't connect to cadvisor")
+		log.Fatal(err)
+	}
+	body, err := ioutil.ReadAll(res.Body)
+	res.Body.Close()
+	if err != nil {
+		return 0, err
+	} else {
+		// json handler type
+		var res_obj map[string]interface{}
+		if err := json.Unmarshal(body, &res_obj); err != nil {
+			return 0, err
+		}
+		return
+		//var res_time = res_obj["stats"].([]interface{})[len(res_obj["stats"].([]interface{}))-1].(map[string]interface{})["timestamp"].(string)
+		/*
+			var container_id string
+			if container_id, err = GetContainerIdByReplication(rc_name); err != nil {
+				return 0, err
+			}
+			return container_id, nil // success retrieve resource usage info
+		*/
+		// this is for testing
+		//return uint64(res_obj["stats"].([]interface{})[0].(map[string]interface{})["memory"].(map[string]interface{})["usage"].(float64)), res_time, nil // success retrieve resource usage info
+	}
+}
+
+/**
 * scale-out replicas via cli
 **/
 func scaleOutViaCli(scale_num int, rc_name string) (string, error) {
@@ -156,11 +235,14 @@ func main() {
 
 	fmt.Println("welcome to kubenetes scale-out experiment ... ")
 	scale_num := 1
+	var rc_name = "default"
+	fmt.Println("please specific your replicaiton controller name ")
+	fmt.Scanf("%s", &rc_name)
 
 	// check rc is running or not
 	rc_stat, _ := exec.Command("kubectl", "get", "rc").Output()
 	fmt.Println(string(rc_stat))
-	re := regexp.MustCompile("goweb-controller")
+	re := regexp.MustCompile(rc_name)
 	rc_exist := re.FindString(string(rc_stat))
 	fmt.Println(string(rc_exist))
 
@@ -181,12 +263,17 @@ func main() {
 	} else {
 		fmt.Println("you already have rc ... ")
 	}
+	pod, _ := exec.Command("kubectl", "get", "pod").Output()
+	regex_pod := regexp.MustCompile(rc_name)
+	pod_exist := regex_pod.FindString(string(pod))
+	if pod_exist != rc_name {
+		err := errors.New("pod is not created !!")
+		panic(err)
+	}
 
 	// call scale command from kubectl
 	fmt.Printf("replicas : ")
 	fmt.Scanf("%d", &scale_num)
-	// TODO: rc name should can select ,for now it's hardcode.
-	rc_name := "goweb-controller"
 	if cmd, err := scaleOutViaCli(scale_num, rc_name); err != nil {
 		fmt.Println(err, cmd)
 	}
@@ -214,7 +301,7 @@ func main() {
 	var metric metricsController
 	var err error
 	if metric, err = MetricFactory(metric_type, metric_value); err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
 
 	//  TEST : obj type
@@ -222,22 +309,27 @@ func main() {
 
 	// ==== looping for check resource usage limits ====
 	// TODO : now I'm hardcode container name ,so it's need to get url wihtout hardcode
-	var container_url = "http://localhost:4194/api/v1.0/containers/docker/7b1fa7a7d61b903a18aa14c230407b7b0302aaa2bc241fec1e3ded3f73cd96a2"
+	//var container_url = "http://localhost:4194/api/v1.0/containers/docker/7b1fa7a7d61b903a18aa14c230407b7b0302aaa2bc241fec1e3ded3f73cd96a2"
 	var current_resource uint64
-	var res_time string
+	// var res_time string
 	// for test
 	count_scale_time := 0
-
+	// TODO : average watch container
 	for {
-		current_resource, res_time, err = GetCurrentResource(container_url, metric_type)
+		//current_resource, res_time, err = GetCurrentResource(container_url, metric_type)
+		// TODO: change to get container id form container name
+
+		current_resource, err = GetCurrentResourceCgroup("c5df808be61d0a64461dc86ef2e44947cc6bb8997453cd34630c305cfb4be87d", metric_type)
+		check(err)
+		fmt.Println("Current usage : ", current_resource)
 		if current_resource >= metric_value {
 			if count_scale_time%60 == 0 {
 				fmt.Println("reached threshold try to scale-out ...")
 				scale_num++
-				scaleOutViaCli(scale_num, "goweb-controller")
+				scaleOutViaCli(scale_num, rc_name)
 			}
 		}
-		fmt.Println("current resource at ", res_time, " : ", current_resource)
+		fmt.Println("current resource at ", " : ", current_resource)
 		time.Sleep(1000 * time.Millisecond)
 	}
 }
