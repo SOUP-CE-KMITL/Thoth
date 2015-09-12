@@ -7,6 +7,6 @@ metadata:
 spec:
   containers:
   - name: go-web
-    image: go-web-test
+    image: go-web-mem
     ports:
     - containerPort: 8000
