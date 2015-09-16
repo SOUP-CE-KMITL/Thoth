@@ -266,21 +266,23 @@ func main() {
 		// create new nginx rc from file
 		_, err := exec.Command("kubectl", "create", "-f", yml_file).Output()
 		if err != nil {
-			// TODO: need to real checking is container is already created via this command or not
-			fmt.Println("successful to created rc")
-		} else {
 			fmt.Println("failed to create rc")
 		}
 	} else {
 		fmt.Println("you already have rc ... ")
 	}
-	pod, _ := exec.Command("kubectl", "get", "pod").Output()
+
+	// TODO : pod creation is take time for a while so, we can't suddenly check after created.
+	// double check pod is already created or not.
+	/*pod, _ := exec.Command("kubectl", "get", "pod").Output()
 	regex_pod := regexp.MustCompile(rc_name)
 	pod_exist := regex_pod.FindString(string(pod))
+	// TODO : remove this line
+	fmt.Println("pod : ", string(pod), "pod_exists : ", pod_exist, " , rc_name = ", rc_name)
 	if pod_exist != rc_name {
 		err := errors.New("pod is not created !!")
 		panic(err)
-	}
+	}*/
 
 	// call scale command from kubectl
 	fmt.Printf("replicas : ")
@@ -318,7 +320,6 @@ func main() {
 	// var res_time string
 	// for test
 	count_scale_time := 0
-	// TODO: change to get container id form container name
 	// intial array of container_id and pod_ip
 
 	container_ids, pod_ips, err := GetContainerIDList("http://localhost", "8080", rc_name, "default")
@@ -326,20 +327,27 @@ func main() {
 		fmt.Println(err)
 	}
 	// TODO : remove this print it's for dummy
-	fmt.Println(pod_ips)
+	fmt.Println(pod_ips, container_ids)
 	count_round_robin := 0
 	for {
 		// round robin get resource
-		count_round_robin++
+		count_round_robin += 1
 		count_round_robin = count_round_robin % len(container_ids)
 		current_resource, err = GetCurrentResourceCgroup(container_ids[count_round_robin], metric_type)
 		check(err)
-		fmt.Println("Current usage : ", current_resource)
+		fmt.Println("Current usage at :", count_round_robin, " of ", len(container_ids), current_resource)
 		if current_resource >= metric_value {
 			if count_scale_time%60 == 0 {
 				fmt.Println("reached threshold try to scale-out ...")
 				scale_num++
-				scaleOutViaCli(scale_num, rc_name)
+				_, err := scaleOutViaCli(scale_num, rc_name)
+				if err != nil {
+					// got new array of container_ids
+					container_ids, pod_ips, err = GetContainerIDList("http://localhost", "8080", rc_name, "default")
+					if err != nil {
+						fmt.Println(err)
+					}
+				}
 			}
 		}
 		fmt.Println("current resource at ", " : ", current_resource)
