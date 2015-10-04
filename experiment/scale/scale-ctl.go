@@ -230,6 +230,10 @@ func GetContainerIDList(url string, port string, rc_name string, namespace strin
 }
 
 /**
+*	get rc generation for check
+**/
+
+/**
 * scale-out replicas via cli
 **/
 func scaleOutViaCli(scale_num int, rc_name string) (string, error) {
@@ -320,8 +324,10 @@ func main() {
 	// var res_time string
 	// for test
 	count_scale_time := 0
-	// intial array of container_id and pod_ip
 
+	// TODO : check if has new container ,then update container_ids arr
+
+	// intial array of container_id and pod_ip
 	container_ids, pod_ips, err := GetContainerIDList("http://localhost", "8080", rc_name, "default")
 	if err != nil {
 		fmt.Println(err)
@@ -335,18 +341,14 @@ func main() {
 		count_round_robin = count_round_robin % len(container_ids)
 		current_resource, err = GetCurrentResourceCgroup(container_ids[count_round_robin], metric_type)
 		check(err)
-		fmt.Println("Current usage at :", count_round_robin, " of ", len(container_ids), current_resource)
+		fmt.Println("Current usage at :", current_resource)
 		if current_resource >= metric_value {
 			if count_scale_time%60 == 0 {
 				fmt.Println("reached threshold try to scale-out ...")
 				scale_num++
 				_, err := scaleOutViaCli(scale_num, rc_name)
 				if err != nil {
-					// got new array of container_ids
-					container_ids, pod_ips, err = GetContainerIDList("http://localhost", "8080", rc_name, "default")
-					if err != nil {
-						fmt.Println(err)
-					}
+					panic(err)
 				}
 			}
 		}
