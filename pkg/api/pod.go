@@ -5,7 +5,7 @@ package main
 type Pod struct {
 	Name      string `json:"name"`
 	Image     string `json:"image"`
-	Port      string `json:"port"`
+	Port      int    `json:"port"`
 	Ip        string `json:"ip"`
 	Cpu       uint64 `json:"cpu"`
 	Memory    uint64 `json:"memory"`

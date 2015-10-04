@@ -2,9 +2,11 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"html"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -24,7 +26,8 @@ func GetNodes(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 	body, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
+	// defer for ensure that res is close.
+	defer res.Body.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -164,14 +167,16 @@ func testExec(w http.ResponseWriter, r *http.Request) {
 func CreatePod(w http.ResponseWriter, r *http.Request) {
 	var pod Pod
 	// limits json post request for prevent overflow attack.
-	body, err := ioutil.ReadAll(io.LimitedReader(r.Body, 1048576))
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
 		panic(err)
 	}
+
 	// catch error from close reader
 	if err := r.Body.Close(); err != nil {
 		panic(err)
 	}
+
 	// get request json information
 	if err := json.Unmarshal(body, &pod); err != nil {
 		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
@@ -207,16 +212,35 @@ func CreatePod(w http.ResponseWriter, r *http.Request) {
 		"containers": []map[string]interface{}{containers},
 	}
 
-	request := map[string]interface{}{
+	objReq := map[string]interface{}{
 		"apiVersion": "v1",
 		"kind":       "Pod",
 		"metadata":   metadata,
 		"spec":       spec,
 	}
 
-	json_req, err := json.Marshal(request)
+	jsonReq, err := json.Marshal(objReq)
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println("you sent ", string(jsonReq))
 	// post json to kubernete api server
+
+	// TODO: need to change name space to user namespace
+	postUrl := "http://localhost:8080/api/v1/namespaces/default/pods"
+	req, err := http.NewRequest("POST", postUrl, bytes.NewBuffer(jsonReq))
+	req.Header.Set("X-Custom-Header", "myvalue")
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	// defer for ensure
+	defer resp.Body.Close()
+
+	response, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(response))
 }
