@@ -8,6 +8,7 @@ import (
 	"html"
 	"io"
 	"io/ioutil"
+	"os/exec"
 	"log"
 	"net/http"
 
@@ -163,6 +164,21 @@ func testExec(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Fprint(w, string(output[:6]))
 }
+
+func GetApp(w http.ResponseWriter, r *http.Request){
+
+	vars := mux.Vars(r)
+	// app name from user.
+	appName := vars["appName"]
+	fmt.Println(appName)
+	// TODO: need to find new solution to get info from api like other done.
+	res, err := exec.Command("kubectl", "get", "pod", "-l", "app="+appName, "-o", "json").Output()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprint(w, string(res))
+}
+
 
 func CreatePod(w http.ResponseWriter, r *http.Request) {
 	var pod Pod

@@ -55,4 +55,10 @@ var routes = Routes{
 		"/pod/create",
 		CreatePod,
 	},
+	Route{
+		"GetApp",
+		"GET",
+		"/app/{appName}",
+		GetApp,
+	},
 }
