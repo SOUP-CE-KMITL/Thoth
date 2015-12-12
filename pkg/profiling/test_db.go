@@ -1,3 +1,4 @@
+// need to change
 package main
 
 import (
@@ -47,6 +48,7 @@ func main() {
 	// Write the batch
 	c.Write(bp)
 
+	// query data form DB
 	res, _ := queryDB(c, "SELECT * FROM cpu_usage")
 	fmt.Println(res)
 
