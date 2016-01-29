@@ -1,0 +1,11 @@
+apiVersion: "v1"
+kind: "LimitRange"
+metadata:
+  name: "webserver"
+  namespace: webserver
+spec:
+  limits:
+    - type: "Container"
+      defaultRequests:
+        cpu: "100m"
+        memory: "512Mi"
