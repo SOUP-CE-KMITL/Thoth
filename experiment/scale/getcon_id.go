@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-	contianers, ips, _ := GetContainerIDList("http://localhost", "8080", "goweb-controller", "default")
+	contianers, ips, _ := GetContainerIDList("http://localhost", "8080", "nginx", "default")
 	fmt.Println(contianers, ips)
 }
 

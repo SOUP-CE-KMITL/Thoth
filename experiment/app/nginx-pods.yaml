@@ -10,4 +10,3 @@ spec:
     image: nginx
     ports:
     - containerPort: 80
-    memory: 512M

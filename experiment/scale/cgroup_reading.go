@@ -13,7 +13,7 @@ func check(e error) {
 
 func main() {
 	// TODO : resource usage
-	dat, err := ioutil.ReadFile("/sys/fs/cgroup/memory/docker/1145bc121145d04dbff622d4613c409751ceba6704f4f80be08e80e1cf596599/memory.usage_in_bytes")
+	dat, err := ioutil.ReadFile("/sys/fs/cgroup/memory/docker/6e6bfe5c5fe1b6de929501c00da9f838cf0a2591d839308362e51a7f32ecba3d/memory.usage_in_bytes")
 	check(err)
 	fmt.Print(string(dat))
 

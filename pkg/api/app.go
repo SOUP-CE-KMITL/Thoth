@@ -1,12 +1,14 @@
 // TODO : need to change to api package
 package main
 
-type AppMetrics struct {
-	App       uint64 `json:"app"`
-	Cpu       uint64 `json:"cpu"`
-	Memory    uint64 `json:"memory"`
-	DiskUsage uint64 `json:"disk_usage"`
-	Bandwidth uint64 `json:"bandwidth"`
+import (
+	"github.com/shirou/gopsutil/docker"
+)
+
+type AppMetric struct {
+	App       string `json:"app"`
+	Cpu       float64 `json:"cpu"`
+	Memory    []*docker.CgroupMemStat `json:"memory"`
 }
 
 // This is schema of Application Profile

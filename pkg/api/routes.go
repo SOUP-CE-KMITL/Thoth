@@ -61,4 +61,16 @@ var routes = Routes{
 		"/app/{appName}",
 		GetApp,
 	},
+	Route{
+		"GetNodeResource",
+		"GET",
+		"/metrics",
+		GetNodeResource,
+	},
+	Route{
+		"GetAppResource",
+		"GET",
+		"/app/{appName}/metrics",
+		GetAppResource,
+	},
 }
