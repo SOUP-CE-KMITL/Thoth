@@ -1,0 +1,11 @@
+{
+  "name": "service_a",                                
+  "weight": 30,                                     
+  "servers": [
+    {
+      "name": "minion-shop-001",       
+      "host": "192.168.32.193",                        
+      "port": 80
+    }
+  ]
+}

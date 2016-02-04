@@ -1,0 +1,29 @@
+{
+  "name": "nginx_route",                               
+  "port": 9000,                                         
+  "protocol": "http",
+  "filters": [],
+  "httpQuota": {
+    "sampleWindow": "1s",
+    "rate": 10000,
+    "expiryTime": "10s"
+  },
+  "tcpQuota": {
+    "sampleWindow": "3s",
+    "rate": 10000,
+    "expiryTime": "10s"
+  },
+  "services": [                                           
+    {
+      "name": "service_a",                                
+      "weight": 30,                                     
+      "servers": [
+        {
+          "name": "nginx-001",       
+          "host": "172.17.0.2",                        
+          "port": 80
+        }
+      ]
+    }
+  ]
+}
