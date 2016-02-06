@@ -449,6 +449,49 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 		container_memory, _ := docker.CgroupMemDocker(container_id)
 		memory_bundle = append(memory_bundle, container_memory)
 	}
+
+	// find the request per sec from haproxy-frontend
+	res_front, err := http.Get("http://localhost:10001/v1/stats/frontends")
+	if err != nil {
+		panic(err)
+	}
+	body_front, err := ioutil.ReadAll(res_front.Body)
+	res_front.Body.Close()
+	if err != nil {
+		panic(err)
+	}
+	//var rps uint64
+	var object_front []map[string]interface{}
+	err = json.Unmarshal([]byte(body_front), &object_front)
+		rps := object_front[0]["req_rate"].(string)
+		rps_int, _ := strconv.ParseInt(rps, 10, 64)
+	if err == nil {
+	} else {
+		fmt.Println(err)
+	}
+
+	//find resonse time from haproxy-backends
+	//var rtime uint64
+	res_back, err := http.Get("http://localhost:10001/v1/stats/backends")
+	if err != nil {
+		panic(err)
+	}
+	body_back, err := ioutil.ReadAll(res_back.Body)
+	res_back.Body.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	var object_back []map[string]interface{}
+	err = json.Unmarshal([]byte(body_back), &object_back)
+		rtime := object_back[0]["rtime"].(string)
+		rtime_int, _ := strconv.ParseInt(rtime, 10, 64)
+	if err == nil {
+	} else {
+		fmt.Println(err)
+	}
+
+	fmt.Println("rps: ", rps, ", rtime: ", rtime)
 	// find the cpu avarage of application cpu usage
 	average_cpu := summary_cpu/float64(len(container_ids))
 	// create appliction object
@@ -456,6 +499,8 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 		App: appName,
 		Cpu: average_cpu,
 		Memory: memory_bundle,
+		Request: rps_int,
+		Response: rtime_int,
 	}
 
 	app_json, err := json.MarshalIndent(app_metric, "", "\t")

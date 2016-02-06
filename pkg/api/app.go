@@ -9,6 +9,8 @@ type AppMetric struct {
 	App       string `json:"app"`
 	Cpu       float64 `json:"cpu"`
 	Memory    []*docker.CgroupMemStat `json:"memory"`
+	Request	  int64
+	Response  int64
 }
 
 // This is schema of Application Profile
