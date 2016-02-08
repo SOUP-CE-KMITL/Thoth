@@ -20,7 +20,8 @@
       "servers": [
         {
           "name": "nginx-001",       
-          "host": "172.17.0.1",                        
+          "host": "172.17.0.1",
+	  "check" : true,                        
           "port": 80
         }
       ]
