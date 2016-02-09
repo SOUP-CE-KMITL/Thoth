@@ -1,0 +1,32 @@
+{
+    "kind": "Service",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "svc-eight"
+    },
+    "spec": {
+        "selector": {
+            "app": "eight"
+        },
+        "ports": [
+            {
+                "protocol": "TCP",
+                "port": 80,
+                "targetPort": 8000,
+                "nodePort": 30061
+            }
+        ],
+        "clusterIP": "10.0.171.239",
+        "loadBalancerIP": "78.11.24.19",
+        "type": "LoadBalancer"
+    },
+    "status": {
+        "loadBalancer": {
+            "ingress": [
+                {
+                    "ip": "10.0.1.17"
+                }
+            ]
+        }
+    }
+}

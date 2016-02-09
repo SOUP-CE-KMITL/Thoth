@@ -1,17 +1,17 @@
 {
-  "name": "nginx_route",                               
+  "name": "eight_route",                               
   "port": 9000,                                         
   "protocol": "http",
   "filters": [],
   "httpQuota": {
     "sampleWindow": "1s",
     "rate": 10000,
-    "expiryTime": "10s"
+    "expiryTime": "100s"
   },
   "tcpQuota": {
     "sampleWindow": "3s",
     "rate": 10000,
-    "expiryTime": "10s"
+    "expiryTime": "100s"
   },
   "services": [                                           
     {
@@ -19,9 +19,9 @@
       "weight": 30,                                     
       "servers": [
         {
-          "name": "nginx-001",       
-          "host": "172.17.0.1",                        
-          "port": 80
+          "name": "eight-001",       
+          "host": "172.17.0.10",                        
+          "port": 8000
         }
       ]
     }

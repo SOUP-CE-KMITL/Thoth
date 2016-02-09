@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: eight-puzzle
-        image: eight-puzzle
+        image: jigkoxsee/eight-puzzle:simple-ann
         ports:
         - containerPort: 8000
