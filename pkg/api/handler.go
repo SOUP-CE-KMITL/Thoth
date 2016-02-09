@@ -485,7 +485,13 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 	var object_back []map[string]interface{}
 	err = json.Unmarshal([]byte(body_back), &object_back)
 		rtime := object_back[0]["rtime"].(string)
+		res_2xx := object_back[0]["hrsp_2xx"].(string)
+		res_4xx := object_back[0]["hrsp_4xx"].(string)
+		res_5xx := object_back[0]["hrsp_5xx"].(string)
 		rtime_int, _ := strconv.ParseInt(rtime, 10, 64)
+		res2xx_int, _ := strconv.ParseInt(res_2xx, 10, 64)
+		res4xx_int, _ := strconv.ParseInt(res_4xx, 10, 64)
+		res5xx_int, _ := strconv.ParseInt(res_5xx, 10, 64)
 	if err == nil {
 	} else {
 		fmt.Println(err)
@@ -501,6 +507,9 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 		Memory: memory_bundle,
 		Request: rps_int,
 		Response: rtime_int,
+		Response2xx: res2xx_int,
+		Response4xx: res4xx_int,
+		Response5xx: res5xx_int,
 	}
 
 	app_json, err := json.MarshalIndent(app_metric, "", "\t")
