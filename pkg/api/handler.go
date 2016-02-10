@@ -25,6 +25,8 @@ import (
 	"github.com/shirou/gopsutil/docker"
 )
 
+var kube_api string ="http://localhost:8080"
+
 func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
 }
@@ -32,7 +34,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 // list every node
 func GetNodes(w http.ResponseWriter, r *http.Request) {
 	// to do need to read api and port of api server from configuration file
-	res, err := http.Get("http://localhost:8080/api/v1/nodes")
+	res, err := http.Get(kube_api+"/api/v1/nodes")
 	if err != nil {
 		panic(err)
 	}
@@ -52,7 +54,7 @@ func GetNode(w http.ResponseWriter, r *http.Request) {
 	// node name from user.
 	nodesName := vars["nodeName"]
 	// TODO: need to read api and port of api server from configuration file
-	res, err := http.Get("http://localhost:8080/api/v1/nodes/" + nodesName)
+	res, err := http.Get(kube_api+"/api/v1/nodes/" + nodesName)
 	if err != nil {
 		panic(err)
 	}
@@ -98,7 +100,7 @@ func NodeMemory(w http.ResponseWriter, r *http.Request) {
 // list all pods
 func GetPods(w http.ResponseWriter, r *http.Request) {
 	// to do need to read api and port of api server from configuration file
-	res, err := http.Get("http://localhost:8080/api/v1/pods")
+	res, err := http.Get(kube_api+"/api/v1/pods")
 	if err != nil {
 		panic(err)
 	}
@@ -118,7 +120,7 @@ func GetPod(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(podName))
 	// to do need to read api and port of api server from configuration file
 	// TODO: change namespace to flexible.
-	res, err := http.Get("http://localhost:8080/api/v1/namespaces/default/pods/" + podName)
+	res, err := http.Get(kube_api+"/api/v1/namespaces/default/pods/" + podName)
 	if err != nil {
 		panic(err)
 	}
@@ -261,7 +263,7 @@ func CreatePod(w http.ResponseWriter, r *http.Request) {
 	// post json to kubernete api server
 
 	// TODO: need to change name space to user namespace
-	postUrl := "http://localhost:8080/api/v1/namespaces/default/pods"
+	postUrl := kube_api+"/api/v1/namespaces/default/pods"
 	req, err := http.NewRequest("POST", postUrl, bytes.NewBuffer(jsonReq))
 	req.Header.Set("X-Custom-Header", "myvalue")
 	req.Header.Set("Content-Type", "application/json")
