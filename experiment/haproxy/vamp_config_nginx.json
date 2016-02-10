@@ -1,6 +1,6 @@
 {
-  "name": "eight_route",                               
-  "port": 9000,                                         
+  "name": "nginx_route",                               
+  "port": 9001,                                         
   "protocol": "http",
   "filters": [],
   "httpQuota": {
@@ -15,13 +15,13 @@
   },
   "services": [                                           
     {
-      "name": "service_a",                                
+      "name": "service_n",                                
       "weight": 30,                                     
       "servers": [
         {
-          "name": "eight-001",       
-          "host": "172.17.0.5",                        
-          "port": 8000
+          "name": "nginx",       
+          "host": "172.17.0.1",                        
+          "port": 80
         }
       ]
     }

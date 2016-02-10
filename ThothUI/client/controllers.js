@@ -92,23 +92,18 @@ angular.module('myApp').controller('configureController',
     console.log(AuthService.getUserStatus());
 }]);
 
-// others
-
-// resource usage graph
-angular.module('myApp').controller('AppResorceUsageController',
-  ['$scope', '$location', 'AuthService', 
-    function AppResourceUsageController($scope, $location){s
-        $scope.options = {
+// chart configure
+var chart_options = {
             chart: {
                 type: 'lineChart',
-                height: 450,
+                height: 250,
                 margin : {
                     top: 20,
                     right: 20,
                     bottom: 40,
                     left: 55
                 },
-                x: function(d){ return d.x; },
+                x: function(d){ return d.x; },  
                 y: function(d){ return d.y; },
                 useInteractiveGuideline: true,
                 dispatch: {
@@ -118,10 +113,10 @@ angular.module('myApp').controller('AppResorceUsageController',
                     tooltipHide: function(e){ console.log("tooltipHide"); }
                 },
                 xAxis: {
-                    axisLabel: 'Time (ms)'
+                    axisLabel: 'Time (s)'
                 },
                 yAxis: {
-                    axisLabel: 'Voltage (v)',
+                    axisLabel: 'Resource (%)',
                     tickFormat: function(d){
                         return d3.format('.02f')(d);
                     },
@@ -133,11 +128,11 @@ angular.module('myApp').controller('AppResorceUsageController',
             },
             title: {
                 enable: true,
-                text: 'Title for Line Chart'
+                text: 'Application Resource Usage'
             },
             subtitle: {
                 enable: true,
-                text: 'Subtitle for simple line chart. Lorem ipsum dolor sit amet, at eam blandit sadipscing, vim adhuc sanctus disputando ex, cu usu affert alienum urbanitas.',
+                text: 'realtime application resource usage',
                 css: {
                     'text-align': 'center',
                     'margin': '10px 13px 0px 7px'
@@ -145,49 +140,93 @@ angular.module('myApp').controller('AppResorceUsageController',
             },
             caption: {
                 enable: true,
-                html: '<b>Figure 1.</b> Lorem ipsum dolor sit amet, at eam blandit sadipscing, <span style="text-decoration: underline;">vim adhuc sanctus disputando ex</span>, cu usu affert alienum urbanitas. <i>Cum in purto erat, mea ne nominavi persecuti reformidans.</i> Docendi blandit abhorreant ea has, minim tantas alterum pro eu. <span style="color: darkred;">Exerci graeci ad vix, elit tacimates ea duo</span>. Id mel eruditi fuisset. Stet vidit patrioque in pro, eum ex veri verterem abhorreant, id unum oportere intellegam nec<sup>[1, <a href="https://github.com/krispo/angular-nvd3" target="_blank">2</a>, 3]</sup>.',
+                html: '<b>ResourceUsageGraph</b> : This resource usage graph show resource metrics',
                 css: {
                     'text-align': 'justify',
                     'margin': '10px 13px 0px 7px'
                 }
             }
-        };
+        }; 
+/*Random Data Generator */
+  function create(cpu, memory) {
 
-        $scope.data = sinAndCos();
+      //Data is represented as an array of {x,y} pairs.
+      /*for (var i = 0; i < 100; i++) {
+          sin.push({x: i, y: Math.sin(i/10)});
+          sin2.push({x: i, y: i % 10 == 5 ? null : Math.sin(i/10) *0.25 + 0.5});
+          cos.push({x: i, y: .5 * Math.cos(i/10+ 2) + Math.random() / 10});
+      }*/
 
-        /*Random Data Generator */
-        function sinAndCos() {
-            var sin = [],sin2 = [],
-                cos = [];
+      //Line chart data should be sent as an array of series objects.
+      return [
+          {
+              values: cpu,      //values - represents the array of {x,y} data points
+              key: 'CPU', //key  - the name of the series.
+              color: '#ff7f0e'  //color - optional: choose your own line color.
+          },
+          {
+              values: memory,
+              key: 'Memory',
+              color: '#2ca02c'
+          }
+      ];
+  };
 
-            //Data is represented as an array of {x,y} pairs.
-            for (var i = 0; i < 100; i++) {
-                sin.push({x: i, y: Math.sin(i/10)});
-                sin2.push({x: i, y: i % 10 == 5 ? null : Math.sin(i/10) *0.25 + 0.5});
-                cos.push({x: i, y: .5 * Math.cos(i/10+ 2) + Math.random() / 10});
+// others
+// resource usage graph
+angular.module('myApp').controller('AppResourceUsageController',
+  ['$scope', '$http', '$q', 'AuthService',
+    function ($scope, $http, $q, AuthService) {
+      // array of application
+      var apps = [];
+      // http get application lists.
+      $http.get("http://localhost:8182/apps")
+      .success(function(response) {
+        for(var i = 0; i < response.items.length; i++){
+          apps[i] = {};
+          apps[i].name = response.items[i].metadata.name;
+          apps[i].namespace = response.items[i].metadata.namespace;
+        }
+          console.log(apps);
+      });
+
+        $scope.options = chart_options;
+        //$scope.data = [{values: [], key: 'cpu', color: '#ff7f0e'},{values: [], key: 'memory', color: '#2ca02c'}];
+        $scope.apps = apps;
+        // pause/play btn
+        $scope.run = true;
+        var app_datas = [];
+
+        var t = 0;
+        setInterval(function(){
+          if (!$scope.run) return;
+          for(var c = 0; c < apps.length; c++){
+            app_datas[c] = $http.get("http://localhost:8182/app/"+apps[c].name+"/metrics/")
+          }
+          // request resource usage from api
+          $q.all(app_datas).then(function(response) {
+            console.log(response);
+            for(var r = 0; r < response.length; r++){
+              console.log(response[r].data.cpu);
+              $scope.apps[r].data = [];
+              $scope.apps[r].data[0] = {};
+              $scope.apps[r].data[0].values = [];
+              $scope.apps[r].data[0].values.push({ x:t, y:response[r].data.cpu })
+              var percent_mem = response[r].data.memory[0].mem_usage_in_bytes/1000000000 * 100;
+              $scope.apps[r].data[1] = {};
+              $scope.apps[r].data[1].values = [];
+              $scope.apps[r].data[1].values.push({ x:t, y:percent_mem })
+              console.log("cpu : "+$scope.apps[r].data[1].values.slice(-1)[0].x);
+              if($scope.apps[r].data[0].values.length > 20) $scope.apps[r].data[0].values.shift();
+              if($scope.apps[r].data[1].values.length > 20) $scope.apps[r].data[1].values.shift();
+              $scope.apps[r].data[0].key = 'cpu';
+              $scope.apps[r].data[0].color = '#ff7f0e';
+              $scope.apps[r].data[1].key = 'memory';
+              $scope.apps[r].data[1].color = '#2ca02c';
             }
-
-            //Line chart data should be sent as an array of series objects.
-            return [
-                {
-                    values: sin,      //values - represents the array of {x,y} data points
-                    key: 'Sine Wave', //key  - the name of the series.
-                    color: '#ff7f0e'  //color - optional: choose your own line color.
-                },
-                {
-                    values: cos,
-                    key: 'Cosine Wave',
-                    color: '#2ca02c'
-                },
-                {
-                    values: sin2,
-                    key: 'Another sine wave',
-                    color: '#7777ff',
-                    area: true      //area - set to true if you want this line to turn into a filled area chart.
-                }
-            ];
-        };
-
+              t++;
+          });
+        }, 1000);        
     }
 ]);
 

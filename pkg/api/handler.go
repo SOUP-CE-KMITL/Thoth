@@ -404,14 +404,15 @@ func DockerCPUPercent(interval time.Duration, container_id string) (float64, err
 	calculate := func(t1, t2 *cpu.CPUTimesStat) float64 {
 		t1All, t1Busy := getAllBusy(t1)
 		t2All, t2Busy := getAllBusy(t2)
-
 		if t2Busy <= t1Busy {
 			return 0
 		}
 		if t2All <= t1All {
 			return 1
 		}
-		return (t2Busy - t1Busy) / (t2All - t1All) * 100
+		fmt.Println("Busy: ", t2Busy - t1Busy, ", All: ", t2All - t1All);
+		fmt.Println("idle time 1: ", t1Busy - t1All, ", idle time 2: ", t2Busy - t2All);
+		return (t2Busy - t1Busy) / (t2All - t1All) 	* 100
 	}
 
 	// Get CPU usage at the start of the interval.

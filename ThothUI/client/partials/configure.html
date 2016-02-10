@@ -32,49 +32,41 @@
 		</form>
 	   </div>
    </div>
+  </div>
+ </div>
+ <div ng-controller="AppResourceUsageController">
+ <div class="panel panel-info" ng-repeat="app in apps">
+  <div class="panel-heading">
+    <h3 class="panel-title">{{app.name}}</h3>
+  </div>
+  <div class="panel-body">
    <div class="row">
-   		<div class="col-md-6">
-		   	<form class="form-horizontal">
-			  <fieldset>
-			    <legend>Threshold Scale</legend>
-			    <div class="form-group">
-			      <label for="cpu" class="col-md-2 control-label">
-			      	CPU
-			      </label>
-			      <div class="col-md-10">
-			        <input type="number" class="form-control" id="cpu" placeholder="cpu">
-			      </div>
-			    </div>
-			    <div class="form-group">
-			      <label for="memory" class="col-md-2 control-label">
-			      	Memory
-			      </label>
-			      <div class="col-md-10">
-			        <input type="number" class="form-control" id="memory" placeholder="">
-			      </div>
-			    </div>
-			    <div class="form-group">
-			      <label for="r" class="col-md-2 control-label">
-			      	Disk usage
-			      </label>
-			      <div class="col-md-10">
-			        <input type="number" class="form-control" id="diskusage " placeholder="Disk usage">
-			      </div>
-			    </div>
-			    <div class="form-group">
-			      <div class="col-md-10 col-md-offset-2">
-			        <button type="button" class="btn btn-default">clear</button>
-			        <button type="submit" class="btn btn-primary">change</button>
-			      </div>
-			    </div>
-			  </fieldset>
-			</form>
-	   </div>
-	   <div class="col-md-6">
-	   	 <div ng-controller="appResourceUsageController">
-		   	 <nvd3 options="options" data="data"></nvd3>
-	   	 </div>
-	   </div>
+	  <div class="col-md-6">
+	   	<div>
+		   	<nvd3 options="options" data="app.data"></nvd3>
+		   	{{ app.data }}
+	   	</div>
+	  </div>
+	  <div class="col-md-6">
+	  	<table class="table table-hover">
+	   		<tr>
+	   			<th>Topic</th>
+	   			<th>Value</th>
+	   		</tr>
+	   		<tr>
+	   			<td>Application name</td>
+	   			<td>{{app.name}}</td>
+	   		</tr>
+	   		<tr>
+	   			<td>user </td>
+	   			<td>{{app.namespace}}</td>
+	   		</tr>
+	   	</table>
+	  </div>
+	 </div>
+	</div>
+   </div>
    </div>
   </div>
+ </div>
 </div>
