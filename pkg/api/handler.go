@@ -189,6 +189,13 @@ func GetApp(w http.ResponseWriter, r *http.Request){
 	fmt.Fprint(w, string(res))
 }
 
+func GetApps(w http.ResponseWriter, r *http.Request){
+	res, err := exec.Command("kubectl", "get", "rc", "-o", "json").Output()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprint(w, string(res))
+}
 
 func CreatePod(w http.ResponseWriter, r *http.Request) {
 	var pod Pod

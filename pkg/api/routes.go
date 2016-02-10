@@ -56,6 +56,12 @@ var routes = Routes{
 		CreatePod,
 	},
 	Route{
+		"GetApps",
+		"GET",
+		"/apps/",
+		GetApps,
+	},
+	Route{
 		"GetApp",
 		"GET",
 		"/app/{appName}",
