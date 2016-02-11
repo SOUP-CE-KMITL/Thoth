@@ -83,7 +83,6 @@ angular.module('myApp').controller('registerController',
 angular.module('myApp').controller('deployController', 
   ['$scope', '$location', 'AuthService',
   function ($scope, $location, AuthService) {
-    console.log(AuthService.getUserStatus());
 }]);
 
 angular.module('myApp').controller('configureController', 
@@ -147,102 +146,92 @@ var chart_options = {
                 }
             }
         }; 
-/*Random Data Generator */
-  function create(cpu, memory) {
-
-      //Data is represented as an array of {x,y} pairs.
-      /*for (var i = 0; i < 100; i++) {
-          sin.push({x: i, y: Math.sin(i/10)});
-          sin2.push({x: i, y: i % 10 == 5 ? null : Math.sin(i/10) *0.25 + 0.5});
-          cos.push({x: i, y: .5 * Math.cos(i/10+ 2) + Math.random() / 10});
-      }*/
-
-      //Line chart data should be sent as an array of series objects.
-      return [
-          {
-              values: cpu,      //values - represents the array of {x,y} data points
-              key: 'CPU', //key  - the name of the series.
-              color: '#ff7f0e'  //color - optional: choose your own line color.
-          },
-          {
-              values: memory,
-              key: 'Memory',
-              color: '#2ca02c'
-          }
-      ];
-  };
 
 // others
 // resource usage graph
 angular.module('myApp').controller('AppResourceUsageController',
   ['$scope', '$http', '$q', 'AuthService',
     function ($scope, $http, $q, AuthService) {
-      // array of application
-      var apps = [];
-      // http get application lists.
-      $http.get("http://localhost:8182/apps")
-      .success(function(response) {
-        console.log(response.items.length);
-        for(var i = 0; i < response.items.length; i++){
-          apps[i] = {};
-          apps[i].name = response.items[i].metadata.name;
-          apps[i].namespace = response.items[i].metadata.namespace;
+      // get user details
+      AuthService.getUser().then(function( user ) {
+        $scope.user = user;
+        console.log(" user : " + user.user);
+        // array of Application
+        var apps = [];
+        // http get application lists.
+        $http.get("http://localhost:8182/apps/"+user.user)
+        .success(function(response) {
 
-          $scope.apps[i].data = [];
-          $scope.apps[i].data[0] = {};
-          $scope.apps[i].data[0].values = [];
-          $scope.apps[i].data[1] = {};
-          $scope.apps[i].data[1].values = [];
+          console.log("length : " + response.items.length);
+          for(var i = 0; i < response.items.length; i++){
+            // get application profile
+            apps[i] = {};
+            apps[i].name = response.items[i].metadata.name;
+            apps[i].namespace = response.items[i].metadata.namespace;
+            apps[i].internal_port = response.items[i].spec.template.spec.containers[0].ports[0].containerPort;
+            apps[i].replicas = response.items[i].spec.replicas
+            // initail array
+            apps[i].data = [];
+            apps[i].data[0] = {};
+            apps[i].data[0].values = [];
+            apps[i].data[1] = {};
+            apps[i].data[1].values = [];
 
-          $scope.apps[i].data[0].key = 'cpu';
-          $scope.apps[i].data[0].color = '#ff7f0e';
-          $scope.apps[i].data[1].key = 'memory';
-          $scope.apps[i].data[1].color = '#2ca02c';
-          console.log("created "+i)
-        }
-          console.log(apps);
-      });
-
-        $scope.options = chart_options;
-        //$scope.data = [{values: [], key: 'cpu', color: '#ff7f0e'},{values: [], key: 'memory', color: '#2ca02c'}];
-        $scope.apps = apps;
-        // pause/play btn
-        $scope.run = true;
-        var app_datas = [];
-
-        var t = 0;
-
-        setInterval(function(){
-          if (!$scope.run) return;
-          for(var c = 0; c < apps.length; c++){
-            app_datas[c] = $http.get("http://localhost:8182/app/"+apps[c].name+"/metrics/")
+            apps[i].data[0].key = 'cpu';
+            apps[i].data[0].color = '#ff7f0e';
+            apps[i].data[1].key = 'memory';
+            apps[i].data[1].color = '#2ca02c';
+            console.log("created "+i)
           }
 
-          // request resource usage from api
-          $q.all(app_datas).then(function(response) {
-            console.log(response);
-            for(var r = 0; r < response.length; r++){
-              console.log(response[r].data.cpu); 
-              $scope.apps[r].data[0].values.push({ x:t, y:response[r].data.cpu })
-              var percent_mem = response[r].data.memory[0].mem_usage_in_bytes/1000000000 * 100;
-              $scope.apps[r].data[1].values.push({ x:t, y:percent_mem })
-              console.log("cpu : "+$scope.apps[r].data[1].values.slice(-1)[0].x);
-              if($scope.apps[r].data[0].values.length > 20) $scope.apps[r].data[0].values.shift();
-              if($scope.apps[r].data[1].values.length > 20) $scope.apps[r].data[1].values.shift();
+          $scope.options = chart_options;
+          //$scope.data = [{values: [], key: 'cpu', color: '#ff7f0e'},{values: [], key: 'memory', color: '#2ca02c'}];
+          $scope.apps = apps;
+          // pause/play btn
+          $scope.run = true;
+          var app_datas = [];
+
+          var t = 0;
+
+          setInterval(function(){
+            if (!$scope.run) return;
+            for(var c = 0; c < apps.length; c++){
+              console.log(apps[c].name);
+              app_datas[c] = $http.get("http://localhost:8182/app/"+apps[c].name+"/metrics/"+user.user)
             }
-              t++;
-          });
-        }, 1000);        
+            // request resource usage from api
+            $q.all(app_datas).then(function(response) {
+              console.log(response);
+              for(var r = 0; r < response.length; r++){
+                console.log(response[r].data.cpu); 
+                $scope.apps[r].data[0].values.push({ x:t, y:response[r].data.cpu })
+                var percent_mem = response[r].data.memory[0].mem_usage_in_bytes/1000000000 * 100;
+                $scope.apps[r].data[1].values.push({ x:t, y:percent_mem })
+                console.log("cpu : "+$scope.apps[r].data[1].values.slice(-1)[0].x);
+                if($scope.apps[r].data[0].values.length > 20) $scope.apps[r].data[0].values.shift();
+                if($scope.apps[r].data[1].values.length > 20) $scope.apps[r].data[1].values.shift();
+              }
+                t++;
+            });
+          }, 1000);
+        })
+      })    
     }
 ]);
 
 // navbar active control
 angular.module('myApp').controller('HeaderController', 
   ['$scope', '$location', 'AuthService',
-  function HeaderController($scope, $location){
+  function HeaderController($scope, $location, AuthService){
+    // check navbar active
     console.log($location.path());
     $scope.isActive = function (viewLocation) {
       return $location.path().indexOf(viewLocation) == 0;
     };
+    // get user details
+    AuthService.getUser().then(function( user ) {
+      $scope.user = user;
+    });
+    $scope.user_status = AuthService.getUserStatus();
   }
 ]);

@@ -118,6 +118,8 @@ func GetPod(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(podName))
 	// to do need to read api and port of api server from configuration file
 	// TODO: change namespace to flexible.
+
+	var dat map[string] interface{}
 	res, err := http.Get("http://localhost:8080/api/v1/namespaces/default/pods/" + podName)
 	if err != nil {
 		panic(err)
@@ -127,7 +129,14 @@ func GetPod(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Fprint(w, string(body))
+	if err := json.Unmarshal(body, &dat);err != nil {
+		panic(err)
+	} 
+	pretty_body, err := json.MarshalIndent(dat, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprint(w, string(pretty_body))
 }
 
 // list specific pod cpu
@@ -190,7 +199,13 @@ func GetApp(w http.ResponseWriter, r *http.Request){
 }
 
 func GetApps(w http.ResponseWriter, r *http.Request){
-	res, err := exec.Command("kubectl", "get", "rc", "-o", "json").Output()
+	
+	vars := mux.Vars(r)
+	// node name from user.
+	namespace := vars["namespace"]
+
+	res, err := exec.Command("kubectl", "get", "rc", "-o", "json", "--namespace="+namespace).Output()
+	fmt.Println("namespace = "+namespace);
 	if err != nil {
 		panic(err)
 	}
@@ -440,11 +455,12 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// get app Name
 	appName := vars["appName"]
+	namespace := vars["namespace"]
 
 	var summary_cpu float64
 	var memory_bundle []*docker.CgroupMemStat
 
-	container_ids, pod_ips, err := GetContainerIDList("http://localhost", "8080", appName, "default")
+	container_ids, pod_ips, err := GetContainerIDList("http://localhost", "8080", appName, namespace)
 	if err != nil {
 		fmt.Println(err)
 	}

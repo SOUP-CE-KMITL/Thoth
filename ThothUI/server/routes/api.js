@@ -37,5 +37,9 @@ router.get('/logout', function(req, res) {
   res.status(200).json({status: 'Bye!'});
 });
 
+router.get('/profile', function(req, res){
+  res.status(200).json({user: req.user.username});
+});
+
 
 module.exports = router;

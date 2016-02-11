@@ -1,0 +1,12 @@
+.floating-icon {
+	margin-top: 25%;
+	margin-left:8%;
+}
+
+.floating-icon {
+	font-size: 0.7em;
+}
+
+.floating-btn:hover > .floating-icon{
+	color: black;
+}

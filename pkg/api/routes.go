@@ -58,6 +58,12 @@ var routes = Routes{
 	Route{
 		"GetApps",
 		"GET",
+		"/apps/{namespace}",
+		GetApps,
+	},
+	Route{
+		"GetApps",
+		"GET",
 		"/apps/",
 		GetApps,
 	},
@@ -76,7 +82,7 @@ var routes = Routes{
 	Route{
 		"GetAppResource",
 		"GET",
-		"/app/{appName}/metrics",
+		"/app/{appName}/metrics/{namespace}",
 		GetAppResource,
 	},
 }

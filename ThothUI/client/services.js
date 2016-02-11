@@ -11,7 +11,8 @@ angular.module('myApp').factory('AuthService',
       getUserStatus: getUserStatus,
       login: login,
       logout: logout,
-      register: register
+      register: register,
+      getUser: getUser
     });
 
     function isLoggedIn() {
@@ -48,7 +49,6 @@ angular.module('myApp').factory('AuthService',
           user = false;
           deferred.reject();
         });
-
       // return promise object
       return deferred.promise;
 
@@ -99,7 +99,21 @@ angular.module('myApp').factory('AuthService',
 
       // return promise object
       return deferred.promise;
+    }
 
+    function getUser() {
+      var deferred = $q.defer();
+
+      $http.get('/user/profile')
+      .success(function (data) {
+        console.log("user from backend (service) :"+data.user)
+        deferred.resolve(data);
+      })
+      .error(function (data) {
+        deferred.reject("error");
+      });
+
+      return deferred.promise;
     }
 
 }]);
