@@ -1,57 +1,68 @@
-// need to change
 package main
 
 import (
 	"fmt"
-	"github.com/influxdb/influxdb/client/v2"
-	_ "log"
-	"net/url"
-	_ "os"
+	"log"
+	"math/rand"
+	//"net/http"
+	//"os"
+	"github.com/influxdata/influxdb/client/v2"
 	"time"
 )
 
-// influxDB variable
-const (
-	MyDB     = "thoth"
-	username = "thoth_user"
-	password = "thoth_secret"
-)
+var MyDB string = "thoth"
+var username string = "thoth"
+var password string = "thoth"
 
 func main() {
-	// Male client
-	u, _ := url.Parse("http://localhost:8086")
-	c := client.NewClient(client.Config{
-		URL:      u,
+	// Make client
+	c, _ := client.NewHTTPClient(client.HTTPConfig{
+		Addr:     "http://localhost:8086",
 		Username: username,
 		Password: password,
 	})
 
-	// Create a new point batch
+	// batch write
+	//	writePoints(c)
+	// query
+	res, err := queryDB(c, fmt.Sprintf("SELECT count(busy) FROM cpu_usage"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Print(res)
+}
+
+func writePoints(clnt client.Client) {
+	sampleSize := 1000
+	rand.Seed(42)
+
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  MyDB,
-		Precision: "s",
+		Precision: "us",
 	})
 
-	// Create point and add to batch
-	// cpu is tags
-	tags := map[string]string{"cpu": "cpu-total"}
-	fields := map[string]interface{}{
-		"idle":   10.1,
-		"system": 53.3,
-		"user":   46.6,
+	for i := 0; i < sampleSize; i++ {
+		regions := []string{"us-west1", "us-west2", "us-west3", "us-east1"}
+		tags := map[string]string{
+			"cpu":    "cpu-total",
+			"host":   fmt.Sprintf("host%d", rand.Intn(1000)),
+			"region": regions[rand.Intn(len(regions))],
+		}
+
+		idle := rand.Float64() * 100.0
+		fields := map[string]interface{}{
+			"idle": idle,
+			"busy": 100.0 - idle,
+		}
+
+		pt, _ := client.NewPoint("cpu_usage", tags, fields, time.Now())
+		bp.AddPoint(pt)
 	}
 
-	// cpu usage is measurement
-	pt := client.NewPoint("cpu_usage", tags, fields, time.Now())
-	bp.AddPoint(pt)
-
-	// Write the batch
-	c.Write(bp)
-
-	// query data form DB
-	res, _ := queryDB(c, "SELECT * FROM cpu_usage")
-	fmt.Println(res)
-
+	err := clnt.Write(bp)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func queryDB(clnt client.Client, cmd string) (res []client.Result, err error) {
@@ -64,6 +75,8 @@ func queryDB(clnt client.Client, cmd string) (res []client.Result, err error) {
 			return res, response.Error()
 		}
 		res = response.Results
+	} else {
+		return res, err
 	}
 	return res, nil
 }
