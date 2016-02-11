@@ -182,10 +182,23 @@ angular.module('myApp').controller('AppResourceUsageController',
       // http get application lists.
       $http.get("http://localhost:8182/apps")
       .success(function(response) {
+        console.log(response.items.length);
         for(var i = 0; i < response.items.length; i++){
           apps[i] = {};
           apps[i].name = response.items[i].metadata.name;
           apps[i].namespace = response.items[i].metadata.namespace;
+
+          $scope.apps[i].data = [];
+          $scope.apps[i].data[0] = {};
+          $scope.apps[i].data[0].values = [];
+          $scope.apps[i].data[1] = {};
+          $scope.apps[i].data[1].values = [];
+
+          $scope.apps[i].data[0].key = 'cpu';
+          $scope.apps[i].data[0].color = '#ff7f0e';
+          $scope.apps[i].data[1].key = 'memory';
+          $scope.apps[i].data[1].color = '#2ca02c';
+          console.log("created "+i)
         }
           console.log(apps);
       });
@@ -198,31 +211,24 @@ angular.module('myApp').controller('AppResourceUsageController',
         var app_datas = [];
 
         var t = 0;
+
         setInterval(function(){
           if (!$scope.run) return;
           for(var c = 0; c < apps.length; c++){
             app_datas[c] = $http.get("http://localhost:8182/app/"+apps[c].name+"/metrics/")
           }
+
           // request resource usage from api
           $q.all(app_datas).then(function(response) {
             console.log(response);
             for(var r = 0; r < response.length; r++){
-              console.log(response[r].data.cpu);
-              $scope.apps[r].data = [];
-              $scope.apps[r].data[0] = {};
-              $scope.apps[r].data[0].values = [];
+              console.log(response[r].data.cpu); 
               $scope.apps[r].data[0].values.push({ x:t, y:response[r].data.cpu })
               var percent_mem = response[r].data.memory[0].mem_usage_in_bytes/1000000000 * 100;
-              $scope.apps[r].data[1] = {};
-              $scope.apps[r].data[1].values = [];
               $scope.apps[r].data[1].values.push({ x:t, y:percent_mem })
               console.log("cpu : "+$scope.apps[r].data[1].values.slice(-1)[0].x);
               if($scope.apps[r].data[0].values.length > 20) $scope.apps[r].data[0].values.shift();
               if($scope.apps[r].data[1].values.length > 20) $scope.apps[r].data[1].values.shift();
-              $scope.apps[r].data[0].key = 'cpu';
-              $scope.apps[r].data[0].color = '#ff7f0e';
-              $scope.apps[r].data[1].key = 'memory';
-              $scope.apps[r].data[1].color = '#2ca02c';
             }
               t++;
           });
