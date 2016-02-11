@@ -40,7 +40,7 @@ func main() {
 		if err := json.Unmarshal(body, &resJson); err != nil {
 			panic(err)
 		}
-		fmt.Print(resJson)
+		fmt.Print(resJson["Response"].(float64))
 	}
 }
 
