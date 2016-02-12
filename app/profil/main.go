@@ -1,40 +1,107 @@
-// TODO : need to change to api
 package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"encoding/binary"
-	"fmt"
-	"html"
-	"io"
-	"io/ioutil"
-	"os/exec"
+	"encoding/json"
 	"errors"
-	"strconv"
+	"fmt"
+	//"html"
+	//"io"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"os/exec"
+	"strconv"
 
-	"github.com/gorilla/mux"
+	//"github.com/gorilla/mux"
 
-	"time"
+	"github.com/SOUP-CE-KMITL/Thoth"
+	"github.com/SOUP-CE-KMITL/Thoth/profil"
+	"github.com/influxdata/influxdb/client/v2"
 	"github.com/shirou/gopsutil/cpu"
-	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/disk"
-	"github.com/shirou/gopsutil/net"
 	"github.com/shirou/gopsutil/docker"
+	"github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/net"
+	"time"
 )
 
-var kube_api string ="http://localhost:8080"
+var kube_api string = "http://localhost:8080"
 
-func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
+var MyDB string = "thoth"
+var username string = "thoth"
+var password string = "thoth"
+
+type RC struct {
+	Namespace string // Namespace = User
+	Name      string
+}
+
+func main() {
+	// Connect InfluxDB
+	c, _ := client.NewHTTPClient(client.HTTPConfig{
+		Addr:     "http://localhost:8086",
+		Username: username,
+		Password: password,
+	})
+
+	// Get All RC name
+	jsonRc := GetPods()
+	var objRc interface{}
+	err := json.Unmarshal([]byte(jsonRc), &objRc)
+	if err != nil {
+		panic(err)
+	}
+	// Extract RC Name
+	RCArray := []RC{}
+	RCLen := 0
+	_RCLen := len(objRc.(map[string]interface{})["items"].([]interface{}))
+	for i := 0; i < _RCLen; i++ {
+		namespace := objRc.(map[string]interface{})["items"].([]interface{})[i].(map[string]interface{})["metadata"].(map[string]interface{})["namespace"].(string)
+		if namespace != "default" {
+			rc := RC{
+				Name:      objRc.(map[string]interface{})["items"].([]interface{})[i].(map[string]interface{})["metadata"].(map[string]interface{})["name"].(string),
+				Namespace: namespace,
+			}
+			fmt.Println(rc.Namespace + "/" + rc.Name)
+			RCArray = append(RCArray, rc)
+			RCLen++
+		}
+	}
+	//fmt.Println(RCArray)
+
+	// Getting App resource usage
+	for i := 0; i < RCLen; i++ {
+		res := GetAppResource(RCArray[i].Namespace, RCArray[i].Name)
+		fmt.Println(res)
+		fmt.Println(res.Cpu)
+		fmt.Println(res.Memory)
+
+		//app_metric := thoth.AppMetric{
+		//	App:         name,
+		//	Cpu:         average_cpu,
+		//	Memory:      memory_bundle,
+		//	Request:     rps_int,
+		//	Response:    rtime_int,
+		//	Response2xx: res2xx_int,
+		//	Response4xx: res4xx_int,
+		//	Response5xx: res5xx_int,
+		//}
+
+	}
+
+	res, err := profil.QueryDB(c, MyDB, fmt.Sprintf("SELECT count(busy) FROM cpu_usage"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(res)
 }
 
 // list every node
-func GetNodes(w http.ResponseWriter, r *http.Request) {
+func GetNodes() string {
 	// to do need to read api and port of api server from configuration file
-	res, err := http.Get(kube_api+"/api/v1/nodes")
+	res, err := http.Get(kube_api + "/api/v1/nodes")
 	if err != nil {
 		panic(err)
 	}
@@ -45,16 +112,15 @@ func GetNodes(w http.ResponseWriter, r *http.Request) {
 		log.Fatal(err)
 	}
 
-	fmt.Fprint(w, string(body))
+	return string(body)
 }
 
-func GetNode(w http.ResponseWriter, r *http.Request) {
+func GetNode() string {
 
-	vars := mux.Vars(r)
 	// node name from user.
-	nodesName := vars["nodeName"]
+	nodesName := "nodeName"
 	// TODO: need to read api and port of api server from configuration file
-	res, err := http.Get(kube_api+"/api/v1/nodes/" + nodesName)
+	res, err := http.Get(kube_api + "/api/v1/nodes/" + nodesName)
 	if err != nil {
 		panic(err)
 	}
@@ -76,31 +142,13 @@ func GetNode(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	fmt.Fprint(w, string(send_obj))
-}
-
-func OptionCors(w http.ResponseWriter, r *http.Request) {
-	// TODO: need to change origin to deployed domain name
-	if origin := r.Header.Get("Origin"); origin != "http://localhost" {
-		w.Header().Set("Access-Control-Allow-Origin", origin)
-		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
-		w.Header().Set("Access-Control-Allow-Headers",
-			"Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-	}
-}
-
-// list specific node cpu
-func NodeCpu(w http.ResponseWriter, r *http.Request) {
-}
-
-// list specifc node memory
-func NodeMemory(w http.ResponseWriter, r *http.Request) {
+	return string(send_obj)
 }
 
 // list all pods
-func GetPods(w http.ResponseWriter, r *http.Request) {
+func GetPods() string {
 	// to do need to read api and port of api server from configuration file
-	res, err := http.Get(kube_api+"/api/v1/pods")
+	res, err := http.Get(kube_api + "/api/v1/pods")
 	if err != nil {
 		panic(err)
 	}
@@ -109,18 +157,14 @@ func GetPods(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Fprint(w, string(body))
+	return string(body)
 }
 
 // list specific pod details
-func GetPod(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	// node name from user.
-	podName := vars["podName"]
-	fmt.Fprint(w, string(podName))
+func GetPod(podName, namespace string) string {
 	// to do need to read api and port of api server from configuration file
 	// TODO: change namespace to flexible.
-	res, err := http.Get(kube_api+"/api/v1/namespaces/default/pods/" + podName)
+	res, err := http.Get(kube_api + "/api/v1/" + namespace + "/pods/" + podName)
 	if err != nil {
 		panic(err)
 	}
@@ -129,156 +173,26 @@ func GetPod(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Fprint(w, string(body))
+	return string(body)
 }
 
-// list specific pod cpu
-func PodCpu(w http.ResponseWriter, r *http.Request) {
-}
-
-// list specific pod memory
-func PodMemory(w http.ResponseWriter, r *http.Request) {
-}
-
-// post handler for scale pod by pod name
-
-// TODO : remove
-// test mocks
-func nodeTestMock(w http.ResponseWriter, r *http.Request) {
-	nodes := Nodes{
-		Node{Name: "node1", Ip: "192.168.1.2", Cpu: 5000, Memory: 3000, DiskUsage: 1000},
-		Node{Name: "node2", Ip: "192.169.1.4", Cpu: 5000, Memory: 3000, DiskUsage: 1000},
-	}
-
-	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(nodes); err != nil {
-		panic(err)
-	}
-}
-
-// TODO : remove
-// test ssh to exec command on other machine
-func testExec(w http.ResponseWriter, r *http.Request) {
-	commander := SSHCommander{"root", "161.246.70.75"}
-	cmd := []string{
-		"ls",
-		".",
-	}
-	var (
-		output []byte
-		err    error
-	)
-
-	if output, err = commander.Command(cmd...).Output(); err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Fprint(w, string(output[:6]))
-}
-
-func GetApp(w http.ResponseWriter, r *http.Request){
-
-	vars := mux.Vars(r)
-	// app name from user.
-	appName := vars["appName"]
+func GetApp(name string) string {
 	fmt.Println(appName)
 	// TODO: need to find new solution to get info from api like other done.
-	res, err := exec.Command("kubectl", "get", "pod", "-l", "app="+appName, "-o", "json").Output()
+	res, err := exec.Command("kubectl", "get", "pod", "-l", "app="+name, "-o", "json").Output()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Fprint(w, string(res))
+	return string(res)
 }
 
-func GetApps(w http.ResponseWriter, r *http.Request){
+func GetApps() string {
 	res, err := exec.Command("kubectl", "get", "rc", "-o", "json").Output()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Fprint(w, string(res))
+	return string(res)
 }
-
-func CreatePod(w http.ResponseWriter, r *http.Request) {
-	var pod Pod
-	// limits json post request for prevent overflow attack.
-	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
-	if err != nil {
-		panic(err)
-	}
-
-	// catch error from close reader
-	if err := r.Body.Close(); err != nil {
-		panic(err)
-	}
-
-	// get request json information
-	if err := json.Unmarshal(body, &pod); err != nil {
-		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
-		w.WriteHeader(422) // unprocessable entity
-		if err := json.NewEncoder(w).Encode(err); err != nil {
-			panic(err)
-		}
-	}
-
-	// prepare json to send to create by kubernetes api server
-	labels := map[string]interface{}{
-		"app": pod.Name,
-	}
-
-	metadata := map[string]interface{}{
-		"name":   pod.Name,
-		"labels": labels,
-	}
-
-	ports := map[string]interface{}{
-		"containerPort": 80,
-	}
-
-	containers := map[string]interface{}{
-		"name":   pod.Name,
-		"image":  pod.Image,
-		"ports":  []map[string]interface{}{ports},
-		"memory": pod.Memory,
-		"cpu":    pod.Cpu,
-	}
-
-	spec := map[string]interface{}{
-		"containers": []map[string]interface{}{containers},
-	}
-
-	objReq := map[string]interface{}{
-		"apiVersion": "v1",
-		"kind":       "Pod",
-		"metadata":   metadata,
-		"spec":       spec,
-	}
-
-	jsonReq, err := json.MarshalIndent(objReq, "", "\t")
-	if err != nil {
-		panic(err)
-	}
-
-	fmt.Println("you sent ", string(jsonReq))
-	// post json to kubernete api server
-
-	// TODO: need to change name space to user namespace
-	postUrl := kube_api+"/api/v1/namespaces/default/pods"
-	req, err := http.NewRequest("POST", postUrl, bytes.NewBuffer(jsonReq))
-	req.Header.Set("X-Custom-Header", "myvalue")
-	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	// defer for ensure
-	defer resp.Body.Close()
-
-	response, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(response))
-}	
 
 /**
 * 	Get current resource by using cgroup
@@ -316,13 +230,13 @@ func GetCurrentResourceCgroup(container_id string, metric_type int) (uint64, err
 /**
  *   Get List of ContainerID and pod's ip by replication name and their namespace
  **/
-func GetContainerIDList(url string, port string, rc_name string, namespace string) ([]string, []string, error) {
+func GetContainerIDList(url string, rc_name string, namespace string) ([]string, []string, error) {
 	// TODO : maybe user want to get container id which map with it's pod
 	// initail rasult array
 	container_ids := []string{}
 	pod_ips := []string{}
 
-	res, err := http.Get(url + ":" + port + "/api/v1/namespaces/" + namespace + "/pods")
+	res, err := http.Get(url + "/api/v1/namespaces/" + namespace + "/pods")
 	if err != nil {
 		fmt.Println("Can't connect to cadvisor")
 		panic(err)
@@ -360,37 +274,37 @@ func GetContainerIDList(url string, port string, rc_name string, namespace strin
 /**
 	read node resource usage
 **/
-func GetNodeResource(w http.ResponseWriter, r *http.Request) {
-	// get this node memory 
+func GetNodeResource() string {
+	// get this node memory
 	memory, _ := mem.VirtualMemory()
 	// get this node cpu percent usage
-	cpu_percent, _ := cpu.CPUPercent(time.Duration(1) * time.Second, false)
+	cpu_percent, _ := cpu.CPUPercent(time.Duration(1)*time.Second, false)
 	// Disk mount Point
 	disk_partitions, _ := disk.DiskPartitions(true)
 	// Disk usage
 	var disk_usages []*disk.DiskUsageStat
 	for _, disk_partition := range disk_partitions {
 		if disk_partition.Mountpoint == "/" || disk_partition.Mountpoint == "/home" {
-			disk_stat, _ := disk.DiskUsage(disk_partition.Device);
+			disk_stat, _ := disk.DiskUsage(disk_partition.Device)
 			disk_usages = append(disk_usages, disk_stat)
-		} 
+		}
 	}
 	// Network
 	network, _ := net.NetIOCounters(false)
 
 	// create new node obj with resource usage information
-	node_metric := NodeMetric{
-		Cpu: cpu_percent,
-		Memory: memory,
+	node_metric := thoth.NodeMetric{
+		Cpu:       cpu_percent,
+		Memory:    memory,
 		DiskUsage: disk_usages,
-		Network: network,
+		Network:   network,
 	}
 
 	node_json, err := json.MarshalIndent(node_metric, "", "\t")
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	fmt.Fprint(w, string(node_json))
+	return string(node_json)
 }
 
 /**
@@ -433,28 +347,23 @@ func DockerCPUPercent(interval time.Duration, container_id string) (float64, err
 	return rets, nil
 }
 
-
 /**
  	get resource usage of application (pods) on node
 **/
-func GetAppResource(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	// get app Name
-	appName := vars["appName"]
-
+func GetAppResource(namespace, name string) thoth.AppMetric {
 	var summary_cpu float64
 	var memory_bundle []*docker.CgroupMemStat
 
-	container_ids, pod_ips, err := GetContainerIDList("http://localhost", "8080", appName, "default")
+	container_ids, pod_ips, err := GetContainerIDList(kube_api, name, namespace)
 	if err != nil {
 		fmt.Println(err)
 	}
 	for _, container_id := range container_ids {
 		fmt.Println(container_id, pod_ips)
 		// calculation percentage of cpu usage
-		container_cpu, _ := DockerCPUPercent(time.Duration(1) * time.Second, container_id)
+		container_cpu, _ := DockerCPUPercent(time.Duration(1)*time.Second, container_id)
 		summary_cpu += container_cpu
-		// memory usage 
+		// memory usage
 		container_memory, _ := docker.CgroupMemDocker(container_id)
 		memory_bundle = append(memory_bundle, container_memory)
 	}
@@ -472,8 +381,8 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 	//var rps uint64
 	var object_front []map[string]interface{}
 	err = json.Unmarshal([]byte(body_front), &object_front)
-		rps := object_front[0]["req_rate"].(string)
-		rps_int, _ := strconv.ParseInt(rps, 10, 64)
+	rps := object_front[0]["req_rate"].(string)
+	rps_int, _ := strconv.ParseInt(rps, 10, 64)
 	if err == nil {
 	} else {
 		fmt.Println(err)
@@ -493,14 +402,14 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 
 	var object_back []map[string]interface{}
 	err = json.Unmarshal([]byte(body_back), &object_back)
-		rtime := object_back[0]["rtime"].(string)
-		res_2xx := object_back[0]["hrsp_2xx"].(string)
-		res_4xx := object_back[0]["hrsp_4xx"].(string)
-		res_5xx := object_back[0]["hrsp_5xx"].(string)
-		rtime_int, _ := strconv.ParseInt(rtime, 10, 64)
-		res2xx_int, _ := strconv.ParseInt(res_2xx, 10, 64)
-		res4xx_int, _ := strconv.ParseInt(res_4xx, 10, 64)
-		res5xx_int, _ := strconv.ParseInt(res_5xx, 10, 64)
+	rtime := object_back[0]["rtime"].(string)
+	res_2xx := object_back[0]["hrsp_2xx"].(string)
+	res_4xx := object_back[0]["hrsp_4xx"].(string)
+	res_5xx := object_back[0]["hrsp_5xx"].(string)
+	rtime_int, _ := strconv.ParseInt(rtime, 10, 64)
+	res2xx_int, _ := strconv.ParseInt(res_2xx, 10, 64)
+	res4xx_int, _ := strconv.ParseInt(res_4xx, 10, 64)
+	res5xx_int, _ := strconv.ParseInt(res_5xx, 10, 64)
 	if err == nil {
 	} else {
 		fmt.Println(err)
@@ -508,23 +417,23 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("rps: ", rps, ", rtime: ", rtime)
 	// find the cpu avarage of application cpu usage
-	average_cpu := summary_cpu/float64(len(container_ids))
+	average_cpu := summary_cpu / float64(len(container_ids))
 	// create appliction object
-	app_metric := AppMetric{
-		App: appName,
-		Cpu: average_cpu,
-		Memory: memory_bundle,
-		Request: rps_int,
-		Response: rtime_int,
+	app_metric := thoth.AppMetric{
+		App:         name,
+		Cpu:         average_cpu,
+		Memory:      memory_bundle,
+		Request:     rps_int,
+		Response:    rtime_int,
 		Response2xx: res2xx_int,
 		Response4xx: res4xx_int,
 		Response5xx: res5xx_int,
 	}
-
-	app_json, err := json.MarshalIndent(app_metric, "", "\t")
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	fmt.Fprint(w, string(app_json))
+	return app_metric
+	//	app_json, err := json.MarshalIndent(app_metric, "", "\t")
+	//	if err != nil {
+	//		fmt.Println("error:", err)
+	//	}
+	//	return string(app_json)
 
 }
