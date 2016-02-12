@@ -20,12 +20,12 @@ myApp.config(function ($routeProvider) {
     .when('/deploy', {
       templateUrl: 'partials/deploy.html',
       controller: 'deployController',
-      access: {restricted: false}
+      access: {restricted: true}
     })
     .when('/configure', {
       templateUrl: 'partials/configure.html',
       controller: 'configureController',
-      access: {restricted: false}
+      access: {restricted: true}
     })
     .otherwise({redirectTo: '/'});
 });
@@ -36,5 +36,7 @@ myApp.run(function ($rootScope, $location, $route, AuthService) {
     if (next.access.restricted && AuthService.isLoggedIn() === false) {
       $location.path('/login');
     }
+    console.log("restricted = "+next.access.restricted);
+    console.log("AuthService = "+AuthService.isLoggedIn());
   });
 });

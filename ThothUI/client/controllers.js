@@ -229,9 +229,10 @@ angular.module('myApp').controller('HeaderController',
       return $location.path().indexOf(viewLocation) == 0;
     };
     // get user details
-    AuthService.getUser().then(function( user ) {
+    AuthService.getUser().then(function(user) {
       $scope.user = user;
     });
-    $scope.user_status = AuthService.getUserStatus();
+    //$scope.user_status = AuthService.getUserStatus();
+    $scope.user_status = true;  
   }
 ]);

@@ -33,13 +33,15 @@
             <input type="text" class="form-control col-md-8" placeholder="Search">
           </div>
         </form>
-        <ul class="nav navbar-nav navbar-right">
+        <ul class="nav navbar-nav navbar-right" ng-if="user_status" >
+          <li>login</li>
+        </ul>
+        <ul ng-if="!user_status" class="nav navbar-nav navbar-right">
           <li class="dropdown">
             <a href="bootstrap-elements.html" data-target="#" class="dropdown-toggle" data-toggle="dropdown"> {{user.user}}
               <b class="caret"></b></a>
             <ul class="dropdown-menu">
-              <li ng-if="user_status" ><a href="">Login</a></li>
-              <li ng-if="!user_status" >
+              <li >
                 <div ng-controller="logoutController">
                   <a ng-click='logout()' class="btn btn-default">Logout</a>
                 </div>

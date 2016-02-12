@@ -17,6 +17,7 @@ angular.module('myApp').factory('AuthService',
 
     function isLoggedIn() {
         if(user) {
+          console.log("isLoggedIn is"+user);
           return true;
         } else {
           return false;
@@ -38,6 +39,7 @@ angular.module('myApp').factory('AuthService',
         .success(function (data, status) {
           if(status === 200 && data.status){
             user = true;
+            console.log("user status : "+ isLoggedIn());
             deferred.resolve();
           } else {
             user = false;
@@ -51,7 +53,6 @@ angular.module('myApp').factory('AuthService',
         });
       // return promise object
       return deferred.promise;
-
     }
 
     function logout() {
