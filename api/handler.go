@@ -15,6 +15,7 @@ import (
 	"os/exec"
 	"strconv"
 
+	"github.com/SOUP-CE-KMITL/Thoth"
 	"github.com/gorilla/mux"
 
 	"github.com/shirou/gopsutil/cpu"
@@ -153,9 +154,9 @@ func PodMemory(w http.ResponseWriter, r *http.Request) {
 // TODO : remove
 // test mocks
 func nodeTestMock(w http.ResponseWriter, r *http.Request) {
-	nodes := Nodes{
-		Node{Name: "node1", Ip: "192.168.1.2", Cpu: 5000, Memory: 3000, DiskUsage: 1000},
-		Node{Name: "node2", Ip: "192.169.1.4", Cpu: 5000, Memory: 3000, DiskUsage: 1000},
+	nodes := thoth.Nodes{
+		thoth.Node{Name: "node1", Ip: "192.168.1.2", Cpu: 5000, Memory: 3000, DiskUsage: 1000},
+		thoth.Node{Name: "node2", Ip: "192.169.1.4", Cpu: 5000, Memory: 3000, DiskUsage: 1000},
 	}
 
 	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
@@ -214,7 +215,7 @@ func GetApps(w http.ResponseWriter, r *http.Request) {
 }
 
 func CreatePod(w http.ResponseWriter, r *http.Request) {
-	var pod Pod
+	var pod thoth.Pod
 	// limits json post request for prevent overflow attack.
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
@@ -330,13 +331,13 @@ func GetCurrentResourceCgroup(container_id string, metric_type int) (uint64, err
 /**
  *   Get List of ContainerID and pod's ip by replication name and their namespace
  **/
-func GetContainerIDList(url string, port string, rc_name string, namespace string) ([]string, []string, error) {
+func GetContainerIDList(url string, rc_name string, namespace string) ([]string, []string, error) {
 	// TODO : maybe user want to get container id which map with it's pod
 	// initail rasult array
 	container_ids := []string{}
 	pod_ips := []string{}
 
-	res, err := http.Get(url + ":" + port + "/api/v1/namespaces/" + namespace + "/pods")
+	res, err := http.Get(url + "/api/v1/namespaces/" + namespace + "/pods")
 	if err != nil {
 		fmt.Println("Can't connect to cadvisor")
 		panic(err)
@@ -393,7 +394,7 @@ func GetNodeResource(w http.ResponseWriter, r *http.Request) {
 	network, _ := net.NetIOCounters(false)
 
 	// create new node obj with resource usage information
-	node_metric := NodeMetric{
+	node_metric := thoth.NodeMetric{
 		Cpu:       cpu_percent,
 		Memory:    memory,
 		DiskUsage: disk_usages,
@@ -460,7 +461,7 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 	var summary_cpu float64
 	var memory_bundle []*docker.CgroupMemStat
 
-	container_ids, pod_ips, err := GetContainerIDList("http://localhost", "8080", appName, namespace)
+	container_ids, pod_ips, err := GetContainerIDList(kube_api, appName, namespace)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -525,7 +526,7 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 	// find the cpu avarage of application cpu usage
 	average_cpu := summary_cpu / float64(len(container_ids))
 	// create appliction object
-	app_metric := AppMetric{
+	app_metric := thoth.AppMetric{
 		App:         appName,
 		Cpu:         average_cpu,
 		Memory:      memory_bundle,

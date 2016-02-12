@@ -14,7 +14,7 @@ import (
 	"os/exec"
 	"strconv"
 
-	//"github.com/gorilla/mux"
+	"github.com/gorilla/mux"
 
 	"github.com/SOUP-CE-KMITL/Thoth"
 	"github.com/SOUP-CE-KMITL/Thoth/profil"
@@ -99,7 +99,7 @@ func main() {
 }
 
 // list every node
-func GetNodes() string {
+func GetNodes(w http.ResponseWriter, r *http.Request) {
 	// to do need to read api and port of api server from configuration file
 	res, err := http.Get(kube_api + "/api/v1/nodes")
 	if err != nil {
@@ -112,13 +112,14 @@ func GetNodes() string {
 		log.Fatal(err)
 	}
 
-	return string(body)
+	fmt.Fprint(w, string(body))
 }
 
-func GetNode() string {
+func GetNode(w http.ResponseWriter, r *http.Request) {
 
+	vars := mux.Vars(r)
 	// node name from user.
-	nodesName := "nodeName"
+	nodesName := vars["nodeName"]
 	// TODO: need to read api and port of api server from configuration file
 	res, err := http.Get(kube_api + "/api/v1/nodes/" + nodesName)
 	if err != nil {
@@ -142,7 +143,17 @@ func GetNode() string {
 		fmt.Println(err)
 	}
 
-	return string(send_obj)
+	fmt.Fprint(w, string(send_obj))
+}
+
+func OptionCors(w http.ResponseWriter, r *http.Request) {
+	// TODO: need to change origin to deployed domain name
+	if origin := r.Header.Get("Origin"); origin != "http://localhost" {
+		w.Header().Set("Access-Control-Allow-Origin", origin)
+		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Headers",
+			"Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+	}
 }
 
 // list all pods
@@ -161,10 +172,15 @@ func GetPods() string {
 }
 
 // list specific pod details
-func GetPod(podName, namespace string) string {
+func GetPod(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	// node name from user.
+	podName := vars["podName"]
+	fmt.Fprint(w, string(podName))
 	// to do need to read api and port of api server from configuration file
 	// TODO: change namespace to flexible.
-	res, err := http.Get(kube_api + "/api/v1/" + namespace + "/pods/" + podName)
+	var dat map[string]interface{}
+	res, err := http.Get(kube_api + "/api/v1/namespaces/default/pods/" + podName)
 	if err != nil {
 		panic(err)
 	}
@@ -173,25 +189,44 @@ func GetPod(podName, namespace string) string {
 	if err != nil {
 		panic(err)
 	}
-	return string(body)
+	if err := json.Unmarshal(body, &dat); err != nil {
+		panic(err)
+	}
+	pretty_body, err := json.MarshalIndent(dat, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprint(w, string(pretty_body))
 }
 
-func GetApp(name string) string {
+// post handler for scale pod by pod name
+
+func GetApp(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	// app name from user.
+	appName := vars["appName"]
 	fmt.Println(appName)
 	// TODO: need to find new solution to get info from api like other done.
-	res, err := exec.Command("kubectl", "get", "pod", "-l", "app="+name, "-o", "json").Output()
+	res, err := exec.Command("kubectl", "get", "pod", "-l", "app="+appName, "-o", "json").Output()
 	if err != nil {
 		panic(err)
 	}
-	return string(res)
+	fmt.Fprint(w, string(res))
 }
 
-func GetApps() string {
-	res, err := exec.Command("kubectl", "get", "rc", "-o", "json").Output()
+func GetApps(w http.ResponseWriter, r *http.Request) {
+
+	vars := mux.Vars(r)
+	// node name from user.
+	namespace := vars["namespace"]
+
+	res, err := exec.Command("kubectl", "get", "rc", "-o", "json", "--namespace="+namespace).Output()
+	fmt.Println("namespace = " + namespace)
 	if err != nil {
 		panic(err)
 	}
-	return string(res)
+	fmt.Fprint(w, string(res))
 }
 
 /**
@@ -274,7 +309,7 @@ func GetContainerIDList(url string, rc_name string, namespace string) ([]string,
 /**
 	read node resource usage
 **/
-func GetNodeResource() string {
+func GetNodeResource(w http.ResponseWriter, r *http.Request) {
 	// get this node memory
 	memory, _ := mem.VirtualMemory()
 	// get this node cpu percent usage
@@ -304,7 +339,7 @@ func GetNodeResource() string {
 	if err != nil {
 		fmt.Println("error:", err)
 	}
-	return string(node_json)
+	fmt.Fprint(w, string(node_json))
 }
 
 /**
@@ -320,13 +355,14 @@ func DockerCPUPercent(interval time.Duration, container_id string) (float64, err
 	calculate := func(t1, t2 *cpu.CPUTimesStat) float64 {
 		t1All, t1Busy := getAllBusy(t1)
 		t2All, t2Busy := getAllBusy(t2)
-
 		if t2Busy <= t1Busy {
 			return 0
 		}
 		if t2All <= t1All {
 			return 1
 		}
+		fmt.Println("Busy: ", t2Busy-t1Busy, ", All: ", t2All-t1All)
+		fmt.Println("idle time 1: ", t1Busy-t1All, ", idle time 2: ", t2Busy-t2All)
 		return (t2Busy - t1Busy) / (t2All - t1All) * 100
 	}
 
@@ -430,10 +466,10 @@ func GetAppResource(namespace, name string) thoth.AppMetric {
 		Response5xx: res5xx_int,
 	}
 	return app_metric
-	//	app_json, err := json.MarshalIndent(app_metric, "", "\t")
-	//	if err != nil {
-	//		fmt.Println("error:", err)
-	//	}
-	//	return string(app_json)
+	//app_json, err := json.MarshalIndent(app_metric, "", "\t")
+	//if err != nil {
+	//	fmt.Println("error:", err)
+	//}
+	//fmt.Fprint(w, string(app_json))
 
 }
