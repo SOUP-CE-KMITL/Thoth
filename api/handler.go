@@ -3,27 +3,29 @@ package main
 
 import (
 	"bytes"
-	"encoding/json"
 	"encoding/binary"
+	"encoding/json"
+	"errors"
 	"fmt"
 	"html"
 	"io"
 	"io/ioutil"
-	"os/exec"
-	"errors"
-	"strconv"
 	"log"
 	"net/http"
+	"os/exec"
+	"strconv"
 
 	"github.com/gorilla/mux"
 
-	"time"
 	"github.com/shirou/gopsutil/cpu"
-	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/disk"
-	"github.com/shirou/gopsutil/net"
 	"github.com/shirou/gopsutil/docker"
+	"github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/net"
+	"time"
 )
+
+var kube_api string = "http://localhost:8080"
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
@@ -32,7 +34,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 // list every node
 func GetNodes(w http.ResponseWriter, r *http.Request) {
 	// to do need to read api and port of api server from configuration file
-	res, err := http.Get("http://localhost:8080/api/v1/nodes")
+	res, err := http.Get(kube_api + "/api/v1/nodes")
 	if err != nil {
 		panic(err)
 	}
@@ -52,7 +54,7 @@ func GetNode(w http.ResponseWriter, r *http.Request) {
 	// node name from user.
 	nodesName := vars["nodeName"]
 	// TODO: need to read api and port of api server from configuration file
-	res, err := http.Get("http://localhost:8080/api/v1/nodes/" + nodesName)
+	res, err := http.Get(kube_api + "/api/v1/nodes/" + nodesName)
 	if err != nil {
 		panic(err)
 	}
@@ -98,7 +100,7 @@ func NodeMemory(w http.ResponseWriter, r *http.Request) {
 // list all pods
 func GetPods(w http.ResponseWriter, r *http.Request) {
 	// to do need to read api and port of api server from configuration file
-	res, err := http.Get("http://localhost:8080/api/v1/pods")
+	res, err := http.Get(kube_api + "/api/v1/pods")
 	if err != nil {
 		panic(err)
 	}
@@ -118,9 +120,8 @@ func GetPod(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(podName))
 	// to do need to read api and port of api server from configuration file
 	// TODO: change namespace to flexible.
-
-	var dat map[string] interface{}
-	res, err := http.Get("http://localhost:8080/api/v1/namespaces/default/pods/" + podName)
+	var dat map[string]interface{}
+	res, err := http.Get(kube_api + "/api/v1/namespaces/default/pods/" + podName)
 	if err != nil {
 		panic(err)
 	}
@@ -129,9 +130,9 @@ func GetPod(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	if err := json.Unmarshal(body, &dat);err != nil {
+	if err := json.Unmarshal(body, &dat); err != nil {
 		panic(err)
-	} 
+	}
 	pretty_body, err := json.MarshalIndent(dat, "", "  ")
 	if err != nil {
 		panic(err)
@@ -184,7 +185,7 @@ func testExec(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(output[:6]))
 }
 
-func GetApp(w http.ResponseWriter, r *http.Request){
+func GetApp(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	// app name from user.
@@ -198,14 +199,14 @@ func GetApp(w http.ResponseWriter, r *http.Request){
 	fmt.Fprint(w, string(res))
 }
 
-func GetApps(w http.ResponseWriter, r *http.Request){
-	
+func GetApps(w http.ResponseWriter, r *http.Request) {
+
 	vars := mux.Vars(r)
 	// node name from user.
 	namespace := vars["namespace"]
 
 	res, err := exec.Command("kubectl", "get", "rc", "-o", "json", "--namespace="+namespace).Output()
-	fmt.Println("namespace = "+namespace);
+	fmt.Println("namespace = " + namespace)
 	if err != nil {
 		panic(err)
 	}
@@ -276,7 +277,7 @@ func CreatePod(w http.ResponseWriter, r *http.Request) {
 	// post json to kubernete api server
 
 	// TODO: need to change name space to user namespace
-	postUrl := "http://localhost:8080/api/v1/namespaces/default/pods"
+	postUrl := kube_api + "/api/v1/namespaces/default/pods"
 	req, err := http.NewRequest("POST", postUrl, bytes.NewBuffer(jsonReq))
 	req.Header.Set("X-Custom-Header", "myvalue")
 	req.Header.Set("Content-Type", "application/json")
@@ -291,7 +292,7 @@ func CreatePod(w http.ResponseWriter, r *http.Request) {
 
 	response, _ := ioutil.ReadAll(resp.Body)
 	fmt.Println(string(response))
-}	
+}
 
 /**
 * 	Get current resource by using cgroup
@@ -374,29 +375,29 @@ func GetContainerIDList(url string, port string, rc_name string, namespace strin
 	read node resource usage
 **/
 func GetNodeResource(w http.ResponseWriter, r *http.Request) {
-	// get this node memory 
+	// get this node memory
 	memory, _ := mem.VirtualMemory()
 	// get this node cpu percent usage
-	cpu_percent, _ := cpu.CPUPercent(time.Duration(1) * time.Second, false)
+	cpu_percent, _ := cpu.CPUPercent(time.Duration(1)*time.Second, false)
 	// Disk mount Point
 	disk_partitions, _ := disk.DiskPartitions(true)
 	// Disk usage
 	var disk_usages []*disk.DiskUsageStat
 	for _, disk_partition := range disk_partitions {
 		if disk_partition.Mountpoint == "/" || disk_partition.Mountpoint == "/home" {
-			disk_stat, _ := disk.DiskUsage(disk_partition.Device);
+			disk_stat, _ := disk.DiskUsage(disk_partition.Device)
 			disk_usages = append(disk_usages, disk_stat)
-		} 
+		}
 	}
 	// Network
 	network, _ := net.NetIOCounters(false)
 
 	// create new node obj with resource usage information
 	node_metric := NodeMetric{
-		Cpu: cpu_percent,
-		Memory: memory,
+		Cpu:       cpu_percent,
+		Memory:    memory,
 		DiskUsage: disk_usages,
-		Network: network,
+		Network:   network,
 	}
 
 	node_json, err := json.MarshalIndent(node_metric, "", "\t")
@@ -425,9 +426,9 @@ func DockerCPUPercent(interval time.Duration, container_id string) (float64, err
 		if t2All <= t1All {
 			return 1
 		}
-		fmt.Println("Busy: ", t2Busy - t1Busy, ", All: ", t2All - t1All);
-		fmt.Println("idle time 1: ", t1Busy - t1All, ", idle time 2: ", t2Busy - t2All);
-		return (t2Busy - t1Busy) / (t2All - t1All) 	* 100
+		fmt.Println("Busy: ", t2Busy-t1Busy, ", All: ", t2All-t1All)
+		fmt.Println("idle time 1: ", t1Busy-t1All, ", idle time 2: ", t2Busy-t2All)
+		return (t2Busy - t1Busy) / (t2All - t1All) * 100
 	}
 
 	// Get CPU usage at the start of the interval.
@@ -446,7 +447,6 @@ func DockerCPUPercent(interval time.Duration, container_id string) (float64, err
 	rets = calculate(cpuTimes1, cpuTimes2)
 	return rets, nil
 }
-
 
 /**
  	get resource usage of application (pods) on node
@@ -467,9 +467,9 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 	for _, container_id := range container_ids {
 		fmt.Println(container_id, pod_ips)
 		// calculation percentage of cpu usage
-		container_cpu, _ := DockerCPUPercent(time.Duration(1) * time.Second, container_id)
+		container_cpu, _ := DockerCPUPercent(time.Duration(1)*time.Second, container_id)
 		summary_cpu += container_cpu
-		// memory usage 
+		// memory usage
 		container_memory, _ := docker.CgroupMemDocker(container_id)
 		memory_bundle = append(memory_bundle, container_memory)
 	}
@@ -487,8 +487,8 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 	//var rps uint64
 	var object_front []map[string]interface{}
 	err = json.Unmarshal([]byte(body_front), &object_front)
-		rps := object_front[0]["req_rate"].(string)
-		rps_int, _ := strconv.ParseInt(rps, 10, 64)
+	rps := object_front[0]["req_rate"].(string)
+	rps_int, _ := strconv.ParseInt(rps, 10, 64)
 	if err == nil {
 	} else {
 		fmt.Println(err)
@@ -508,14 +508,14 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 
 	var object_back []map[string]interface{}
 	err = json.Unmarshal([]byte(body_back), &object_back)
-		rtime := object_back[0]["rtime"].(string)
-		res_2xx := object_back[0]["hrsp_2xx"].(string)
-		res_4xx := object_back[0]["hrsp_4xx"].(string)
-		res_5xx := object_back[0]["hrsp_5xx"].(string)
-		rtime_int, _ := strconv.ParseInt(rtime, 10, 64)
-		res2xx_int, _ := strconv.ParseInt(res_2xx, 10, 64)
-		res4xx_int, _ := strconv.ParseInt(res_4xx, 10, 64)
-		res5xx_int, _ := strconv.ParseInt(res_5xx, 10, 64)
+	rtime := object_back[0]["rtime"].(string)
+	res_2xx := object_back[0]["hrsp_2xx"].(string)
+	res_4xx := object_back[0]["hrsp_4xx"].(string)
+	res_5xx := object_back[0]["hrsp_5xx"].(string)
+	rtime_int, _ := strconv.ParseInt(rtime, 10, 64)
+	res2xx_int, _ := strconv.ParseInt(res_2xx, 10, 64)
+	res4xx_int, _ := strconv.ParseInt(res_4xx, 10, 64)
+	res5xx_int, _ := strconv.ParseInt(res_5xx, 10, 64)
 	if err == nil {
 	} else {
 		fmt.Println(err)
@@ -523,14 +523,14 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("rps: ", rps, ", rtime: ", rtime)
 	// find the cpu avarage of application cpu usage
-	average_cpu := summary_cpu/float64(len(container_ids))
+	average_cpu := summary_cpu / float64(len(container_ids))
 	// create appliction object
 	app_metric := AppMetric{
-		App: appName,
-		Cpu: average_cpu,
-		Memory: memory_bundle,
-		Request: rps_int,
-		Response: rtime_int,
+		App:         appName,
+		Cpu:         average_cpu,
+		Memory:      memory_bundle,
+		Request:     rps_int,
+		Response:    rtime_int,
 		Response2xx: res2xx_int,
 		Response4xx: res4xx_int,
 		Response5xx: res5xx_int,
