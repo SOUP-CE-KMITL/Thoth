@@ -25,7 +25,7 @@ import (
 //fmt.Print(res)
 //}
 
-func WritePoints(clnt client.Client, database string, measurements string, precision string, tags map[string]string, fields map[string]interface{}) error {
+func WritePoints(clnt client.Client, database string, measurement string, precision string, tags map[string]string, fields map[string]interface{}) error {
 
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
 		Database:  database,
@@ -43,7 +43,7 @@ func WritePoints(clnt client.Client, database string, measurements string, preci
 	//	"busy": 100.0 - idle,
 	//}
 
-	pt, _ := client.NewPoint("cpu_usage", tags, fields, time.Now())
+	pt, _ := client.NewPoint(measurement, tags, fields, time.Now())
 	bp.AddPoint(pt)
 
 	return clnt.Write(bp)

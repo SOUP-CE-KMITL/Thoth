@@ -46,56 +46,67 @@ func main() {
 		Password: password,
 	})
 
-	// Get All RC name
-	jsonRc := GetPods()
-	var objRc interface{}
-	err := json.Unmarshal([]byte(jsonRc), &objRc)
-	if err != nil {
-		panic(err)
-	}
-	// Extract RC Name
-	RCArray := []RC{}
-	RCLen := 0
-	_RCLen := len(objRc.(map[string]interface{})["items"].([]interface{}))
-	for i := 0; i < _RCLen; i++ {
-		namespace := objRc.(map[string]interface{})["items"].([]interface{})[i].(map[string]interface{})["metadata"].(map[string]interface{})["namespace"].(string)
-		if namespace != "default" {
-			rc := RC{
-				Name:      objRc.(map[string]interface{})["items"].([]interface{})[i].(map[string]interface{})["metadata"].(map[string]interface{})["name"].(string),
-				Namespace: namespace,
-			}
-			fmt.Println(rc.Namespace + "/" + rc.Name)
-			RCArray = append(RCArray, rc)
-			RCLen++
+	//-------------------------------------------------------------
+	for {
+		// Get All RC name
+		jsonRc := GetPods()
+		var objRc interface{}
+		err := json.Unmarshal([]byte(jsonRc), &objRc)
+		if err != nil {
+			panic(err)
 		}
+		// Extract RC Name
+		RCArray := []RC{}
+		RCLen := 0
+		_RCLen := len(objRc.(map[string]interface{})["items"].([]interface{}))
+		for i := 0; i < _RCLen; i++ {
+			namespace := objRc.(map[string]interface{})["items"].([]interface{})[i].(map[string]interface{})["metadata"].(map[string]interface{})["namespace"].(string)
+			if namespace != "default" {
+				rc := RC{
+					Name:      objRc.(map[string]interface{})["items"].([]interface{})[i].(map[string]interface{})["metadata"].(map[string]interface{})["name"].(string),
+					Namespace: namespace,
+				}
+				//		fmt.Println(rc.Namespace + "/" + rc.Name)
+				RCArray = append(RCArray, rc)
+				RCLen++
+			}
+		}
+		//fmt.Println(RCArray)
+
+		// Getting App resource usage
+		for i := 0; i < RCLen; i++ {
+			res := GetAppResource(RCArray[i].Namespace, RCArray[i].Name)
+			//	fmt.Println(res)
+
+			// thoth.AppMetric{App,Cpu,Memory,Request,Response,Response2xx,Response4xx,Response5xx
+
+			tags := map[string]string{
+				"name": res.App,
+			}
+
+			fields := map[string]interface{}{
+				// CPU
+				// Memory
+				"request":  res.Request,
+				"response": res.Response,
+				"code2xx":  res.Response2xx,
+				"code4xx":  res.Response4xx,
+				"code5xx":  res.Response5xx,
+			}
+			if err := profil.WritePoints(c, MyDB, RCArray[i].Namespace, "s", tags, fields); err != nil {
+				panic(err)
+			}
+			queryRes, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT count(response) FROM "+RCArray[i].Namespace))
+			//queryRes, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT * FROM "+RCArray[i].Namespace))
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println(queryRes)
+		}
+		fmt.Println("Sleep")
+		time.Sleep(10 * time.Second)
 	}
-	//fmt.Println(RCArray)
-
-	// Getting App resource usage
-	for i := 0; i < RCLen; i++ {
-		res := GetAppResource(RCArray[i].Namespace, RCArray[i].Name)
-		fmt.Println(res)
-		fmt.Println(res.Cpu)
-		fmt.Println(res.Memory)
-
-		//app_metric := thoth.AppMetric{
-		//	App:         name,
-		//	Cpu:         average_cpu,
-		//	Memory:      memory_bundle,
-		//	Request:     rps_int,
-		//	Response:    rtime_int,
-		//	Response2xx: res2xx_int,
-		//	Response4xx: res4xx_int,
-		//	Response5xx: res5xx_int,
-		//}
-
-	}
-
-	res, err := profil.QueryDB(c, MyDB, fmt.Sprintf("SELECT count(busy) FROM cpu_usage"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(res)
+	//-------------------------------------------------------------
 }
 
 // list every node
