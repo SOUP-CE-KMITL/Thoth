@@ -5,6 +5,7 @@ angular.module('myApp').factory('AuthService',
     // create user variable
     var user = null;
 
+
     // return available functions for use in controllers
     return ({
       isLoggedIn: isLoggedIn,
@@ -17,7 +18,6 @@ angular.module('myApp').factory('AuthService',
 
     function isLoggedIn() {
         if(user) {
-          console.log("isLoggedIn is"+user);
           return true;
         } else {
           return false;

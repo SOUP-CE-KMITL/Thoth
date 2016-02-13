@@ -2,7 +2,7 @@ angular.module('myApp').controller('loginController',
   ['$scope', '$location', 'AuthService',
   function ($scope, $location, AuthService) {
 
-    console.log(AuthService.getUserStatus());
+    console.log("login on loginCtrl : "+AuthService.isLoggedIn());
 
     $scope.login = function () {
 
@@ -36,7 +36,7 @@ angular.module('myApp').controller('logoutController',
 
     $scope.logout = function () {
 
-      console.log(AuthService.getUserStatus());
+      console.log("login on logoutCtrl : "+AuthService.isLoggedIn());
 
       // call logout from service
       AuthService.logout()
@@ -51,8 +51,6 @@ angular.module('myApp').controller('logoutController',
 angular.module('myApp').controller('registerController',
   ['$scope', '$location', 'AuthService',
   function ($scope, $location, AuthService) {
-
-    console.log(AuthService.getUserStatus());
 
     $scope.register = function () {
 
@@ -88,7 +86,6 @@ angular.module('myApp').controller('deployController',
 angular.module('myApp').controller('configureController', 
   ['$scope', '$location', 'AuthService',
   function ($scope, $location, AuthService) {
-    console.log(AuthService.getUserStatus());
 }]);
 
 // chart configure
@@ -232,7 +229,14 @@ angular.module('myApp').controller('HeaderController',
     AuthService.getUser().then(function(user) {
       $scope.user = user;
     });
-    //$scope.user_status = AuthService.getUserStatus();
-    $scope.user_status = true;  
+
+    $scope.user_status = AuthService.isLoggedIn();
+    $scope.$watch(AuthService.isLoggedIn, function(newVal, oldVal) {
+      console.log("user object"+AuthService.getUserStatus());
+      console.log("data form watch : "+newVal);
+      $scope.user_status = newVal;
+    });
+    
+
   }
 ]);
