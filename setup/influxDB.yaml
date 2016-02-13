@@ -1,20 +1,29 @@
 apiVersion: v1
 kind: ReplicationController
 metadata:
-  name: influxdb-master
+  name: influxdb
+  namespace: thoth
   labels:
-    name: influxdb-master
+    name: influxdb
 spec:
   replicas: 1
   selector:
-    name: influxdb-master
+    name: influxdb
   template:
     metadata:
       labels:
-        name: influxdb-master
+        name: influxdb
     spec:
       containers:
       - name: influxdb
-        image: tutum/influxdb
+        image: tutum/influxdb:0.10
         ports:
+        - containerPort: 8083
         - containerPort: 8086
+        volumeMounts:
+        - name: "data"
+          mountPath: "/data"
+      volumes:
+      - hostPath: 
+          path: "/home/ionization/influxdb"
+        name: "data"

@@ -1,0 +1,31 @@
+{
+    "kind": "Service",
+    "apiVersion": "v1",
+    "metadata": {
+        "name": "eight-puzzle-svc",
+        "namespace":"thoth"
+    },
+    "spec": {
+        "selector": {
+            "app": "eight-puzzle"
+        },
+        "ports": [
+            {
+                "protocol": "TCP",
+                "port": 80,
+                "targetPort": 8000,
+                "nodePort": 30001
+            }
+        ],
+        "type": "LoadBalancer"
+    },
+    "status": {
+        "loadBalancer": {
+            "ingress": [
+                {
+                    "ip": "10.0.1.17"
+                }
+            ]
+        }
+    }
+}
