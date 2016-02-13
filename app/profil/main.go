@@ -65,10 +65,10 @@ func main() {
 			namespace := objRc.(map[string]interface{})["items"].([]interface{})[i].(map[string]interface{})["metadata"].(map[string]interface{})["namespace"].(string)
 			if namespace != "default" {
 				rc := RC{
-					Name:      objRc.(map[string]interface{})["items"].([]interface{})[i].(map[string]interface{})["metadata"].(map[string]interface{})["name"].(string),
+					Name:      objRc.(map[string]interface{})["items"].([]interface{})[i].(map[string]interface{})["metadata"].(map[string]interface{})["labels"].(map[string]interface{})["app"].(string),
 					Namespace: namespace,
 				}
-				//		fmt.Println(rc.Namespace + "/" + rc.Name)
+				fmt.Println(rc.Namespace + "/" + rc.Name)
 				RCArray = append(RCArray, rc)
 				RCLen++
 			}
@@ -83,18 +83,21 @@ func main() {
 			// thoth.AppMetric{App,Cpu,Memory,Request,Response,Response2xx,Response4xx,Response5xx
 
 			tags := map[string]string{
-				"name": res.App,
+				"name": RCArray[i].Name,
 			}
 
 			fields := map[string]interface{}{
 				// CPU
 				// Memory
+				"cpu":      res.Cpu,
+				"memory":   res.Memory,
 				"request":  res.Request,
 				"response": res.Response,
 				"code2xx":  res.Response2xx,
 				"code4xx":  res.Response4xx,
 				"code5xx":  res.Response5xx,
 			}
+			fmt.Println(fields)
 			if err := profil.WritePoints(c, MyDB, RCArray[i].Namespace, "s", tags, fields); err != nil {
 				panic(err)
 			}
@@ -417,6 +420,8 @@ func GetAppResource(namespace, name string) thoth.AppMetric {
 		memory_bundle = append(memory_bundle, container_memory)
 	}
 
+	podNum := len(pod_ips)
+
 	// find the request per sec from haproxy-frontend
 	res_front, err := http.Get(vampApi + "/v1/stats/frontends")
 	if err != nil {
@@ -467,11 +472,19 @@ func GetAppResource(namespace, name string) thoth.AppMetric {
 	fmt.Println("rps: ", rps, ", rtime: ", rtime)
 	// find the cpu avarage of application cpu usage
 	average_cpu := summary_cpu / float64(len(container_ids))
+	// Cal Avg Mem usage
+	var avgMem uint64
+	for i := 0; i < podNum; i++ {
+		avgMem += memory_bundle[i].MemUsageInBytes
+	}
+	avgMem = avgMem / uint64(podNum)
+	avgMem = avgMem / uint64(1024*1024) // MB
+
 	// create appliction object
 	app_metric := thoth.AppMetric{
 		App:         name,
 		Cpu:         average_cpu,
-		Memory:      memory_bundle,
+		Memory:      int64(avgMem),
 		Request:     rps_int,
 		Response:    rtime_int,
 		Response2xx: res2xx_int,

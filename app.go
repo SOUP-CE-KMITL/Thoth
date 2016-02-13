@@ -1,14 +1,10 @@
 // TODO : need to change to api package
 package thoth
 
-import (
-	"github.com/shirou/gopsutil/docker"
-)
-
 type AppMetric struct {
-	App         string                  `json:"app"`
-	Cpu         float64                 `json:"cpu"`
-	Memory      []*docker.CgroupMemStat `json:"memory"`
+	App         string  `json:"app"`
+	Cpu         float64 `json:"cpu"`
+	Memory      int64   `json:"memory"`
 	Request     int64
 	Response    int64
 	Response2xx int64

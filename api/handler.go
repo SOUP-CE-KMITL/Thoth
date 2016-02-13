@@ -27,6 +27,7 @@ import (
 )
 
 var kube_api string = "http://localhost:8080"
+var vampApi string = "http://localhost:10001"
 
 func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
@@ -475,8 +476,10 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 		memory_bundle = append(memory_bundle, container_memory)
 	}
 
+	podNum := len(pod_ips)
+
 	// find the request per sec from haproxy-frontend
-	res_front, err := http.Get("http://localhost:10001/v1/stats/frontends")
+	res_front, err := http.Get(vampApi + "/v1/stats/frontends")
 	if err != nil {
 		panic(err)
 	}
@@ -497,7 +500,7 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 
 	//find resonse time from haproxy-backends
 	//var rtime uint64
-	res_back, err := http.Get("http://localhost:10001/v1/stats/backends")
+	res_back, err := http.Get(vampApi + "/v1/stats/backends")
 	if err != nil {
 		panic(err)
 	}
@@ -525,11 +528,19 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("rps: ", rps, ", rtime: ", rtime)
 	// find the cpu avarage of application cpu usage
 	average_cpu := summary_cpu / float64(len(container_ids))
+	// Cal Avg Mem usage
+	var avgMem uint64
+	for i := 0; i < podNum; i++ {
+		avgMem += memory_bundle[i].MemUsageInBytes
+	}
+	avgMem = avgMem / uint64(podNum)
+	avgMem = avgMem / uint64(1024*1024) // MB
+
 	// create appliction object
 	app_metric := thoth.AppMetric{
 		App:         appName,
 		Cpu:         average_cpu,
-		Memory:      memory_bundle,
+		Memory:      int64(avgMem),
 		Request:     rps_int,
 		Response:    rtime_int,
 		Response2xx: res2xx_int,
