@@ -1,4 +1,5 @@
 var app 	 = require('express')(),
+        express = require('express'),
 	Sequence = require('sequence').Sequence,
 	http 	 = require('http'),
 	swig 	 = require('swig'),
@@ -7,12 +8,15 @@ var app 	 = require('express')(),
 // setup swig for render file before serve to user 
 app.engine('html', swig.renderFile);
 
+app.use(express.static(__dirname + '/public'));
 app.set('view engine', 'html');
 app.set('views', __dirname + '/views');
 
 app.set('view cache', false);
 
 swig.setDefaults({ cache: false });
+
+//app.use('/bower_components/nvd3', express.static( __dirname + '/bower_components/nvd3'));
 
 app.get('/', function (reg, res) {
 	res.render('Thoth');

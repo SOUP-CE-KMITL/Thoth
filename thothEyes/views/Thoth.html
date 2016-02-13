@@ -1,5 +1,6 @@
-<html>
+<html ng-app="thothEyes">
 <head>
+        <meta charset="utf-8">
 	<title></title>
 	<!-- Latest compiled and minified CSS -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -7,6 +8,12 @@
 	<!-- Optional theme -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
 
+        <script src="bower_components/angular/angular.js"></script>
+        <script src="bower_components/d3/d3.js"></script>
+        <script src="bower_components/nvd3/build/nv.d3.js"></script>
+        <script src="bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
+        <script src="js/thothEyes.js"></script>
+        <link rel="stylesheet" href="bower_components/nvd3/build/nv.d3.css">
 	<style type="text/css">
 	.box{
 		background-color: white;
@@ -214,7 +221,7 @@
 	
 	</style>
 </head>
-<body >
+<body ng-controller="DashboardCtrl">
 	<ul class="navigation">
 		<div class = "contact-icon" >
 			<span style="font-size:33; margin-right: 10px;"class="glyphicon glyphicon-user "></span>   Contact detail
@@ -257,21 +264,18 @@
 						<div class="col-md-12 box-sizing">			
 							<div class="col-md-4 frame-border box">
 								<div class="text-center">Compute Chart</div>
-								<div id="computeChart">		
+								<!-- <div id="computeChart">		
 								    <svg style="height:300px;width:98%"></svg>
-								</div>	
+                                                                </div>	-->
+                                                                <nvd3 options="computeOptions" data="computeData"></nvd3>
 							</div>
 							<div class="col-md-4 frame-border box">
 								<div class="text-center">Data Chart</div>
-								<div id="dataChart">		
-								    <svg style="height:300px;width:98%"></svg>
-								</div>
+                                                                <nvd3 options="dataOptions" data="dataData"></nvd3>
 							</div>
 							<div class="col-md-4 frame-border box">
 								<div class="text-center">File Chart</div>
-								<div id="fileChart">		
-								    <svg style="height:300px;width:98%"></svg>
-								</div>
+                                                                <nvd3 options="fileOptions" data="fileData"></nvd3>
 							</div>
 						</div>
 						</div>		
@@ -487,119 +491,6 @@
 		    }
 		  ];
 		}
-	</script>
-	<script type="text/javascript">
-	//Regular pie chart example
-	
-
-	nv.addGraph(function() {
-		var ratioInside = 0.3;
-		//var width = 300,height=300;
-	  var chart = nv.models.pieChart()
-	      .x(function(d) { return d.label })
-	      .y(function(d) { return d.value })
-	      .showLabels(true)     //Display pie labels
-	      .labelThreshold(0.03)  //Configure the minimum slice size for labels to show up
-	      .labelType("percent") //Configure what type of data to show in the label. Can be "key", "value" or "percent"
-	      .donut(true)          //Turn on Donut mode. Makes pie chart look tasty!
-	      .donutRatio(ratioInside)     //Configure how big you want the donut hole size to be.
-	      ;
-	      chart.pie.dispatch.on("elementClick", function(e) {
-			console.log(e);
-			window.location.href = 'file:///C:/Users/admin/Desktop/nodes.html';
-		});
-
-	    d3.select("#computeChart svg")
-	        .datum(exampleData())
-	        .transition().duration(350)
-	        .call(chart);
-	       
-
-	  return chart;
-	});
-	nv.addGraph(function() {
-			var ratioInside = 0.3;
-			//var width = 300,height=300;
-		  var chart = nv.models.pieChart()
-		      .x(function(d) { return d.label })
-		      .y(function(d) { return d.value })
-		      .showLabels(true)     //Display pie labels
-		      .labelThreshold(0.03)  //Configure the minimum slice size for labels to show up
-		      .labelType("percent") //Configure what type of data to show in the label. Can be "key", "value" or "percent"
-		      .donut(true)          //Turn on Donut mode. Makes pie chart look tasty!
-		      .donutRatio(ratioInside)     //Configure how big you want the donut hole size to be.
-		      ;
-		      chart.pie.dispatch.on("elementClick", function(e) {
-			console.log(e);
-			window.location.href = 'file:///C:/Users/admin/Desktop/nodes.html';
-		});
-
-		    d3.select("#dataChart svg")
-		        .datum(exampleData())
-		        .transition().duration(350)
-		        .call(chart);
-		       
-
-		  return chart;
-		});
-		nv.addGraph(function() {
-		var ratioInside = 0.3;
-		//var width = 300,height=300;
-		  var chart = nv.models.pieChart()
-		      .x(function(d) { return d.label })
-		      .y(function(d) { return d.value })
-		      .showLabels(true)     //Display pie labels
-		      .labelThreshold(0.03)  //Configure the minimum slice size for labels to show up
-		      .labelType("percent") //Configure what type of data to show in the label. Can be "key", "value" or "percent"
-		      .donut(true)          //Turn on Donut mode. Makes pie chart look tasty!
-		      .donutRatio(ratioInside)     //Configure how big you want the donut hole size to be.
-		      ;
-	      chart.pie.dispatch.on("elementClick", function(e) {
-			console.log(e);
-			window.location.href = 'file:///C:/Users/admin/Desktop/nodes.html';
-		});
-
-		    d3.select("#fileChart svg")
-		        .datum(exampleData())
-		        .transition().duration(350)
-		        .call(chart);
-		       
-
-		  return chart;
-		});
-
-
-	//Pie chart example data. Note how there is only a single array of key-value pairs.
-	function exampleData() {
-	  return  [
-	      { 
-	        "label": "Extreme",
-	        "value" : 10,
-	        "color" : '#e74c3c'
-	        
-
-	      } , 
-	      { 
-	        "label": "Dangerous",
-	        "value" : 32.807804682612,
-	        "color" : '#e67e22'
-	       
-	      } , 
-	      { 
-	        "label": "Becareful",
-	        "value" : 96.45946739256,
-	        "color" : '#f1c40f'
-	        
-	      } , 
-	      { 
-	        "label": "Normal",
-	        "value" : 56.19434030906893,
-	        "color" : '#2ecc71'
-	        
-	      } 
-	      
-	    ];
-	}
 	</script>
 </body>
 </html>

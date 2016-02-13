@@ -1,0 +1,22 @@
+{
+  "name": "thothEyes",
+  "version": "0.0.0",
+  "description": "",
+  "main": "server.js",
+  "directories": {
+    "test": "test"
+  },
+  "dependencies": {
+    "watson-developer-cloud": "~1.2.4",
+    "sequence": "~3.0.0",
+    "swig": "~1.4.2",
+    "express": "~4.13.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "BSD-2-Clause"
+}
