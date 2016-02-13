@@ -27,7 +27,9 @@ import (
 	"time"
 )
 
-var kube_api string = "http://localhost:8080"
+var kubeApi string = "http://localhost:8080"
+var influxdbApi string = "http://localhost:8086"
+var vampApi string = "http://localhost:10001"
 
 var MyDB string = "thoth"
 var username string = "thoth"
@@ -41,7 +43,7 @@ type RC struct {
 func main() {
 	// Connect InfluxDB
 	c, _ := client.NewHTTPClient(client.HTTPConfig{
-		Addr:     "http://localhost:8086",
+		Addr:     influxdbApi,
 		Username: username,
 		Password: password,
 	})
@@ -112,7 +114,7 @@ func main() {
 // list every node
 func GetNodes(w http.ResponseWriter, r *http.Request) {
 	// to do need to read api and port of api server from configuration file
-	res, err := http.Get(kube_api + "/api/v1/nodes")
+	res, err := http.Get(kubeApi + "/api/v1/nodes")
 	if err != nil {
 		panic(err)
 	}
@@ -132,7 +134,7 @@ func GetNode(w http.ResponseWriter, r *http.Request) {
 	// node name from user.
 	nodesName := vars["nodeName"]
 	// TODO: need to read api and port of api server from configuration file
-	res, err := http.Get(kube_api + "/api/v1/nodes/" + nodesName)
+	res, err := http.Get(kubeApi + "/api/v1/nodes/" + nodesName)
 	if err != nil {
 		panic(err)
 	}
@@ -170,7 +172,7 @@ func OptionCors(w http.ResponseWriter, r *http.Request) {
 // list all pods
 func GetPods() string {
 	// to do need to read api and port of api server from configuration file
-	res, err := http.Get(kube_api + "/api/v1/pods")
+	res, err := http.Get(kubeApi + "/api/v1/pods")
 	if err != nil {
 		panic(err)
 	}
@@ -191,7 +193,7 @@ func GetPod(w http.ResponseWriter, r *http.Request) {
 	// to do need to read api and port of api server from configuration file
 	// TODO: change namespace to flexible.
 	var dat map[string]interface{}
-	res, err := http.Get(kube_api + "/api/v1/namespaces/default/pods/" + podName)
+	res, err := http.Get(kubeApi + "/api/v1/namespaces/default/pods/" + podName)
 	if err != nil {
 		panic(err)
 	}
@@ -401,7 +403,7 @@ func GetAppResource(namespace, name string) thoth.AppMetric {
 	var summary_cpu float64
 	var memory_bundle []*docker.CgroupMemStat
 
-	container_ids, pod_ips, err := GetContainerIDList(kube_api, name, namespace)
+	container_ids, pod_ips, err := GetContainerIDList(kubeApi, name, namespace)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -416,7 +418,7 @@ func GetAppResource(namespace, name string) thoth.AppMetric {
 	}
 
 	// find the request per sec from haproxy-frontend
-	res_front, err := http.Get("http://localhost:10001/v1/stats/frontends")
+	res_front, err := http.Get(vampApi + "/v1/stats/frontends")
 	if err != nil {
 		panic(err)
 	}
@@ -437,7 +439,7 @@ func GetAppResource(namespace, name string) thoth.AppMetric {
 
 	//find resonse time from haproxy-backends
 	//var rtime uint64
-	res_back, err := http.Get("http://localhost:10001/v1/stats/backends")
+	res_back, err := http.Get(vampApi + "/v1/stats/backends")
 	if err != nil {
 		panic(err)
 	}
