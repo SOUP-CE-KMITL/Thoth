@@ -1,6 +1,6 @@
 {
-  "name": "app1_route",
-  "port": 9000,                                         
+  "name": "app2_route",
+  "port": 9001,                                         
   "protocol": "http",
   "filters": [],
   "httpQuota": {
@@ -19,9 +19,9 @@
       "weight": 30,                                     
       "servers": [
         {
-          "name": "eight-001",       
+          "name": "eight-002",
           "host": "localhost",
-          "port": 30001
+          "port": 30002
         }
       ]
     }
