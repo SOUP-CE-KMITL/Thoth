@@ -143,7 +143,7 @@ func GetContainerIDList(url string, rc_name string, namespace string) ([]string,
 /**
  CPU Percent Calculation
 **/
-func DockerCPUPercent(interval time.Duration, container_id string) (float32, error) {
+func DockerCPUPercent(container_id string) (float32, error) {
 	res, err := GetCpu(container_id)
 	if err != nil {
 		return 0.0, nil
@@ -166,7 +166,7 @@ func GetAppResource(namespace, name string) thoth.AppMetric {
 	for _, container_id := range container_ids {
 		//	fmt.Println(container_id, pod_ips)
 		// calculation percentage of cpu usage
-		container_cpu, _ := DockerCPUPercent(time.Duration(1)*time.Second, container_id)
+		container_cpu, _ := DockerCPUPercent(container_id)
 		summary_cpu += container_cpu
 		// memory usage
 		container_memory, _ := docker.CgroupMemDocker(container_id)
