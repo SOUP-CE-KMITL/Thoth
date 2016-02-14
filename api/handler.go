@@ -26,8 +26,6 @@ import (
 	"time"
 )
 
-var kube_api string = "http://localhost:8080"
-
 func Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello, %q", html.EscapeString(r.URL.Path))
 }
@@ -35,7 +33,7 @@ func Index(w http.ResponseWriter, r *http.Request) {
 // list every node
 func GetNodes(w http.ResponseWriter, r *http.Request) {
 	// to do need to read api and port of api server from configuration file
-	res, err := http.Get(kube_api + "/api/v1/nodes")
+	res, err := http.Get(thoth.KubeApi + "/api/v1/nodes")
 	if err != nil {
 		panic(err)
 	}
@@ -55,7 +53,7 @@ func GetNode(w http.ResponseWriter, r *http.Request) {
 	// node name from user.
 	nodesName := vars["nodeName"]
 	// TODO: need to read api and port of api server from configuration file
-	res, err := http.Get(kube_api + "/api/v1/nodes/" + nodesName)
+	res, err := http.Get(thoth.KubeApi + "/api/v1/nodes/" + nodesName)
 	if err != nil {
 		panic(err)
 	}
@@ -101,7 +99,7 @@ func NodeMemory(w http.ResponseWriter, r *http.Request) {
 // list all pods
 func GetPods(w http.ResponseWriter, r *http.Request) {
 	// to do need to read api and port of api server from configuration file
-	res, err := http.Get(kube_api + "/api/v1/pods")
+	res, err := http.Get(thoth.KubeApi + "/api/v1/pods")
 	if err != nil {
 		panic(err)
 	}
@@ -122,7 +120,7 @@ func GetPod(w http.ResponseWriter, r *http.Request) {
 	// to do need to read api and port of api server from configuration file
 	// TODO: change namespace to flexible.
 	var dat map[string]interface{}
-	res, err := http.Get(kube_api + "/api/v1/namespaces/default/pods/" + podName)
+	res, err := http.Get(thoth.KubeApi + "/api/v1/namespaces/default/pods/" + podName)
 	if err != nil {
 		panic(err)
 	}
@@ -278,7 +276,7 @@ func CreatePod(w http.ResponseWriter, r *http.Request) {
 	// post json to kubernete api server
 
 	// TODO: need to change name space to user namespace
-	postUrl := kube_api + "/api/v1/namespaces/default/pods"
+	postUrl := thoth.KubeApi + "/api/v1/namespaces/default/pods"
 	req, err := http.NewRequest("POST", postUrl, bytes.NewBuffer(jsonReq))
 	req.Header.Set("X-Custom-Header", "myvalue")
 	req.Header.Set("Content-Type", "application/json")
@@ -461,7 +459,7 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 	var summary_cpu float64
 	var memory_bundle []*docker.CgroupMemStat
 
-	container_ids, pod_ips, err := GetContainerIDList(kube_api, appName, namespace)
+	container_ids, pod_ips, err := GetContainerIDList(thoth.KubeApi, appName, namespace)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -552,7 +550,7 @@ func PullDockerhub(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	// get app Name
 	docker_repo := vars["dockerhub_repo"]
-	postUrl := "http://localhost:4243/images/create?fromImage="+docker_repo
+	postUrl := "http://localhost:4243/images/create?fromImage=" + docker_repo
 	fmt.Println(string(postUrl))
 	req, err := http.NewRequest("POST", postUrl, nil)
 	req.Header.Set("X-Custom-Header", "myvalue")
@@ -591,16 +589,16 @@ func CreateRc(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	fmt.Println(rc);
+	fmt.Println(rc)
 
 	ports := map[string]interface{}{
 		"containerPort": rc.Port,
 	}
 
 	containers := map[string]interface{}{
-		"name":   rc.Name,
-		"image":  rc.Image,
-		"ports":  []map[string]interface{}{ports},
+		"name":  rc.Name,
+		"image": rc.Image,
+		"ports": []map[string]interface{}{ports},
 		"resources": map[string]interface{}{
 			"limits": map[string]interface{}{
 				"memory": "200Mi",
@@ -612,8 +610,8 @@ func CreateRc(w http.ResponseWriter, r *http.Request) {
 	objReq := map[string]interface{}{
 		"apiVersion": "v1",
 		"kind":       "ReplicationController",
-		"metadata":   map[string]interface{}{
-			"name":   rc.Name,
+		"metadata": map[string]interface{}{
+			"name":      rc.Name,
 			"namespace": rc.Namespace,
 		},
 		"spec": map[string]interface{}{
@@ -643,9 +641,9 @@ func CreateRc(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("you sent ", string(jsonReq))
 	// post json to kubernete api server
 
-	postUrl := kube_api + "/api/v1/namespaces/"+rc.Namespace+"/replicationcontrollers"
+	postUrl := thoth.KubeApi + "/api/v1/namespaces/" + rc.Namespace + "/replicationcontrollers"
 	req, err := http.NewRequest("POST", postUrl, bytes.NewBuffer(jsonReq))
-	req.Header.Set("X-Custom-Header", "myvalue")
+	//	req.Header.Set("X-Custom-Header", "myvalue")
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -655,7 +653,22 @@ func CreateRc(w http.ResponseWriter, r *http.Request) {
 	}
 	// defer for ensure
 	defer resp.Body.Close()
+	resRc, _ := ioutil.ReadAll(resp.Body)
 
-	response, _ := ioutil.ReadAll(resp.Body)
-	fmt.Println(string(response))
+	var responseRcCreate map[string]interface{}
+	if err := json.Unmarshal(resRc, &responseRcCreate); err != nil {
+		panic(err)
+	}
+
+	if resp.StatusCode != 200 { // RC Create fail
+		w.WriteHeader(http.StatusConflict)
+		fmt.Fprint(w, "rc create fail")
+	} else {
+		// RC Create success
+		fmt.Fprint(w, "yeah")
+		// Creat SVC
+	}
+
+	fmt.Println(string(resRc))
+
 }
