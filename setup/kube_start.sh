@@ -24,7 +24,6 @@ docker run --net=host -d gcr.io/google_containers/etcd:2.2.1 /usr/local/bin/etcd
 #    -d \
 #    gcr.io/google_containers/hyperkube:v1.0.1 \
 #    /hyperkube kubelet --containerized --hostname-override="127.0.0.1" --address="0.0.0.0" --api-servers=http://localhost:8080 --config=/etc/kubernetes/manifests
-#docker run -d --net=host --privileged gcr.io/google_containers/hyperkube:v1.0.1 /hyperkube proxy --master=http://127.0.0.1:8080 --v=2
 
 # v1.1.7
 #gcr.io/google_containers/hyperkube:v${K8S_VERSION}
@@ -48,3 +47,4 @@ docker run \
     --privileged=true \
     --pid=host \
     -d gcr.io/google_containers/hyperkube:v1.1.7 /hyperkube kubelet --api-servers=http://localhost:8080 --v=2 --address=0.0.0.0 --enable-server --hostname-override=127.0.0.1 --config=/etc/kubernetes/manifests-multi --cluster-dns=10.0.0.10 --cluster-domain=cluster.local
+docker run -d --net=host --privileged gcr.io/google_containers/hyperkube:v1.1.7 /hyperkube proxy --master=http://127.0.0.1:8080 --v=2

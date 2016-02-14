@@ -231,7 +231,7 @@ angular.module('myApp').controller('AppResourceUsageController',
               for(var r = 0; r < response.length; r++){
                 console.log(response[r].data.cpu); 
                 $scope.apps[r].data[0].values.push({ x:t, y:response[r].data.cpu })
-                var percent_mem = response[r].data.memory[0].mem_usage_in_bytes/1000000000 * 100;
+                var percent_mem = response[r].data.memory/200 * 100;
                 $scope.apps[r].data[1].values.push({ x:t, y:percent_mem })
                 console.log("cpu : "+$scope.apps[r].data[1].values.slice(-1)[0].x);
                 if($scope.apps[r].data[0].values.length > 20) $scope.apps[r].data[0].values.shift();
