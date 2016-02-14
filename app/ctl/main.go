@@ -112,13 +112,20 @@ func main() {
 										fmt.Println(qRepSpread)
 										repSpread, err := strconv.ParseFloat(fmt.Sprint(qRepSpread[0].Series[0].Values[0][1]), 32)
 										if repSpread < 1 {
-											fmt.Println("Scaleeeeeeeeeeeeeeeeeeeeeee")
+											fmt.Println("Scale +1")
 											res, err := scaleOutViaCli(int(replicas)+1, RCArray[i].Namespace, RCArray[i].Name)
 											if err != nil {
 												panic(err)
 											}
 											fmt.Println(res)
 										}
+									} else if replicas > 1 {
+										fmt.Println("Scale -1")
+										res, err := scaleOutViaCli(int(replicas)-1, RCArray[i].Namespace, RCArray[i].Name)
+										if err != nil {
+											panic(err)
+										}
+										fmt.Println(res)
 									}
 								}
 							}
