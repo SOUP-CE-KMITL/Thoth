@@ -16,6 +16,7 @@ import (
 	"strconv"
 
 	"github.com/SOUP-CE-KMITL/Thoth"
+	"github.com/SOUP-CE-KMITL/Thoth/profil"
 	"github.com/gorilla/mux"
 
 	"github.com/shirou/gopsutil/cpu"
@@ -409,42 +410,14 @@ func GetNodeResource(w http.ResponseWriter, r *http.Request) {
 /**
  CPU Percent Calculation
 **/
-func DockerCPUPercent(interval time.Duration, container_id string) (float64, error) {
-	getAllBusy := func(t *cpu.CPUTimesStat) (float64, float64) {
-		busy := t.User + t.System + t.Nice + t.Iowait + t.Irq +
-			t.Softirq + t.Steal + t.Guest + t.GuestNice + t.Stolen
-		return busy + t.Idle, busy
+func DockerCPUPercent(container_id string) (float32, error) {
+
+	res, err := profil.GetCpu(container_id)
+	if err != nil {
+		return 0.0, nil
 	}
+	return float32(res), nil
 
-	calculate := func(t1, t2 *cpu.CPUTimesStat) float64 {
-		t1All, t1Busy := getAllBusy(t1)
-		t2All, t2Busy := getAllBusy(t2)
-		if t2Busy <= t1Busy {
-			return 0
-		}
-		if t2All <= t1All {
-			return 1
-		}
-		fmt.Println("Busy: ", t2Busy-t1Busy, ", All: ", t2All-t1All)
-		fmt.Println("idle time 1: ", t1Busy-t1All, ", idle time 2: ", t2Busy-t2All)
-		return (t2Busy - t1Busy) / (t2All - t1All) * 100
-	}
-
-	// Get CPU usage at the start of the interval.
-	var cpuTimes1 *cpu.CPUTimesStat
-	cpuTimes1, _ = docker.CgroupCPUDocker(container_id)
-
-	if interval > 0 {
-		time.Sleep(interval)
-	}
-
-	// And at the end of the interval.
-	var cpuTimes2 *cpu.CPUTimesStat
-	cpuTimes2, _ = docker.CgroupCPUDocker(container_id)
-
-	var rets float64
-	rets = calculate(cpuTimes1, cpuTimes2)
-	return rets, nil
 }
 
 /**
@@ -456,7 +429,7 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 	appName := vars["appName"]
 	namespace := vars["namespace"]
 
-	var summary_cpu float64
+	var summary_cpu float32
 	var memory_bundle []*docker.CgroupMemStat
 
 	container_ids, pod_ips, err := GetContainerIDList(thoth.KubeApi, appName, namespace)
@@ -466,15 +439,17 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 	for _, container_id := range container_ids {
 		fmt.Println(container_id, pod_ips)
 		// calculation percentage of cpu usage
-		container_cpu, _ := DockerCPUPercent(time.Duration(1)*time.Second, container_id)
+		container_cpu, _ := DockerCPUPercent(container_id)
 		summary_cpu += container_cpu
 		// memory usage
 		container_memory, _ := docker.CgroupMemDocker(container_id)
 		memory_bundle = append(memory_bundle, container_memory)
 	}
 
+	podNum := len(pod_ips)
+
 	// find the request per sec from haproxy-frontend
-	res_front, err := http.Get("http://localhost:10001/v1/stats/frontends")
+	res_front, err := http.Get(thoth.VampApi + "/v1/stats/frontends")
 	if err != nil {
 		panic(err)
 	}
@@ -495,7 +470,7 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 
 	//find resonse time from haproxy-backends
 	//var rtime uint64
-	res_back, err := http.Get("http://localhost:10001/v1/stats/backends")
+	res_back, err := http.Get(thoth.VampApi + "/v1/stats/backends")
 	if err != nil {
 		panic(err)
 	}
@@ -522,12 +497,20 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("rps: ", rps, ", rtime: ", rtime)
 	// find the cpu avarage of application cpu usage
-	average_cpu := summary_cpu / float64(len(container_ids))
+	average_cpu := summary_cpu / float32(len(container_ids))
+	// Cal Avg Mem usage
+	var avgMem uint64
+	for i := 0; i < podNum; i++ {
+		avgMem += memory_bundle[i].MemUsageInBytes
+	}
+	avgMem = avgMem / uint64(podNum)
+	avgMem = avgMem / uint64(1024*1024) // MB
+
 	// create appliction object
 	app_metric := thoth.AppMetric{
 		App:         appName,
 		Cpu:         average_cpu,
-		Memory:      memory_bundle,
+		Memory:      int64(avgMem),
 		Request:     rps_int,
 		Response:    rtime_int,
 		Response2xx: res2xx_int,
@@ -638,12 +621,61 @@ func CreateRc(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	fmt.Println("you sent ", string(jsonReq))
+	//	fmt.Println("you sent ", string(jsonReq))
 	// post json to kubernete api server
 
-	postUrl := thoth.KubeApi + "/api/v1/namespaces/" + rc.Namespace + "/replicationcontrollers"
-	req, err := http.NewRequest("POST", postUrl, bytes.NewBuffer(jsonReq))
-	//	req.Header.Set("X-Custom-Header", "myvalue")
+	rcResCode, rcResBody := postJson(thoth.KubeApi+"/api/v1/namespaces/"+rc.Namespace+"/replicationcontrollers", jsonReq)
+
+	if rcResCode/200 == 2 { // RC Create fail
+		w.WriteHeader(http.StatusConflict)
+		fmt.Fprint(w, rcResBody["message"].(string))
+	} else {
+		// RC Create success
+		fmt.Fprint(w, "yeah")
+		// Creat SVC
+		svc := thoth.Svc{
+			APIVersion: "v1",
+			Kind:       "Service",
+			Metadata: thoth.Metadata{
+				Name:      rc.Name,
+				Namespace: rc.Namespace,
+			},
+			Spec: thoth.SvcSpec{
+				Ports: []thoth.Port{
+					thoth.Port{
+						NodePort:   30003,
+						Port:       80,
+						TargetPort: rc.Port,
+					}},
+				Selector: thoth.Selector{
+					App: rc.Name,
+				},
+				Type: "LoadBalancer",
+			},
+			Status: thoth.SvcStatus{
+				LoadBalancer: thoth.SvcLoadBalancer{
+					Ingress: []thoth.SvcIngress{
+						thoth.SvcIngress{
+							IP: "10.0.1.17",
+						}},
+				},
+			},
+		}
+		jsonSvc, err := json.MarshalIndent(svc, "", "\t")
+		if err != nil {
+			panic(err)
+		}
+		//		fmt.Println(svc)
+		//		fmt.Println(string(jsonSvc))
+		svcResCode, svcResBody := postJson(thoth.KubeApi+"/api/v1/namespaces/"+rc.Namespace+"/services", jsonSvc)
+		fmt.Println(svcResCode)
+		fmt.Println(svcResBody)
+	}
+
+}
+
+func postJson(url string, data []byte) (int, map[string]interface{}) {
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(data))
 	req.Header.Set("Content-Type", "application/json")
 
 	client := &http.Client{}
@@ -651,24 +683,14 @@ func CreateRc(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+
 	// defer for ensure
 	defer resp.Body.Close()
-	resRc, _ := ioutil.ReadAll(resp.Body)
+	body, _ := ioutil.ReadAll(resp.Body)
 
-	var responseRcCreate map[string]interface{}
-	if err := json.Unmarshal(resRc, &responseRcCreate); err != nil {
+	var response map[string]interface{}
+	if err := json.Unmarshal(body, &response); err != nil {
 		panic(err)
 	}
-
-	if resp.StatusCode != 200 { // RC Create fail
-		w.WriteHeader(http.StatusConflict)
-		fmt.Fprint(w, "rc create fail")
-	} else {
-		// RC Create success
-		fmt.Fprint(w, "yeah")
-		// Creat SVC
-	}
-
-	fmt.Println(string(resRc))
-
+	return resp.StatusCode, response
 }

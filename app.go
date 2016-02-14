@@ -1,14 +1,10 @@
 // TODO : need to change to api package
 package thoth
 
-import (
-	"github.com/shirou/gopsutil/docker"
-)
-
 type AppMetric struct {
-	App         string                  `json:"app"`
-	Cpu         float64                 `json:"cpu"`
-	Memory      []*docker.CgroupMemStat `json:"memory"`
+	App         string  `json:"app"`
+	Cpu         float32 `json:"cpu"`
+	Memory      int64   `json:"memory"`
 	Request     int64
 	Response    int64
 	Response2xx int64
@@ -27,13 +23,57 @@ type App struct {
 
 type Apps []App
 
-
-// Replication 
+// Replication
 
 type SendRC struct {
-	Name string `json: "name"`
-	Replicas int `json: "replicas"`
+	Name      string `json: "name"`
+	Replicas  int    `json: "replicas"`
 	Namespace string `json: "namespace"`
-	Image string `json: "image"`
-	Port int `json: "port"`
+	Image     string `json: "image"`
+	Port      int    `json: "port"`
 }
+type RC struct {
+	Namespace string // Namespace = User
+	Name      string
+}
+
+type Svc struct {
+	APIVersion string    `json:"apiVersion"`
+	Kind       string    `json:"kind"`
+	Metadata   Metadata  `json:"metadata"`
+	Spec       SvcSpec   `json:"spec"`
+	Status     SvcStatus `json:"status"`
+}
+
+type Metadata struct {
+	Name      string `json:"name"`
+	Namespace string `json:"namespace"`
+}
+type SvcSpec struct {
+	Ports    []Port   `json:"ports"`
+	Selector Selector `json:"selector"`
+	Type     string   `json:"type"`
+}
+type Port struct {
+	NodePort int `json:"nodePort"`
+	Port     int `json:"port"`
+	//	Protocol   string `json:"protocol"`
+	TargetPort int `json:"targetPort"`
+}
+type Selector struct {
+	App string `json:"app"`
+}
+type SvcStatus struct {
+	LoadBalancer SvcLoadBalancer `json:"loadBalancer"`
+}
+
+type SvcLoadBalancer struct {
+	Ingress []SvcIngress `json:"ingress"`
+}
+type SvcIngress struct {
+	IP string `json:"ip"`
+}
+
+var KubeApi string = "http://localhost:8080"
+var InfluxdbApi string = "http://localhost:8086"
+var VampApi string = "http://localhost:10001"

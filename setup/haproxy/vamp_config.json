@@ -20,7 +20,11 @@
       "servers": [
         {
           "name": "eight-001",       
+<<<<<<< HEAD
           "host": "localhost",
+=======
+          "host": "127.0.0.1",
+>>>>>>> api
           "port": 30001
         }
       ]

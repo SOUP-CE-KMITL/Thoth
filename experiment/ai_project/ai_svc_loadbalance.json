@@ -2,22 +2,21 @@
     "kind": "Service",
     "apiVersion": "v1",
     "metadata": {
-        "name": "svc-eight"
+        "name": "eight-puzzle-svc",
+        "namespace":"thoth"
     },
     "spec": {
         "selector": {
-            "app": "eight"
+            "app": "eight-puzzle"
         },
         "ports": [
             {
                 "protocol": "TCP",
                 "port": 80,
                 "targetPort": 8000,
-                "nodePort": 30061
+                "nodePort": 30001
             }
         ],
-        "clusterIP": "10.0.171.239",
-        "loadBalancerIP": "78.11.24.19",
         "type": "LoadBalancer"
     },
     "status": {

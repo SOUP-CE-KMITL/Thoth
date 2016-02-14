@@ -18,12 +18,14 @@ spec:
       - name: influxdb
         image: tutum/influxdb:0.10
         ports:
-        - containerPort: 8083
-        - containerPort: 8086
+        - name: webui
+          containerPort: 8083
+        - name: api
+          containerPort: 8086
         volumeMounts:
-        - name: "data"
-          mountPath: "/data"
+        - name: data
+          mountPath: /data
       volumes:
-      - hostPath: 
-          path: "/home/ionization/influxdb"
-        name: "data"
+        - name: data 
+          hostPath: 
+            path: /var/lib/influxdb
