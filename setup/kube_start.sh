@@ -10,7 +10,7 @@
 #sudo yum localinstall influxdb-0.10.0-1.x86_64.rpm
 
 ##--------------------
-#docker run --net=host -d gcr.io/google_containers/etcd:2.0.12 /usr/local/bin/etcd --addr=127.0.0.1:4001 --bind-addr=0.0.0.0:4001 --data-dir=/var/etcd/data
+docker run --net=host -d gcr.io/google_containers/etcd:2.2.1 /usr/local/bin/etcd --addr=127.0.0.1:4001 --bind-addr=0.0.0.0:4001 --data-dir=/var/etcd/data
 #docker run \
 #    --volume=/:/rootfs:ro \
 #    --volume=/sys:/sys:ro \
