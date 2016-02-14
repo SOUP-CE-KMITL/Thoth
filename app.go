@@ -3,7 +3,7 @@ package thoth
 
 type AppMetric struct {
 	App         string  `json:"app"`
-	Cpu         float64 `json:"cpu"`
+	Cpu         float32 `json:"cpu"`
 	Memory      int64   `json:"memory"`
 	Request     int64
 	Response    int64

@@ -11,7 +11,9 @@ import (
 	"github.com/shirou/gopsutil/net"
 	"io/ioutil"
 	"net/http"
+	"os/exec"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -141,49 +143,20 @@ func GetContainerIDList(url string, rc_name string, namespace string) ([]string,
 /**
  CPU Percent Calculation
 **/
-func DockerCPUPercent(interval time.Duration, container_id string) (float64, error) {
-	getAllBusy := func(t *cpu.CPUTimesStat) (float64, float64) {
-		busy := t.User + t.System + t.Nice + t.Iowait + t.Irq +
-			t.Softirq + t.Steal + t.Guest + t.GuestNice + t.Stolen
-		return busy + t.Idle, busy
+func DockerCPUPercent(interval time.Duration, container_id string) (float32, error) {
+	res, err := GetCpu(container_id)
+	if err != nil {
+		return 0.0, nil
 	}
+	return float32(res), nil
 
-	calculate := func(t1, t2 *cpu.CPUTimesStat) float64 {
-		t1All, t1Busy := getAllBusy(t1)
-		t2All, t2Busy := getAllBusy(t2)
-		if t2Busy <= t1Busy {
-			return 0
-		}
-		if t2All <= t1All {
-			return 1
-		}
-		//	fmt.Println("Busy: ", t2Busy-t1Busy, ", All: ", t2All-t1All)
-		//	fmt.Println("idle time 1: ", t1Busy-t1All, ", idle time 2: ", t2Busy-t2All)
-		return (t2Busy - t1Busy) / (t2All - t1All) * 100
-	}
-
-	// Get CPU usage at the start of the interval.
-	var cpuTimes1 *cpu.CPUTimesStat
-	cpuTimes1, _ = docker.CgroupCPUDocker(container_id)
-
-	if interval > 0 {
-		time.Sleep(interval)
-	}
-
-	// And at the end of the interval.
-	var cpuTimes2 *cpu.CPUTimesStat
-	cpuTimes2, _ = docker.CgroupCPUDocker(container_id)
-
-	var rets float64
-	rets = calculate(cpuTimes1, cpuTimes2)
-	return rets, nil
 }
 
 /**
  	get resource usage of application (pods) on node
 **/
 func GetAppResource(namespace, name string) thoth.AppMetric {
-	var summary_cpu float64
+	var summary_cpu float32
 	var memory_bundle []*docker.CgroupMemStat
 
 	container_ids, pod_ips, err := GetContainerIDList(thoth.KubeApi, name, namespace)
@@ -251,7 +224,7 @@ func GetAppResource(namespace, name string) thoth.AppMetric {
 
 	//fmt.Println("rps: ", rps, ", rtime: ", rtime)
 	// find the cpu avarage of application cpu usage
-	average_cpu := summary_cpu / float64(len(container_ids))
+	average_cpu := summary_cpu / float32(len(container_ids))
 	// Cal Avg Mem usage
 	var avgMem uint64
 	for i := 0; i < podNum; i++ {
@@ -273,4 +246,16 @@ func GetAppResource(namespace, name string) thoth.AppMetric {
 	}
 	return app_metric
 
+}
+
+func GetCpu(containerId string) (float64, error) {
+	var err error
+	var result []byte
+	if result, err = exec.Command("docker", "stats", "--no-stream", containerId).Output(); err != nil {
+		panic(err)
+	}
+
+	cpuPercent := strings.Fields(string(result))[11]
+	cpuPercent = cpuPercent[0 : len(cpuPercent)-1]
+	return strconv.ParseFloat(cpuPercent, 32)
 }
