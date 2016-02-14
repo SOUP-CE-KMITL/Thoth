@@ -22,3 +22,12 @@ type App struct {
 }
 
 type Apps []App
+
+type RC struct {
+	Namespace string // Namespace = User
+	Name      string
+}
+
+var KubeApi string = "http://localhost:8080"
+var InfluxdbApi string = "http://localhost:8086"
+var VampApi string = "http://localhost:10001"
