@@ -20,8 +20,8 @@
       "servers": [
         {
           "name": "eight-001",       
-          "host": "172.17.0.10",
-          "port": 8000
+          "host": "localhost",
+          "port": 30001
         }
       ]
     }

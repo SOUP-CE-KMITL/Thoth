@@ -544,3 +544,118 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(app_json))
 
 }
+
+/**
+	pull new image form dockerhub
+**/
+func PullDockerhub(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	// get app Name
+	docker_repo := vars["dockerhub_repo"]
+	postUrl := "http://localhost:4243/images/create?fromImage="+docker_repo
+	fmt.Println(string(postUrl))
+	req, err := http.NewRequest("POST", postUrl, nil)
+	req.Header.Set("X-Custom-Header", "myvalue")
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	// defer for ensure
+	defer resp.Body.Close()
+	response, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(response))
+}
+
+func CreateRc(w http.ResponseWriter, r *http.Request) {
+	var rc thoth.SendRC
+	// limits json post request for prevent overflow attack.
+	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
+	if err != nil {
+		panic(err)
+	}
+
+	// catch error from close reader
+	if err := r.Body.Close(); err != nil {
+		panic(err)
+	}
+
+	// get request json information
+	if err := json.Unmarshal(body, &rc); err != nil {
+		w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+		w.WriteHeader(422) // unprocessable entity
+		if err := json.NewEncoder(w).Encode(err); err != nil {
+			panic(err)
+		}
+	}
+
+	fmt.Println(rc);
+
+	ports := map[string]interface{}{
+		"containerPort": rc.Port,
+	}
+
+	containers := map[string]interface{}{
+		"name":   rc.Name,
+		"image":  rc.Image,
+		"ports":  []map[string]interface{}{ports},
+		"resources": map[string]interface{}{
+			"limits": map[string]interface{}{
+				"memory": "200Mi",
+				"cpu":    "1000m",
+			},
+		},
+	}
+
+	objReq := map[string]interface{}{
+		"apiVersion": "v1",
+		"kind":       "ReplicationController",
+		"metadata":   map[string]interface{}{
+			"name":   rc.Name,
+			"namespace": rc.Namespace,
+		},
+		"spec": map[string]interface{}{
+			"replicas": rc.Replicas,
+			"selector": map[string]interface{}{
+				"app": rc.Name,
+			},
+			"template": map[string]interface{}{
+				"metadata": map[string]interface{}{
+					"labels": map[string]interface{}{
+						"app": rc.Name,
+					},
+					"name": rc.Name,
+				},
+				"spec": map[string]interface{}{
+					"containers": []map[string]interface{}{containers},
+				},
+			},
+		},
+	}
+
+	jsonReq, err := json.MarshalIndent(objReq, "", "\t")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Println("you sent ", string(jsonReq))
+	// post json to kubernete api server
+
+	postUrl := kube_api + "/api/v1/namespaces/"+rc.Namespace+"/replicationcontrollers"
+	req, err := http.NewRequest("POST", postUrl, bytes.NewBuffer(jsonReq))
+	req.Header.Set("X-Custom-Header", "myvalue")
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	// defer for ensure
+	defer resp.Body.Close()
+
+	response, _ := ioutil.ReadAll(resp.Body)
+	fmt.Println(string(response))
+}

@@ -26,3 +26,14 @@ type App struct {
 }
 
 type Apps []App
+
+
+// Replication 
+
+type SendRC struct {
+	Name string `json: "name"`
+	Replicas int `json: "replicas"`
+	Namespace string `json: "namespace"`
+	Image string `json: "image"`
+	Port int `json: "port"`
+}

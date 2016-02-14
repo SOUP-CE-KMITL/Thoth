@@ -85,4 +85,16 @@ var routes = Routes{
 		"/app/{appName}/metrics/{namespace}",
 		GetAppResource,
 	},
+	Route{
+		"PullDockerhub",
+		"POST",
+		"/pull/{dockerhub_repo}",	
+		PullDockerhub,
+	},
+	Route{
+		"CreateRc",
+		"POST",
+		"/rc/create/",
+		CreateRc,
+	},
 }

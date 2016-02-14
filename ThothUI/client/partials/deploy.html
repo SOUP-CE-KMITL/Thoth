@@ -1,16 +1,101 @@
-<div class="panel panel-info">
-  <div class="panel-heading">
-    <h3 class="panel-title">Deploy Your Application</h3>
+<section ng-controller="deployController">
+<div class="row">
+  <div class="col-md-5">
+    <div class="panel panel-info">
+      <div class="panel-heading">
+        <h3 class="panel-title">Instruction</h3>
+      </div>
+      <div class="panel-body">
+        <div class="row">
+          <div class="col-md-10 col-md-offset-1">
+            <h2>The Instruction Guide </h2>
+            <p>Application Information : you should inform about your application for deploy aplication to thoth.
+            We provide choices for you to deploy application.</p>
+            <br />
+          </div>
+        </div>
+      </div>
+    </div>  
   </div>
-  <div class="panel-body">
-    <h3>Deploy Application</h3>
-    <div class="row">
-      <div class="col-md-10 col-md-offset-1">
-	      <div class="form-group">	
-	      	<label for="reference" ><span class="glyphicon glyphicon-download"></span>  Docker Hub</label>
-	    	<input id="reference" placeholder="dockerhub.io" type="text" class="form-control" />
-	      </div>
+  <div class="col-md-7">
+    <form class="form" ng-submit="app_register()">
+      <div class="panel panel-info">
+        <div class="panel-heading">
+          <h3 class="panel-title">Application Information</h3>
+        </div>
+        <div class="panel-body">
+          <div class="btn-group btn-group-justified btn-group-raised">
+            <a ng-click="tab='dockerhub'" class="btn">
+              DockerHub
+            </a>
+            <a ng-click="tab='github'" class="btn">
+              GitHub
+            </a>
+          </div>
+          <div ng-switch on="tab">
+            <!-- dockerhub -->
+            <div ng-switch-when="dockerhub" class="row">
+              <div class="col-md-10 col-md-offset-1">
+                <div class="form-group">  
+                  <label for="reference" ><span class="glyphicon glyphicon-download"></span>  Docker Hub</label>
+                  <input id="reference" placeholder="<user name>/<application name>" type="text" class="form-control" ng-model="registerForm.dockerhub" />
+                </div>
+                <div class="form-group">  
+                  <label for="reference" ><span class="glyphicon glyphicon-download"></span>  Image Name</label>
+                  <input id="reference" placeholder="nginx" type="text" class="form-control"
+                  ng-model="registerForm.image_name" />
+                </div>
+              </div>
+            </div>
+            <!-- github -->
+            <div ng-switch-when="github" class="row">
+              <div class="col-md-10 col-md-offset-1">
+                <div class="form-group">  
+                  <label for="reference" ><span class="glyphicon glyphicon-download"></span>  GitHub Repository</label>
+                  <input id="reference" placeholder="git@github.com:<username>/<repo name>.git" type="text" class="form-control" ng-model="registerForm.github_repo"/>
+                </div>
+                <div class="form-group">  
+                  <label for="reference" ><span class="glyphicon glyphicon-download"></span>  Runtime Environment</label>
+                  <input id="reference" placeholder="ruby" type="text" class="form-control" ng-model="registerForm.runtime_env"/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="panel panel-info">
+        <div class="panel-heading">
+          <h3 class="panel-title">Application variable</h3>
+        </div>
+        <div class="panel-body">
+          <div class="row">
+            <div class="col-md-10 col-md-offset-1">
+              <div class="form-group">  
+                <label for="reference" ><span class="glyphicon glyphicon-download"></span>  Port</label>
+                <input id="reference" placeholder="8000" type="number" class="form-control" ng-model="registerForm.internal_port"/>
+              </div>
+              <div class="form-group">  
+                <div class="row">
+                  <label for="reference" ><span class="glyphicon glyphicon-download"></span>  max-min instance</label>
+                </div>
+                <div class="row">
+                  <div class="col-md-6">
+                    <input id="reference" type="number" class="form-control" ng-model="registerForm.max_instance"/>
+                  </div>
+                  <div class="col-md-6">
+                    <input id="reference" type="number" class="form-control" ng-model="registerForm.min_instance"/>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        <button type="submit" class="btn btn-success">Create App</button>
       </div>
     </div>
-  </div>
+    
+  </form>
 </div>
+</section>

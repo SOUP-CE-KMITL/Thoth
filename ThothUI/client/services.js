@@ -5,6 +5,8 @@ angular.module('myApp').factory('AuthService',
     // create user variable
     var user = null;
 
+    var user_obj;
+
 
     // return available functions for use in controllers
     return ({
@@ -13,7 +15,8 @@ angular.module('myApp').factory('AuthService',
       login: login,
       logout: logout,
       register: register,
-      getUser: getUser
+      getUser: getUser,
+      createApp: createApp
     });
 
     function isLoggedIn() {
@@ -108,6 +111,7 @@ angular.module('myApp').factory('AuthService',
       $http.get('/user/profile')
       .success(function (data) {
         console.log("user from backend (service) :"+data.user)
+        user_obj = data.user; 
         deferred.resolve(data);
       })
       .error(function (data) {
@@ -117,4 +121,41 @@ angular.module('myApp').factory('AuthService',
       return deferred.promise;
     }
 
+    function createApp(user_app) {
+      console.log(user_obj);
+      var deferred = $q.defer();
+      $http.post('/user/create/app/'+user_obj, user_app)
+      .success(function (data) {
+        console.log("response from create user :"+data)
+        // post to pull user's docker image to node  
+
+        console.log(user_app);
+        //create rc object
+        // send essential infor for create replicaion controller
+        var rc_obj = {
+          name: user_app.image_hub,
+          replicas: 1,
+          namespace: user_obj,
+          image: user_app.image_hub,
+          port: user_app.internal_port
+        };
+
+        console.log(rc_obj);
+
+        $http.post('http://localhost:8182/rc/create/', rc_obj)
+        .success(function() {
+          console.log("success to created RC")
+          deferred.resolve(data);
+        })
+        .error(function(data) {
+          deferred.reject("error to create replication.");  
+        });                      
+      })
+      .error(function (data) {
+        deferred.reject("error to create store application to DB.");
+      });
+
+      return deferred.promise;
+  
+    }
 }]);

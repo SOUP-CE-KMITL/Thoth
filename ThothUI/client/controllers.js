@@ -81,6 +81,35 @@ angular.module('myApp').controller('registerController',
 angular.module('myApp').controller('deployController', 
   ['$scope', '$location', 'AuthService',
   function ($scope, $location, AuthService) {
+    // switch tab
+    $scope.tab = "dockerhub";
+    $scope.registerForm = {};
+    
+    $scope.app_register = function () {
+      var user_app = {
+        dockerhub: $scope.registerForm.dockerhub,
+        image_hub: $scope.registerForm.image_name,
+        github_repo: $scope.registerForm.github_repo,
+        runtime_env: $scope.registerForm.runtime_env,
+        internal_port: $scope.registerForm.internal_port,
+        max_instance: $scope.registerForm.max_instance,
+        min_instance: $scope.registerForm.min_instance
+      }
+      console.log("create user application : "+user_app.dockerhub);
+      // call create app from service
+      AuthService.createApp(user_app)
+      // handle success
+      .then(function (response) {
+        console.log(response);
+        $location.path('/deploy');
+        $scope.registerForm = {};
+      })
+      // handle error
+      .catch(function () {
+        alert('error');
+        $scope.registerForm = {};
+      });
+    } 
 }]);
 
 angular.module('myApp').controller('configureController', 
@@ -228,6 +257,10 @@ angular.module('myApp').controller('HeaderController',
     // get user details
     AuthService.getUser().then(function(user) {
       $scope.user = user;
+    });
+
+    $scope.$watchCollection('user', function(newVal){
+      $scope.user = newVal;
     });
 
     $scope.user_status = AuthService.isLoggedIn();
