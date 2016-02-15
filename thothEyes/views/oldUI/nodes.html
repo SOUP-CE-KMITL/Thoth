@@ -1,0 +1,117 @@
+<html>
+<head>
+	<title></title>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	<script type="text/javascript">
+		// Server initial
+		// TODO : it's need to read from configuration file
+		var api_server_ip   = "localhost",
+			api_server_port = "8182";
+
+		var font_end_ip 	= "localhost",
+			font_end_port	= "1337";
+
+		// need to move to server side
+		$( document ).ready(function() {
+			console.log("hello");
+			// AJAX
+			$.ajax({
+			  url: "http://"+api_server_ip+":"+api_server_port+"/nodes",
+			  type:'GET',
+			  //url: api_server_ip+":8080/api/v1/nodes",
+			}).done(function( data ) {
+				data = JSON.parse(data);
+				console.log(data.items[0].metadata.name);
+			
+				for ( var i = 0; i < data.items.length; i++) {
+					createCards(data.items[i])
+				}
+			});
+
+			function createCards(item) {
+				var name =  item.metadata.name
+				var status = item.status.conditions[0].type
+
+				// tags creation
+				var thumbnail = $('<div></div>').addClass('thumbnail');
+				var img = $('<img></img>').addClass("img-responsive");
+					img.attr('src', 'http://placehold.it/350x150');
+				var caption = $('<div></div>').addClass('caption');
+					caption.append('<h3>Name : '+name+'</h3>');
+					caption.append('Status : '+status+'')
+					$('<div></div>').addClass('bx-dt');
+				var button = $('<a> details </a>').addClass('btn btn-success')
+					button.attr('href', "http://"+font_end_ip+":"+font_end_port+"/node/"+name)
+
+				thumbnail.append(img);
+				thumbnail.append(caption);
+				thumbnail.append(button);
+
+				var wrapper = $('<div></div>').addClass('col-sm-6 col-md-4');
+
+				wrapper.append(thumbnail);
+				$(".card").append(wrapper)
+			}
+
+		});
+	</script>
+	<style type="text/css">
+
+		body{
+			background-color: #f0ece5;
+		}
+		
+		.bx{
+			background-color: white;
+			margin-top: 0px;
+			padding-top: 20px;
+		}
+	
+		.thfnt{
+			color: white;
+			font-weight: bold;
+			font-size: 22px;
+		}
+		.hd-font{
+			font-size: 22px;
+			font-weight: bold;
+		}
+		.bx-dt{
+			text-align: left;
+			font-size: 16px;
+			font-weight: normal;
+		}
+	
+	</style>
+</head>
+<body>
+	<div class="container-fluid" >
+		<div class="row text-center" style="font-family: inherit;">
+			<nav class="navbar navbar-inverse thfnt" >
+			  	<h3>
+			  		<span class="glyphicon glyphicon-briefcase "></span>
+					THOTH
+				</h3>
+			</nav>
+		</div>
+		
+		<div class="row text-center">	
+			<div class="col-md-10 col-md-offset-1 bx hd-font">
+				<span class="glyphicon glyphicon-globe "></span>
+				Status
+				<br/><br/>
+				<div class="row card">
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

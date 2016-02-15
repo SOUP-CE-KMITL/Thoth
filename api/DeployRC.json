@@ -1,0 +1,7 @@
+{
+"name":"puzzle",
+"replicas":1,
+"namespace":"ziko",
+"image":"jigkoxsee/eight-puzzle:a-star",
+"port":80,
+}

@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: eight-puzzle
+  namespace: thoth
+spec:
+  replicas: 1
+  selector:
+    app: eight-puzzle
+  template:
+    metadata:
+      name: eight-puzzle
+      labels:
+        app: eight-puzzle
+    spec:
+      containers:
+      - name: eight-puzzle
+        image: jigkoxsee/eight-puzzle:a-star
+        resources:
+         limits:
+           memory: "200Mi"
+           cpu: "1000m"
+        ports:
+        - containerPort: 8000

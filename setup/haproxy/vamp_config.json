@@ -1,0 +1,29 @@
+{
+  "name": "app1_route",
+  "port": 9000,                                         
+  "protocol": "http",
+  "filters": [],
+  "httpQuota": {
+    "sampleWindow": "1s",
+    "rate": 10000,
+    "expiryTime": "100s"
+  },
+  "tcpQuota": {
+    "sampleWindow": "3s",
+    "rate": 10000,
+    "expiryTime": "100s"
+  },
+  "services": [                                           
+    {
+      "name": "service_1",                                
+      "weight": 30,                                     
+      "servers": [
+        {
+          "name": "app-001",       
+          "host": "localhost",
+          "port": 30001
+        }
+      ]
+    }
+  ]
+}

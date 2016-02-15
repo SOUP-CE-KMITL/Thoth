@@ -1,0 +1,14 @@
+{
+  "name": "haproxyclient",
+  "version": "1.0.0",
+  "description": "this is nodeclient application for  call haproxy api",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "haproxy": "^0.2.0"
+  }
+}
