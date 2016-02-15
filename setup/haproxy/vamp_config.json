@@ -15,11 +15,11 @@
   },
   "services": [                                           
     {
-      "name": "service_a",                                
+      "name": "service_1",                                
       "weight": 30,                                     
       "servers": [
         {
-          "name": "eight-001",       
+          "name": "app-001",       
           "host": "localhost",
           "port": 30001
         }
