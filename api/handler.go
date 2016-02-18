@@ -416,6 +416,7 @@ func DockerCPUPercent(container_id string) (float32, error) {
 	if err != nil {
 		return 0.0, nil
 	}
+	fmt.Println("res : ", res)
 	return float32(res), nil
 
 }
@@ -498,6 +499,8 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("rps: ", rps, ", rtime: ", rtime)
 	// find the cpu avarage of application cpu usage
 	average_cpu := summary_cpu / float32(len(container_ids))
+	fmt.Println("avg_cpu : ",average_cpu);
+	fmt.Println("summary_cpu : ",summary_cpu);
 	// Cal Avg Mem usage
 	var avgMem uint64
 	for i := 0; i < podNum; i++ {
