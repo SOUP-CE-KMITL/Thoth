@@ -97,4 +97,10 @@ var routes = Routes{
 		"/rc/create/",
 		CreateRc,
 	},
+	Route{
+		"getErrorApp",
+		"GET",
+		"/error/app",
+		getErrorApp,
+	},
 }

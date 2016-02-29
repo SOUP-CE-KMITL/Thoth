@@ -1,0 +1,535 @@
+<html ng-app="thothEyes">
+<head>
+	<title></title>
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+
+	<script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/d3/d3.js"></script>
+    <script src="bower_components/nvd3/build/nv.d3.js"></script>
+    <script src="bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
+    <script src="js/thothEyes.js"></script>
+    
+    <link rel="stylesheet" href="bower_components/nvd3/build/nv.d3.css">
+	<style type="text/css">
+	.botton {
+	    background-color: #e2e2e2;
+	    height: 35px;
+	    width: 35px;
+	    padding-top: 9px;
+	    font-size: 16px;
+	    margin-right: 5px;
+	    margin-left: 5px;
+	    margin-bottom: 5px;
+	    margin-top: 5px;
+	}
+	.errorapp{
+		padding-top: 15px;
+		padding-left: 15px;
+		padding-right: 15px;
+	}
+	.lowerblock{
+		height: 270px;
+	}
+	.lowerblock-headfont{
+		font-size: 15px;
+		margin-top: 15px;
+		margin-right: 15px;
+		margin-left: 15px;
+	}
+	.upperblock{
+		margin-top: 15px;
+		height: 340px;
+	}
+	.upperblock-headfont{
+		font-size: 16px;
+		margin-top: 15px;
+		margin-right: 15px;
+		margin-left: 15px;
+	}
+	.upperblock-bodyfont{
+		margin-left: 15px;
+		margin-right: 15px;
+		margin-bottom: 15px;
+		list-style-type: none;
+	}
+
+
+
+
+
+
+
+
+
+
+	/*modal*/
+
+
+	.modal-item {
+	  /* non-critical appearance styles */
+	  width: 95%;
+	  height: 40px;
+	  border-top: 1px solid white;
+	  border-bottom: 1px solid white;
+	  list-style-type: none;
+	}
+
+	.modal-item a {
+	  /* non-critical appearance styles */
+	  display: block;
+	  padding: 5px;
+	  background: white;
+	  color: black;
+	  font-size: 1em;
+	  text-decoration: none;
+	  /*transition: color 0.2s, background 0.5s;*/
+	}
+
+	.modal-item a:hover {
+	  color: #34495e;
+	  background-color: #ecf0f1;
+	}
+
+
+
+
+
+
+
+
+
+	/* Navigation Menu - Background */
+
+
+
+	.navigation {
+	  /* critical sizing and position styles */
+	  width: 100%;
+	  height: 100%;
+	  position: fixed;
+	  top: 0;
+	  right: 0;
+	  bottom: 0;
+	  left: 0;
+	  z-index: 0;
+	  
+	  /* non-critical appearance styles */
+	  list-style: none;
+	  background: white;
+	}
+
+	/* Navigation Menu - List items */
+	.nav-item {
+	  /* non-critical appearance styles */
+	  width: 200px;
+	  border-top: 1px solid white;
+	  border-bottom: 1px solid white;
+	}
+
+	.nav-item a {
+	  /* non-critical appearance styles */
+	  display: block;
+	  padding: 1em;
+	  background: white;
+	  color: black;
+	  font-size: 1em;
+	  text-decoration: none;
+	  transition: color 0.2s, background 0.5s;
+	}
+
+	.nav-item a:hover {
+	  color: #34495e;
+	  background-color: #ecf0f1;
+	}
+
+	/* Site Wrapper - Everything that isn't navigation */
+	.site-wrap {
+	  /* Critical position and size styles */
+	  min-height: 100%;
+	  min-width: 100%;
+	  background-color: white; /* Needs a background or else the nav will show through */
+	  position: relative;
+	  top: 0;
+	  bottom: 100%;
+	  left: 0;
+	  z-index: 1;
+	  
+	  /* non-critical apperance styles */
+	  padding: 0px;
+	  background-color: #f0ece5;
+	  background-size: 100%;
+	}
+
+	/* Nav Trigger */
+	.nav-trigger {
+	  /* critical styles - hide the checkbox input */
+	  position: absolute;
+	  clip: rect(0, 0, 0, 0);
+	}
+
+	label[for="nav-trigger"] {
+	  /* critical positioning styles */
+	  position: fixed;
+	  left: 15px; top: 15px;
+	  z-index: 2;
+	  
+	  /* non-critical apperance styles */
+	  height: 14px;
+	  width: 24px;
+	  cursor: pointer;
+	  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' x='0px' y='0px' width='30px' height='30px' viewBox='0 0 30 30' enable-background='new 0 0 30 30' xml:space='preserve'><rect width='30' height='6'/><rect y='24' width='30' height='6'/><rect y='12' width='30' height='6'/></svg>");
+	  background-size: contain;
+	}
+
+	/* Make the Magic Happen */
+	.nav-trigger + label, .site-wrap {
+	  transition: left 0.2s;
+	}
+
+	.nav-trigger:checked + label {
+	  left: 215px;
+	}
+
+	.nav-trigger:checked ~ .site-wrap {
+	  left: 200px;
+	 box-shadow: 0 0 5px 5px rgba(0,0,0,0.5);
+	}
+
+	body {
+	    /* Without this, the body has excess horizontal scroll when the menu is open */
+	  overflow-x: hidden;
+	}
+
+	/* Additional non-critical styles */
+
+	h1, h3, p {
+	  max-width: 600px;
+	  margin: 0 auto 1em;
+	}
+	a {
+		color: black;
+	}
+
+	code {
+	    padding: 2px;
+	    background: #ddd;
+	}
+
+	/* Micro reset */
+	*,*:before,*:after{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0;}
+	html, body { height: 100%; width: 100%; font-family: Helvetica, Arial, sans-serif; }
+	.contact-icon{
+		padding-left: 30px;
+		padding-top: 60px;
+		background-color:#f0ece5;
+		height: 120px;
+	}
+	.icon-margin{
+		margin-right: 10px;
+		font-size: 1.2em;
+	}
+	.nvtooltip { 
+		position: fixed;
+		margin-top: 10px;
+		margin-right: 50px;
+	}
+
+	</style>
+
+</head>
+<body ng-controller="DashboardCtrl">
+	<ul class="navigation">
+		<div class = "contact-icon" >
+			<span style="font-size:33; margin-right: 10px;" class="glyphicon glyphicon-user "></span>   Contact detail
+		</div>
+	    <li class="nav-item">
+	    	<a href="file:///C:/Users/admin/Desktop/Thoth.html">
+	    		<span class="glyphicon glyphicon-home icon-margin"></span> Home
+	    	</a>
+	    </li>
+	    <li class="nav-item">
+	    	<a href="file:///C:/Users/admin/Desktop/nodes.html">
+	    		<span class="glyphicon glyphicon-tasks icon-margin"></span> Control panel
+	    	</a>
+	    </li>
+		<li class="nav-item" data-toggle="modal" data-target="#searchModal">
+    		<a href="#">
+    			<span class="glyphicon glyphicon-search icon-margin"></span> 
+    			Search
+    		</a>
+	    </li>
+	    <li class="nav-item"  data-toggle="modal" data-target="#logoutModal">    		
+	    	<a href="#">
+    			<span class="glyphicon glyphicon-log-out icon-margin"></span> 
+    			Log out
+    		</a>
+	    </li>
+	</ul>
+
+	<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+	<label for="nav-trigger"></label>
+	<div class="site-wrap">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-3">
+					<div class="thumbnail upperblock">
+						<div class="text-center upperblock-headfont">
+							<span class="glyphicon glyphicon-globe"></span>
+							Notification
+							<span class="glyphicon glyphicon-refresh pull-right"></span>
+							<hr/>
+						</div>
+						<div class="upperblock-bodyfont">
+							<li> 
+								<span class="glyphicon glyphicon-list-alt"></span>
+								Notisication massege
+							</li>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-6">
+					<div class="thumbnail upperblock">
+						<div class="text-center upperblock-headfont">
+							<span class="glyphicon glyphicon-stats"></span>
+							Status chart
+							<span class="glyphicon glyphicon-refresh pull-right"></span>
+							<hr/>
+						</div>
+						<!-- <div id="Chart">	
+						    <svg style="margin-left: 40px; margin-top: -10px; height:290px;width:80%"></svg>
+						</div> -->
+						 <nvd3 options="computeOptions" data="computeData"></nvd3>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="thumbnail upperblock">
+						<div class="text-center upperblock-headfont">
+							<span class="glyphicon glyphicon-exclamation-sign"></span>
+							Error Application
+							<span class="glyphicon glyphicon-refresh pull-right"></span>
+							<hr/>
+						</div>
+						<div class="upperblock-bodyfont">
+							<div class="thumbnail text-center errorapp">
+								<div class="row">
+									NAME : application name<br/><br/>
+								</div>
+								<div class="row">
+									NODE : application node <br/><br/>
+								</div>
+								<div class="row">
+									<div class="col-md-4">
+										<div class="botton">
+											<span class="glyphicon glyphicon-pause"></span>
+										</div>
+									</div>
+									<div class="col-md-4">
+										<div class="botton">
+											<span class="glyphicon glyphicon-plus"></span>
+										</div>
+									</div>
+									<div class="col-md-4">
+										<div class="botton">
+											<span class="glyphicon glyphicon-minus"></span>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div> 
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-3">
+					<div class="thumbnail lowerblock">
+						<div class="text-center lowerblock-headfont">
+							<span class="glyphicon glyphicon-align-left"></span>
+							Top CPU usage
+							<span class="glyphicon glyphicon-refresh pull-right"></span>
+							<hr/>
+						</div>
+						<div class="upperblock-bodyfont">
+							<li> 
+								<span class="glyphicon glyphicon-tasks"></span>
+								Application name
+							</li>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3 ">
+					<div class="thumbnail lowerblock">
+						<div class="text-center lowerblock-headfont">
+							<span class="glyphicon glyphicon-dashboard"></span>
+							Top memory usage
+							<span class="glyphicon glyphicon-refresh pull-right"></span>
+							<hr/>
+						</div>
+						<div class="upperblock-bodyfont">
+							<li> 
+								<span class="glyphicon glyphicon-tasks"></span>
+								Application name
+							</li>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="thumbnail lowerblock">
+						<div class="text-center lowerblock-headfont">
+							<span class="glyphicon glyphicon-equalizer"></span>
+							Top response time
+							<span class="glyphicon glyphicon-refresh pull-right"></span>
+							<hr/>
+						</div>
+						<div class="upperblock-bodyfont">
+							<li> 
+								<span class="glyphicon glyphicon-tasks"></span>
+								Application name
+							</li>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3 ">
+					<div class="thumbnail lowerblock">
+						<div class="text-center lowerblock-headfont">
+							<span class="glyphicon glyphicon-signal"></span>
+							Top reg/see ?
+							<span class="glyphicon glyphicon-refresh pull-right"></span>
+							<hr/>
+						</div>
+						<div class="upperblock-bodyfont">
+							<li> 
+								<span class="glyphicon glyphicon-tasks"></span>
+								Application name
+							</li>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	  	<div class="modal-dialog" role="document">
+	    	<div class="modal-content">
+	      		<div class="modal-header">
+	        		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+	        		</button>
+	        		<h4 class="modal-title" id="myModalLabel">Log out</h4>
+	      		</div>
+	      		<div class="modal-body">
+	        	Are you sure to log out ?
+	      		</div>
+	      		<div class="modal-footer">
+	        		<button type="button" class="btn btn-default" data-dismiss="modal">Cancle</button>
+	        		<button type="button" class="btn btn-primary">Log out</button>
+	      		</div>
+	    	</div>
+	  	</div>
+	</div>
+	<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	  	<div class="modal-dialog" role="document">
+	    	<div class="modal-content">
+	      		<div class="modal-header">
+	        		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+	        		</button>
+	        		<h4 class="modal-title" id="myModalLabel">Search</h4>
+	      		</div>
+	      		<div class="modal-body">
+					<li class="nav-item">
+				    	<a href="#">
+				    		<i class="icon-microphone icon-margin"></i> Voic search
+				    	</a>
+				    </li>
+					<li class="nav-item">
+				    	<a href="#">
+				    		<i class="icon-search icon-margin"></i> Search
+				    	</a>
+				    </li>
+	      		</div>
+	      		<div class="modal-footer">
+	        		<button type="button" class="btn btn-default" data-dismiss="modal">Cancle</button>
+	      		</div>
+	    	</div>
+	  	</div>
+	</div>
+
+
+	<!-- Java script Code -->
+	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.js"></script>
+
+	<script type="text/javascript">
+	//Regular pie chart example
+	
+
+	nv.addGraph(function() {
+		var ratioInside = 0.3;
+		//var width = 300,height=300;
+	  var chart = nv.models.pieChart()
+	      .x(function(d) { return d.label })
+	      .y(function(d) { return d.value })
+	      .showLabels(true)     //Display pie labels
+	      .labelThreshold(0.01)  //Configure the minimum slice size for labels to show up
+	      .labelType("percent") //Configure what type of data to show in the label. Can be "key", "value" or "percent"
+	      .donut(true)          //Turn on Donut mode. Makes pie chart look tasty!
+	      .donutRatio(ratioInside)     //Configure how big you want the donut hole size to be.
+	      ;
+	      chart.legendPosition("top")
+	      chart.pie.dispatch.on("elementClick", function(e) {
+			console.log(e);
+			window.location.href = 'file:///C:/Users/admin/Desktop/nodes.html';
+		});
+
+	    d3.select("#Chart svg")
+	        .datum(exampleData())
+	        .transition().duration(350)
+	        .call(chart);
+	       
+
+	  return chart;
+	});
+	//Pie chart example data. Note how there is only a single array of key-value pairs.
+	function exampleData() {
+	  return  [
+	      { 
+	        "label": "Extreme",
+	        "value" : 10,
+	        "color" : '#e74c3c'
+	        
+
+	      } , 
+	      { 
+	        "label": "Dangerous",
+	        "value" : 32.807804682612,
+	        "color" : '#e67e22'
+	       
+	      } , 
+	      { 
+	        "label": "Becareful",
+	        "value" : 96.45946739256,
+	        "color" : '#f1c40f'
+	        
+	      } , 
+	      { 
+	        "label": "Normal",
+	        "value" : 56.19434030906893,
+	        "color" : '#2ecc71'
+	        
+	      } 
+	      
+	    ];
+	}
+	</script>
+
+
+</body>
+</html>

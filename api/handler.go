@@ -25,6 +25,8 @@ import (
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/net"
 	"time"
+
+	"github.com/influxdata/influxdb/client/v2"
 )
 
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -696,4 +698,23 @@ func postJson(url string, data []byte) (int, map[string]interface{}) {
 		panic(err)
 	}
 	return resp.StatusCode, response
+}
+
+func getErrorApp(w http.ResponseWriter, r *http.Request) {
+	var MyDB string = "thoth"
+	var username string = "thoth"
+	var password string = "thoth"
+
+	// Connect to InfluxDB
+	c, _ := client.NewHTTPClient(client.HTTPConfig{
+		Addr:     thoth.InfluxdbApi,
+		Username: username,
+		Password: password,
+	})
+	fmt.Println("error")
+	queryRes, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT count(code5xx) FROM thoth"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(queryRes)
 }
