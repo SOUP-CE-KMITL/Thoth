@@ -31,6 +31,10 @@ angular.module('thothEyes', ['nvd3'])
 
     ];
   }
+
+  function getErrorApplication(){
+    
+  }
     
     $scope.computeOptions = {
       chart: {

@@ -10,7 +10,8 @@
     "watson-developer-cloud": "~1.2.4",
     "sequence": "~3.0.0",
     "swig": "~1.4.2",
-    "express": "~4.13.4"
+    "express": "~4.13.4",
+    "async": "~1.5.2"
   },
   "devDependencies": {},
   "scripts": {
