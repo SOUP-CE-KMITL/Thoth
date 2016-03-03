@@ -89,7 +89,7 @@ app.get('/node/:nodeName', function(reg, res){
 		});
 });
 
-app.get('/error/node', function(reg, res) {
+app.get('/error/apps', function(reg, res) {
 	// This number should configuration by user.
 	err5xx_threshold = 0;
 	
