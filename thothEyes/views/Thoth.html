@@ -129,9 +129,9 @@
 							<hr/>
 						</div>
 						<div class="upperblock-bodyfont">
-							<li> 
+							<li ng-repeat="cpu in max_cpu"> 
 								<span class="glyphicon glyphicon-tasks"></span>
-								Application name
+								{{cpu.name}}
 							</li>
 						</div>
 					</div>
@@ -145,9 +145,9 @@
 							<hr/>
 						</div>
 						<div class="upperblock-bodyfont">
-							<li> 
+							<li ng-repeat="mem in max_mem"> 
 								<span class="glyphicon glyphicon-tasks"></span>
-								Application name
+								{{mem.name}}
 							</li>
 						</div>
 					</div>
@@ -161,9 +161,9 @@
 							<hr/>
 						</div>
 						<div class="upperblock-bodyfont">
-							<li> 
+							<li ng-repeat="res in max_res"> 
 								<span class="glyphicon glyphicon-tasks"></span>
-								Application name
+								{{res.name}}
 							</li>
 						</div>
 					</div>
@@ -172,14 +172,14 @@
 					<div class="thumbnail lowerblock">
 						<div class="text-center lowerblock-headfont">
 							<span class="glyphicon glyphicon-signal"></span>
-							Top reg/see ?
+							Top req/sec
 							<span class="glyphicon glyphicon-refresh pull-right"></span>
 							<hr/>
 						</div>
 						<div class="upperblock-bodyfont">
-							<li> 
+							<li ng-repeat="req in max_req"> 
 								<span class="glyphicon glyphicon-tasks"></span>
-								Application name
+								{{req.name}}
 							</li>
 						</div>
 					</div>

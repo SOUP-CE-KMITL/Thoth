@@ -98,10 +98,10 @@ app.get('/monitor/apps', function(reg, res) {
 	apps_name = [];
 	apps_error = [];
 	// maximum resource usage for application 
-	max_cpu_app = {num: 0};
-	max_mem_app = {num: 0};
-	max_res_app = {num: 0};
-	max_req_app = {num: 0};
+	max_cpu_app = {name: 'none', num: 0};
+	max_mem_app = {name: 'none', num: 0};
+	max_res_app = {name: 'none', num: 0};
+	max_req_app = {name: 'none', num: 0};
 
 	sequence = Sequence.create();
 
@@ -159,15 +159,15 @@ app.get('/monitor/apps', function(reg, res) {
 					}
 					if(data.memory > max_mem_app.num){
 						max_mem_app.name = data.app;
-						max_mem_app.num = data.cpu;
+						max_mem_app.num = data.memory;
 					}
 					if(data.Request > max_req_app.num){
 						max_req_app.name = data.app;
-						max_req_app.num = data.cpu;
+						max_req_app.num = data.Request;
 					}
 					if(data.Response > max_res_app.num){
 						max_res_app.name = data.app;
-						max_res_app.num = data.cpu;
+						max_res_app.num = data.Response;
 					}
 					if(data.Response5xx >= err5xx_threshold){
 						apps_error.push(item);
@@ -181,7 +181,8 @@ app.get('/monitor/apps', function(reg, res) {
 			});
 			req.end();
 		}, function() {
-			res.status(200).json(apps_error);
+			var monitor = { errors: apps_error, top_cpu: max_cpu_app, top_mem: max_mem_app, top_res: max_res_app, top_req: max_req_app };
+			res.status(200).json(monitor);
 		});
 	});
 });
