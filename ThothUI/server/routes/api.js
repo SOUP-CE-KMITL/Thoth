@@ -38,6 +38,9 @@ router.get('/logout', function(req, res) {
 });
 
 router.get('/profile', function(req, res){
+  if(req.user == undefined) {
+    return "none";
+  }
   res.status(200).json({user: req.user.username});
 });
 

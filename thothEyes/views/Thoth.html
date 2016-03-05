@@ -1,605 +1,253 @@
-<html>
+<html ng-app="thothEyes">
 <head>
 	<title></title>
+	<link rel="stylesheet" href="css/home.css">
 	<!-- Latest compiled and minified CSS -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.css" >
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
 	<!-- Optional theme -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
-
-	<style type="text/css">
-	.box{
-		background-color: white;
-		padding-top: 20px;
-		/*padding-right: 0px;*/
-		padding-bottom: 00px;
-		margin-top: -10px;
-	}
-	.fixed-size{
-		width: 100%;
-		/*margin-top: -40px;
-		margin-left: -60px;*/
-		padding-right: 0px;
-		background-color: #f0ece5;
-	}
-	.box-sizing{
-		padding-left: 0px;
-		padding-right: 0px;
-	}
-	.box-overflow{
-		overflow:auto;
-		height:315px;
-	}
-	.box-two-overflow{
-		overflow:auto;
-		height:230px;
-		padding-top: 10px;
-		padding-right: 20px;
-	}
-	.box-three-overflow{
-		overflow:auto;
-		height:573px;
-		padding-top: 10px;
-		padding-right: 20px;
-	}
-	.header{
-		font-weight:bold;
-		border-bottom: solid;
-		border-color: #f0ece5;
-	}
-
-	#requestchart{
-		z-index: -1;
-	}
-
-	.frame-border{
-		border-style: solid;
-		border-size: 0.5px;
-		border-color: #f0ece5;
-		padding-bottom: 10px;
-	}
-	.modal-item {
-	  /* non-critical appearance styles */
-	  width: 95%;
-	  height: 40px;
-	  border-top: 1px solid white;
-	  border-bottom: 1px solid white;
-	  list-style-type: none;
-	}
-
-	.modal-item a {
-	  /* non-critical appearance styles */
-	  display: block;
-	  padding: 5px;
-	  background: white;
-	  color: black;
-	  font-size: 1em;
-	  text-decoration: none;
-	  /*transition: color 0.2s, background 0.5s;*/
-	}
-
-	.modal-item a:hover {
-	  color: #34495e;
-	  background-color: #ecf0f1;
-	}
-			/* Navigation Menu - Background */
-		.navigation {
-		  /* critical sizing and position styles */
-		  width: 100%;
-		  height: 100%;
-		  position: fixed;
-		  top: 0;
-		  right: 0;
-		  bottom: 0;
-		  left: 0;
-		  z-index: 0;
-		  
-		  /* non-critical appearance styles */
-		  list-style: none;
-		  background: white;
-		}
-
-		/* Navigation Menu - List items */
-		.nav-item {
-		  /* non-critical appearance styles */
-		  width: 200px;
-		  border-top: 1px solid white;
-		  border-bottom: 1px solid white;
-		}
-
-		.nav-item a {
-		  /* non-critical appearance styles */
-		  display: block;
-		  padding: 1em;
-		  background: white;
-		  color: black;
-		  font-size: 1em;
-		  text-decoration: none;
-		  transition: color 0.2s, background 0.5s;
-		}
-
-		.nav-item a:hover {
-		  color: #34495e;
-		  background-color: #ecf0f1;
-		}
-
-		/* Site Wrapper - Everything that isn't navigation */
-		.site-wrap {
-		  /* Critical position and size styles */
-		  min-height: 100%;
-		  min-width: 100%;
-		  background-color: white; /* Needs a background or else the nav will show through */
-		  position: relative;
-		  top: 0;
-		  bottom: 100%;
-		  left: 0;
-		  z-index: 1;
-		  
-		  /* non-critical apperance styles */
-		  padding: 0px;
-		  background-color: #f0ece5;
-		  background-size: 100%;
-		}
-
-		/* Nav Trigger */
-		.nav-trigger {
-		  /* critical styles - hide the checkbox input */
-		  position: absolute;
-		  clip: rect(0, 0, 0, 0);
-		}
-
-		label[for="nav-trigger"] {
-		  /* critical positioning styles */
-		  position: fixed;
-		  left: 15px; top: 15px;
-		  z-index: 2;
-		  
-		  /* non-critical apperance styles */
-		  height: 14px;
-		  width: 24px;
-		  cursor: pointer;
-		  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' x='0px' y='0px' width='30px' height='30px' viewBox='0 0 30 30' enable-background='new 0 0 30 30' xml:space='preserve'><rect width='30' height='6'/><rect y='24' width='30' height='6'/><rect y='12' width='30' height='6'/></svg>");
-		  background-size: contain;
-		}
-
-		/* Make the Magic Happen */
-		.nav-trigger + label, .site-wrap {
-		  transition: left 0.2s;
-		}
-
-		.nav-trigger:checked + label {
-		  left: 215px;
-		}
-
-		.nav-trigger:checked ~ .site-wrap {
-		  left: 200px;
-		 box-shadow: 0 0 5px 5px rgba(0,0,0,0.5);
-		}
-
-		body {
-		    /* Without this, the body has excess horizontal scroll when the menu is open */
-		  overflow-x: hidden;
-		}
-
-		/* Additional non-critical styles */
-
-		h1, h3, p {
-		  max-width: 600px;
-		  margin: 0 auto 1em;
-		}
-
-		code {
-		    padding: 2px;
-		    background: #ddd;
-		}
-
-		/* Micro reset */
-		*,*:before,*:after{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0;}
-		html, body { height: 100%; width: 100%; font-family: Helvetica, Arial, sans-serif; }
-		.contact-icon{
-			padding-left: 30px;
-			padding-top: 60px;
-			background-color: #bdc3c7;
-			height: 120px;
-		}
-		.icon-margin{
-			margin-right: 10px;
-			font-size: 1.2em;
-		}
-		.nvtooltip { 
-			position: fixed;
-			margin-top: 10px;
-			margin-right: 50px;
-		}
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
 	
-	</style>
+	<link rel="stylesheet" href="bower_components/nvd3/build/nv.d3.css">
+	
+
 </head>
-<body >
+<body ng-controller="DashboardCtrl">
 	<ul class="navigation">
 		<div class = "contact-icon" >
-			<span style="font-size:33; margin-right: 10px;"class="glyphicon glyphicon-user "></span>   Contact detail
+			<span style="font-size:33; margin-right: 10px;" class="glyphicon glyphicon-user "></span>   Contact detail
 		</div>
-	    <li class="nav-item">
-	    	<a href="file:///C:/Users/admin/Desktop/Thoth.html">
-	    		<span class="glyphicon glyphicon-home icon-margin"></span> Home
-	    	</a>
-	    </li>
-	    <li class="nav-item">
-	    	<a href="file:///C:/Users/admin/Desktop/nodes.html">
-	    		<span class="glyphicon glyphicon-compressed icon-margin"></span> Compute
-	    	</a>
-	    </li>
-	    <li class="nav-item">
-	    	<a href="file:///C:/Users/admin/Desktop/nodes.html">
-	    		<span class="glyphicon glyphicon-book icon-margin"></span> Data
-	    	</a>
-	    </li>
-	    <li class="nav-item">
-	    	<a href="file:///C:/Users/admin/Desktop/nodes.html">
-	    		<span class="glyphicon glyphicon-file icon-margin"></span> File
-	    	</a>
-	    </li>
-	    <li class="nav-item">
-	    	<a href="#">
-	    		<span class="glyphicon glyphicon-log-out icon-margin"></span> Log out
-	    	</a>
-	    </li>
+		<li class="nav-item">
+			<a href="file:///C:/Users/admin/Desktop/Thoth.html">
+				<span class="glyphicon glyphicon-home icon-margin"></span> Home
+			</a>
+		</li>
+		<li class="nav-item">
+			<a href="file:///C:/Users/admin/Desktop/nodes.html">
+				<span class="glyphicon glyphicon-tasks icon-margin"></span> Control panel
+			</a>
+		</li>
+		<li class="nav-item" data-toggle="modal" data-target="#searchModal">
+			<a href="#">
+				<span class="glyphicon glyphicon-search icon-margin"></span> 
+				Search
+			</a>
+		</li>
+		<li class="nav-item"  data-toggle="modal" data-target="#logoutModal">    		
+			<a href="#">
+				<span class="glyphicon glyphicon-log-out icon-margin"></span> 
+				Log out
+			</a>
+		</li>
 	</ul>
 
 	<input type="checkbox" id="nav-trigger" class="nav-trigger" />
 	<label for="nav-trigger"></label>
-
-	<div class="site-wrap" style="padding-bottom:00px;">
-		<div class="container-fluid fixed-size" >
+	<div class="site-wrap">
+		<div class="container">
 			<div class="row">
-				<div class="col-md-9">
-					<div class="row box" >
-						<div class="col-md-12 box-sizing">			
-							<div class="col-md-4 frame-border box">
-								<div class="text-center">Compute Chart</div>
-								<div id="computeChart">		
-								    <svg style="height:300px;width:98%"></svg>
-								</div>	
-							</div>
-							<div class="col-md-4 frame-border box">
-								<div class="text-center">Data Chart</div>
-								<div id="dataChart">		
-								    <svg style="height:300px;width:98%"></svg>
-								</div>
-							</div>
-							<div class="col-md-4 frame-border box">
-								<div class="text-center">File Chart</div>
-								<div id="fileChart">		
-								    <svg style="height:300px;width:98%"></svg>
-								</div>
-							</div>
+				<div class="col-md-3">
+					<div class="thumbnail upperblock">
+						<div class="text-center upperblock-headfont">
+							<span class="glyphicon glyphicon-globe"></span>
+							Notification
+							<span class="glyphicon glyphicon-refresh pull-right"></span>
+							<hr/>
 						</div>
-						</div>		
-						<div class="row"> <!-- top App -->
-							<div class="col-md-12 box-sizing">			
-								<div class="col-md-4 frame-border box">
-									<div class="text-center">Top Compute App</div>
-									<div class="col-md-12 col-xs-6 box-two-overflow"> 
-										<!-- Button trigger modal -->
-										<li class="modal-item" data-toggle="modal" data-target="#myModal">
-										  <a href="#"><span class="glyphicon glyphicon-compressed icon-margin"></span>A</a>
-										</li>
-										<li class="modal-item" data-toggle="modal" data-target="#myModal">
-										  <a href="#"><span class="glyphicon glyphicon-compressed icon-margin"></span>A</a>
-										</li>
-										<li class="modal-item" data-toggle="modal" data-target="#myModal">
-										  <a href="#"><span class="glyphicon glyphicon-compressed icon-margin"></span>A</a>
-										</li>
-										<li class="modal-item" data-toggle="modal" data-target="#myModal">
-										  <a href="#"><span class="glyphicon glyphicon-compressed icon-margin"></span>A</a>
-										</li>
-									</div>	
-								</div>
-								<div class="col-md-4 frame-border box">
-									<div class="text-center">Top Data App</div>
-									<div class="col-md-12 col-xs-6 box-two-overflow"> 
-										<!-- Button trigger modal -->
-										<li class="modal-item" data-toggle="modal" data-target="#myModal">
-										  <a href="#"><span class="glyphicon glyphicon-book icon-margin"></span>A</a>
-										</li>
-										<li class="modal-item" data-toggle="modal" data-target="#myModal">
-										  <a href="#"><span class="glyphicon glyphicon-book icon-margin"></span>A</a>
-										</li>
-										<li class="modal-item" data-toggle="modal" data-target="#myModal">
-										  <a href="#"><span class="glyphicon glyphicon-book icon-margin"></span>A</a>
-										</li>
-										<li class="modal-item" data-toggle="modal" data-target="#myModal">
-										  <a href="#"><span class="glyphicon glyphicon-book icon-margin"></span>A</a>
-										</li>
-										
-									</div>
-								</div>
-								<div class="col-md-4 frame-border box">
-									<div class="text-center">Top File App</div>
-									<div class="col-md-12 col-xs-6 box-two-overflow"> 
-										<!-- Button trigger modal -->
-										<li class="modal-item" data-toggle="modal" data-target="#myModal">
-										  <a href="#"><span class="glyphicon glyphicon-file icon-margin"></span>A</a>
-										</li>
-										<li class="modal-item" data-toggle="modal" data-target="#myModal">
-										  <a href="#"><span class="glyphicon glyphicon-file icon-margin"></span>A</a>
-										</li>
-										<li class="modal-item" data-toggle="modal" data-target="#myModal">
-										  <a href="#"><span class="glyphicon glyphicon-file icon-margin"></span>A</a>
-										</li>
-										<li class="modal-item" data-toggle="modal" data-target="#myModal">
-										  <a href="#"><span class="glyphicon glyphicon-file icon-margin"></span>A</a>
-										</li>
-									</div>
-								</div>
-							</div>
-						</div>	
-					</div>
-				
-				<div class="col-md-3" style="height:100%;">
-					<div class="row box" >
-						<div class="col-md-12 col-xs-12 box frame-border">
-							<div class="col-md-12 col-xs-6">
-								<div class="text-center  header">
-									Error App
-								</div>
-							</div>
-							<div class="row">
-								<div class="col-md-12 col-xs-6 box-three-overflow">
-									<li class="modal-item" data-toggle="modal" data-target="#myModal">
-									  <a href="#"><span class="glyphicon glyphicon-compressed icon-margin"></span>A</a>
-									</li>
-									<li class="modal-item" data-toggle="modal" data-target="#myModal">
-									  <a href="#"><span class="glyphicon glyphicon-compressed icon-margin"></span>A</a>
-									</li>
-									<li class="modal-item" data-toggle="modal" data-target="#myModal">
-									  <a href="#"><span class="glyphicon glyphicon-compressed icon-margin"></span>A</a>
-									</li>
-									<li class="modal-item" data-toggle="modal" data-target="#myModal">
-									  <a href="#"><span class="glyphicon glyphicon-compressed icon-margin"></span>A</a>
-									</li>
-									<hr/>
-									<li class="modal-item" data-toggle="modal" data-target="#myModal">
-									  <a href="#"><span class="glyphicon glyphicon-book icon-margin"></span>A</a>
-									</li>
-									<li class="modal-item" data-toggle="modal" data-target="#myModal">
-									  <a href="#"><span class="glyphicon glyphicon-book icon-margin"></span>A</a>
-									</li>
-									<li class="modal-item" data-toggle="modal" data-target="#myModal">
-									  <a href="#"><span class="glyphicon glyphicon-book icon-margin"></span>A</a>
-									</li>
-									<li class="modal-item" data-toggle="modal" data-target="#myModal">
-									  <a href="#"><span class="glyphicon glyphicon-book icon-margin"></span>A</a>
-									</li>
-									<hr/>
-									<li class="modal-item" data-toggle="modal" data-target="#myModal">
-									  <a href="#"><span class="glyphicon glyphicon-file icon-margin"></span>A</a>
-									</li>
-									<li class="modal-item" data-toggle="modal" data-target="#myModal">
-									  <a href="#"><span class="glyphicon glyphicon-file icon-margin"></span>A</a>
-									</li>
-									<li class="modal-item" data-toggle="modal" data-target="#myModal">
-									  <a href="#"><span class="glyphicon glyphicon-file icon-margin"></span>A</a>
-									</li>
-									<li class="modal-item" data-toggle="modal" data-target="#myModal">
-									  <a href="#"><span class="glyphicon glyphicon-file icon-margin"></span>A</a>
-									</li>
-								</div>
-							</div>
+						<div class="upperblock-bodyfont">
+
+	<button class="btn btn-primary" onclick="startRecording(this);">Record</button>
+	<button class="btn btn-warning" onclick="stopRecording(this);" disabled>Stop</button>
+							<li> 
+								<span class="glyphicon glyphicon-list-alt"></span>
+								Notification massege
+							</li>
 						</div>
 					</div>
 				</div>
-			</div>	
-		</div>
-	</div>		
-		<!-- Modal -->
-					<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
-					  	<div class="modal-dialog" role="document">
-					    	<div class="modal-content">
-					      		<div class="modal-header">
-					        		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
-					        		</button>
-					        		<h4 class="modal-title" id="myModalLabel">Modal title</h4>
-					      		</div>
-					      		<div class="modal-body">
-					        	...
-					      		</div>
-					      		<div class="modal-footer">
-					        		<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-					        		<button type="button" class="btn btn-primary">Save changes</button>
-					      		</div>
-					    	</div>
-					  	</div>
+				<div class="col-md-6">
+					<div class="thumbnail upperblock">
+						<div class="text-center upperblock-headfont">
+							<span class="glyphicon glyphicon-stats"></span>
+							Status chart
+							<span class="glyphicon glyphicon-refresh pull-right"></span>
+							<hr/>
+						</div>
+						<!-- <div id="Chart">	
+						    <svg style="margin-left: 40px; margin-top: -10px; height:290px;width:80%"></svg>
+						</div> -->
+						<nvd3 options="computeOptions" data="computeData"></nvd3>
 					</div>
-	
+				</div>
+				<div class="col-md-3">
+					<div class="thumbnail upperblock">
+						<div class="text-center upperblock-headfont">
+							<span class="glyphicon glyphicon-exclamation-sign"></span>
+							Error Application
+							<span class="glyphicon glyphicon-refresh pull-right"></span>
+							<hr/>
+						</div>
+						<div class="upperblock-bodyfont ">
+							<div ng-repeat="errorApp in errorApps" class="thumbnail text-center errorapp">
+								<div class="row">
+									NAME {{errorApp.name}}<br/><br/>
+								</div>
+								<div class="row">
+									replicas : {{errorApp.replicas}} <br/><br/>
+								</div>
+								<div class="row">
+									container port 
+									<span ng-repeat="con in errorApp.containers">
+											{{con.ports[0].containerPort}}
+									</span>
+								</div>
+								<div class="row">
+									<div class="col-md-4">
+										<button class="btn btn-default">
+											<span class="glyphicon glyphicon-pause"></span>
+										</button>
+									</div>
+									<div class="col-md-4">
+										<button class="btn btn-default">
+											<span class="glyphicon glyphicon-plus"></span>
+										</button>
+									</div>
+									<div class="col-md-4">
+										<button class="btn btn-default">
+											<span class="glyphicon glyphicon-minus"></span>
+									</div>
+								</div>
+							</div>
+						</div> 
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-3">
+					<div class="thumbnail lowerblock">
+						<div class="text-center lowerblock-headfont">
+							<span class="glyphicon glyphicon-align-left"></span>
+							Top CPU usage
+							<span class="glyphicon glyphicon-refresh pull-right"></span>
+							<hr/>
+						</div>
+						<div class="upperblock-bodyfont">
+							<li> 
+								<span class="glyphicon glyphicon-tasks"></span>
+								Application name
+							</li>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3 ">
+					<div class="thumbnail lowerblock">
+						<div class="text-center lowerblock-headfont">
+							<span class="glyphicon glyphicon-dashboard"></span>
+							Top memory usage
+							<span class="glyphicon glyphicon-refresh pull-right"></span>
+							<hr/>
+						</div>
+						<div class="upperblock-bodyfont">
+							<li> 
+								<span class="glyphicon glyphicon-tasks"></span>
+								Application name
+							</li>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="thumbnail lowerblock">
+						<div class="text-center lowerblock-headfont">
+							<span class="glyphicon glyphicon-equalizer"></span>
+							Top response time
+							<span class="glyphicon glyphicon-refresh pull-right"></span>
+							<hr/>
+						</div>
+						<div class="upperblock-bodyfont">
+							<li> 
+								<span class="glyphicon glyphicon-tasks"></span>
+								Application name
+							</li>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3 ">
+					<div class="thumbnail lowerblock">
+						<div class="text-center lowerblock-headfont">
+							<span class="glyphicon glyphicon-signal"></span>
+							Top reg/see ?
+							<span class="glyphicon glyphicon-refresh pull-right"></span>
+							<hr/>
+						</div>
+						<div class="upperblock-bodyfont">
+							<li> 
+								<span class="glyphicon glyphicon-tasks"></span>
+								Application name
+							</li>
+						</div>
+					</div>
+				</div> 
+			</div>
+		</div>
+	</div>
 
-	<!-- Java script Code -->
-	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.js"></script>
-	<script type="text/javascript">
-			/*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
-		nv.addGraph(function() {
-			
-
-		  var chart = nv.models.lineChart()
-		                .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
-		               	.useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
-		                .showLegend(true)       //Show the legend, allowing users to turn on/off line series.
-		                .showYAxis(true)        //Show the y-axis
-		                .showXAxis(true)        //Show the x-axis
-		               	.showVoronoi(true)
-		              	.isArea(false)
-		  ;
-		  chart.clipEdge(true);
-		  chart.xAxis     //Chart x-axis settings
-		      .axisLabel('Time (ms)')
-		      .tickFormat(d3.format(',r'));
-
-		  chart.yAxis     //Chart y-axis settings
-		      .axisLabel('Request')
-		      .tickFormat(d3.format('.02f'));
-
-		  /* Done setting the chart up? Time to render it!*/
-		  var myData = sinAndCos();   //You need data...
-
-		  d3.select('#requestchart svg')    //Select the <svg> element you want to render the chart in.   
-		      .datum(myData)         //Populate the <svg> element with chart data...
-		      //.style({ 'width': width, 'height': height })
-		      .call(chart);    
-		            //Finally, render the chart!
-		  //Update the chart when window resizes.
-		  nv.utils.windowResize(function() { chart.update() });
-		  
-
-		  return chart;
-		});
-		/**************************************
-		 * Simple test data generator
-		 */
-		function sinAndCos() {
-		  var sin = [],sin2 = [],
-		      cos = [];
-
-		  //Data is represented as an array of {x,y} pairs.
-		  for (var i = 0; i < 100; i++) {
-		    sin.push({x: i, y: Math.sin(i/10)});
-		    sin2.push({x: i, y: Math.sin(i/10) *0.25 + 0.5});
-		    cos.push({x: i, y: .5 * Math.cos(i/10)});
-		  }
-		  //Line chart data should be sent as an array of series objects.
-		  return [
-		    {
-		      values: sin,      //values - represents the array of {x,y} data points
-		      key: 'Node 1  ', //key  - the name of the series.
-		      color: '#e74c3c',  //color - optional: choose your own line color.
-		    },
-		    {
-		      values: cos,
-		      key: 'Node 2  ',
-		      color: '#1abc9c'
-		    },
-		    {
-		      values: sin2,
-		      key: 'Node 3  ',
-		      color: '#f39c12'
-		    }
-		  ];
-		}
-	</script>
-	<script type="text/javascript">
-	//Regular pie chart example
-	
-
-	nv.addGraph(function() {
-		var ratioInside = 0.3;
-		//var width = 300,height=300;
-	  var chart = nv.models.pieChart()
-	      .x(function(d) { return d.label })
-	      .y(function(d) { return d.value })
-	      .showLabels(true)     //Display pie labels
-	      .labelThreshold(0.03)  //Configure the minimum slice size for labels to show up
-	      .labelType("percent") //Configure what type of data to show in the label. Can be "key", "value" or "percent"
-	      .donut(true)          //Turn on Donut mode. Makes pie chart look tasty!
-	      .donutRatio(ratioInside)     //Configure how big you want the donut hole size to be.
-	      ;
-	      chart.pie.dispatch.on("elementClick", function(e) {
-			console.log(e);
-			window.location.href = 'file:///C:/Users/admin/Desktop/nodes.html';
-		});
-
-	    d3.select("#computeChart svg")
-	        .datum(exampleData())
-	        .transition().duration(350)
-	        .call(chart);
-	       
-
-	  return chart;
-	});
-	nv.addGraph(function() {
-			var ratioInside = 0.3;
-			//var width = 300,height=300;
-		  var chart = nv.models.pieChart()
-		      .x(function(d) { return d.label })
-		      .y(function(d) { return d.value })
-		      .showLabels(true)     //Display pie labels
-		      .labelThreshold(0.03)  //Configure the minimum slice size for labels to show up
-		      .labelType("percent") //Configure what type of data to show in the label. Can be "key", "value" or "percent"
-		      .donut(true)          //Turn on Donut mode. Makes pie chart look tasty!
-		      .donutRatio(ratioInside)     //Configure how big you want the donut hole size to be.
-		      ;
-		      chart.pie.dispatch.on("elementClick", function(e) {
-			console.log(e);
-			window.location.href = 'file:///C:/Users/admin/Desktop/nodes.html';
-		});
-
-		    d3.select("#dataChart svg")
-		        .datum(exampleData())
-		        .transition().duration(350)
-		        .call(chart);
-		       
-
-		  return chart;
-		});
-		nv.addGraph(function() {
-		var ratioInside = 0.3;
-		//var width = 300,height=300;
-		  var chart = nv.models.pieChart()
-		      .x(function(d) { return d.label })
-		      .y(function(d) { return d.value })
-		      .showLabels(true)     //Display pie labels
-		      .labelThreshold(0.03)  //Configure the minimum slice size for labels to show up
-		      .labelType("percent") //Configure what type of data to show in the label. Can be "key", "value" or "percent"
-		      .donut(true)          //Turn on Donut mode. Makes pie chart look tasty!
-		      .donutRatio(ratioInside)     //Configure how big you want the donut hole size to be.
-		      ;
-	      chart.pie.dispatch.on("elementClick", function(e) {
-			console.log(e);
-			window.location.href = 'file:///C:/Users/admin/Desktop/nodes.html';
-		});
-
-		    d3.select("#fileChart svg")
-		        .datum(exampleData())
-		        .transition().duration(350)
-		        .call(chart);
-		       
-
-		  return chart;
-		});
+	<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="myModalLabel">Log out</h4>
+				</div>
+				<div class="modal-body">
+					Are you sure to log out ?
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancle</button>
+					<button type="button" class="btn btn-primary">Log out</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+		<div class="modal-dialog" role="document">
+			<div class="modal-content">
+				<div class="modal-header">
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+					</button>
+					<h4 class="modal-title" id="myModalLabel">Search</h4>
+				</div>
+				<div class="modal-body">
+					<li class="nav-item">
+						<a href="#">
+							<i class="icon-microphone icon-margin"></i> Voic search
+						</a>
+					</li>
+					<li class="nav-item">
+						<a href="#">
+							<i class="icon-search icon-margin"></i> Search
+						</a>
+					</li>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-default" data-dismiss="modal">Cancle</button>
+				</div>
+			</div>
+		</div>
+	</div>
 
 
-	//Pie chart example data. Note how there is only a single array of key-value pairs.
-	function exampleData() {
-	  return  [
-	      { 
-	        "label": "Extreme",
-	        "value" : 10,
-	        "color" : '#e74c3c'
-	        
+	<script type="text/javascript" src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
-	      } , 
-	      { 
-	        "label": "Dangerous",
-	        "value" : 32.807804682612,
-	        "color" : '#e67e22'
-	       
-	      } , 
-	      { 
-	        "label": "Becareful",
-	        "value" : 96.45946739256,
-	        "color" : '#f1c40f'
-	        
-	      } , 
-	      { 
-	        "label": "Normal",
-	        "value" : 56.19434030906893,
-	        "color" : '#2ecc71'
-	        
-	      } 
-	      
-	    ];
-	}
-	</script>
+	<script src="bower_components/angular/angular.js"></script>
+	<script src="bower_components/d3/d3.js"></script>
+	<script src="bower_components/nvd3/build/nv.d3.js"></script>
+	<script src="bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
+	<script src="js/lib/recorder.js"></script>
+	<script src="js/recordLive.js"></script>
+	<script src="js/thothEyes.js"></script>
+
 </body>
 </html>

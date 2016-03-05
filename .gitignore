@@ -1,2 +1,5 @@
 /ThothUI/node_modules
 /ThothUI/client/bower_components
+/thothEyes/voiceToText/node_modules
+/thothEyes/node_modules
+/thothEyes/public/bower_components

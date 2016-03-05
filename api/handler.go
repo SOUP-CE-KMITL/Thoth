@@ -25,6 +25,8 @@ import (
 	"github.com/shirou/gopsutil/mem"
 	"github.com/shirou/gopsutil/net"
 	"time"
+
+	"github.com/influxdata/influxdb/client/v2"
 )
 
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -416,6 +418,7 @@ func DockerCPUPercent(container_id string) (float32, error) {
 	if err != nil {
 		return 0.0, nil
 	}
+	fmt.Println("res : ", res)
 	return float32(res), nil
 
 }
@@ -498,6 +501,8 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("rps: ", rps, ", rtime: ", rtime)
 	// find the cpu avarage of application cpu usage
 	average_cpu := summary_cpu / float32(len(container_ids))
+	fmt.Println("avg_cpu : ", average_cpu)
+	fmt.Println("summary_cpu : ", summary_cpu)
 	// Cal Avg Mem usage
 	var avgMem uint64
 	for i := 0; i < podNum; i++ {
@@ -737,5 +742,26 @@ func SpeechRecog(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Println(response)
 	*/
+}
 
+// The error application
+func getErrorApp(w http.ResponseWriter, r *http.Request) {
+	var MyDB string = "thoth"
+	var username string = "thoth"
+	var password string = "thoth"
+
+	// Connect to InfluxDB
+	c, _ := client.NewHTTPClient(client.HTTPConfig{
+		Addr:     thoth.InfluxdbApi,
+		Username: username,
+		Password: password,
+	})
+	// TODO: iterate to query for each app
+	queryRes, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT last(code5xx) FROM thoth"))
+	if err != nil {
+		log.Fatal(err)
+	}
+	errorNum5xx := queryRes[0].Series[0].Values[0][1]
+	fmt.Println(errorNum5xx)
+	// TODO: need to implement some algorithm searching error application
 }

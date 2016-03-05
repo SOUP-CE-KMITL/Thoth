@@ -1,0 +1,714 @@
+<html ng-app="thothEyes">
+<head>
+	<title></title>
+
+	<!-- Latest compiled and minified CSS -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+	<link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.css" >
+	
+
+	<!-- Optional theme -->
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
+	<style type="text/css">
+	
+	.nodeblock{
+		margin-top: 15px;
+		height: 300px;
+	}
+	.nodeblock-headfont{
+		font-size: 16px;
+		margin-top: 15px;
+		margin-right: 15px;
+		margin-left: 15px;
+	}
+	.nodeblock-bodyfont{
+		margin-left: 15px;
+		margin-right: 15px;
+		margin-bottom: 15px;
+		list-style-type: none;
+	}
+	/*modal*/
+	.modal-item {
+	  /* non-critical appearance styles */
+	  width: 95%;
+	  height: 40px;
+	  border-top: 1px solid white;
+	  border-bottom: 1px solid white;
+	  list-style-type: none;
+	}
+
+	.modal-item a {
+	  /* non-critical appearance styles */
+	  display: block;
+	  padding: 5px;
+	  background: white;
+	  color: black;
+	  font-size: 1em;
+	  text-decoration: none;
+	  /*transition: color 0.2s, background 0.5s;*/
+	}
+
+	.modal-item a:hover {
+	  color: #34495e;
+	  background-color: #ecf0f1;
+	}
+
+	/* Navigation Menu - Background */
+	.navigation {
+	  /* critical sizing and position styles */
+	  width: 100%;
+	  height: 100%;
+	  position: fixed;
+	  top: 0;
+	  right: 0;
+	  bottom: 0;
+	  left: 0;
+	  z-index: 0;
+	  /* non-critical appearance styles */
+	  list-style: none;
+	  background: white;
+	}
+
+	/* Navigation Menu - List items */
+	.nav-item {
+	  /* non-critical appearance styles */
+	  width: 200px;
+	  border-top: 1px solid white;
+	  border-bottom: 1px solid white;
+	}
+
+	.nav-item a {
+	  /* non-critical appearance styles */
+	  display: block;
+	  padding: 1em;
+	  background: white;
+	  color: black;
+	  font-size: 1em;
+	  text-decoration: none;
+	  transition: color 0.2s, background 0.5s;
+	}
+
+	.nav-item a:hover {
+	  color: #34495e;
+	  background-color: #ecf0f1;
+	}
+
+	/* Site Wrapper - Everything that isn't navigation */
+	.site-wrap {
+	  /* Critical position and size styles */
+	  min-height: 100%;
+	  min-width: 100%;
+	  background-color: white; /* Needs a background or else the nav will show through */
+	  position: relative;
+	  top: 0;
+	  bottom: 100%;
+	  left: 0;
+	  z-index: 1;
+	  
+	  /* non-critical apperance styles */
+	  padding: 0px;
+	  background-color: #f0ece5;
+	  background-size: 100%;
+	}
+
+	/* Nav Trigger */
+	.nav-trigger {
+	  /* critical styles - hide the checkbox input */
+	  position: absolute;
+	  clip: rect(0, 0, 0, 0);
+	}
+
+	label[for="nav-trigger"] {
+	  /* critical positioning styles */
+	  position: fixed;
+	  left: 15px; top: 15px;
+	  z-index: 2;
+	  
+	  /* non-critical apperance styles */
+	  height: 14px;
+	  width: 24px;
+	  cursor: pointer;
+	  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' x='0px' y='0px' width='30px' height='30px' viewBox='0 0 30 30' enable-background='new 0 0 30 30' xml:space='preserve'><rect width='30' height='6'/><rect y='24' width='30' height='6'/><rect y='12' width='30' height='6'/></svg>");
+	  background-size: contain;
+	}
+
+	/* Make the Magic Happen */
+	.nav-trigger + label, .site-wrap {
+	  transition: left 0.2s;
+	}
+
+	.nav-trigger:checked + label {
+	  left: 215px;
+	}
+
+	.nav-trigger:checked ~ .site-wrap {
+	  left: 200px;
+	 box-shadow: 0 0 5px 5px rgba(0,0,0,0.5);
+	}
+
+	body {
+	    /* Without this, the body has excess horizontal scroll when the menu is open */
+	  overflow-x: hidden;
+	}
+
+	/* Additional non-critical styles */
+	h1, h3, p {
+	  max-width: 600px;
+	  margin: 0 auto 1em;
+	}
+	a {
+		color: black;
+	}
+
+	code {
+	    padding: 2px;
+	    background: #ddd;
+	}
+
+	/* Micro reset */
+	*,*:before,*:after{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0;}
+	html, body { height: 100%; width: 100%; font-family: Helvetica, Arial, sans-serif; }
+	.contact-icon{
+		padding-left: 30px;
+		padding-top: 60px;
+		background-color:#f0ece5;
+		height: 120px;
+	}
+	.icon-margin{
+		margin-right: 10px;
+		font-size: 1.2em;
+	}
+	.nvtooltip { 
+		position: fixed;
+		margin-top: 10px;
+		margin-right: 50px;
+	}
+
+	</style>
+
+</head>
+<body>
+	<ul class="navigation">
+		<div class = "contact-icon" >
+			<span style="font-size:33; margin-right: 10px;" class="glyphicon glyphicon-user "></span>   Contact detail
+		</div>
+	    <li class="nav-item">
+	    	<a href="file:///C:/Users/admin/Desktop/Thoth.html">
+	    		<span class="glyphicon glyphicon-home icon-margin"></span> Home
+	    	</a>
+	    </li>
+	    <li class="nav-item">
+	    	<a href="file:///C:/Users/admin/Desktop/nodes.html">
+	    		<span class="glyphicon glyphicon-tasks icon-margin"></span> Control panel
+	    	</a>
+	    </li>
+		<li class="nav-item" data-toggle="modal" data-target="#searchModal">
+    		<a href="#">
+    			<span class="glyphicon glyphicon-search icon-margin"></span> 
+    			Search
+    		</a>
+	    </li>
+	    <li class="nav-item"  data-toggle="modal" data-target="#logoutModal">    		
+	    	<a href="#">
+    			<span class="glyphicon glyphicon-log-out icon-margin"></span> 
+    			Log out
+    		</a>
+	    </li>
+	</ul>
+
+	<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+	<label for="nav-trigger"></label>
+	<div class="site-wrap">
+		<div class="container">
+			<div class="row">
+				<div class="col-md-3">
+					<div class="thumbnail nodeblock">
+						<div class="text-center nodeblock-headfont">
+							<span class="glyphicon glyphicon-align-left"></span>
+							CPU usage
+							
+							<hr/>
+						</div>
+						<div id="cpuChart" >
+							<svg style="height:190px;width:100%">
+							</svg>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="thumbnail nodeblock">
+						<div class="text-center nodeblock-headfont">
+							<span class="glyphicon glyphicon-dashboard"></span>
+							Disk Usage
+							
+							<hr/>
+						</div>
+						<div id="diskChart" >
+							<svg style="height:190px;width:100%">
+							</svg>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="thumbnail nodeblock">
+						<div class="text-center nodeblock-headfont">
+							<span class="glyphicon glyphicon-equalizer"></span>
+							Network Usage
+							
+							<hr/>
+						</div>
+						<div id="networkChart" >
+							<svg style="height:190px;width:100%">
+							</svg>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-3">
+					<div class="thumbnail nodeblock">
+						<div class="text-center nodeblock-headfont">
+							<span class="glyphicon glyphicon-signal"></span>
+							Memory Usage
+							
+							<hr/>
+						</div>
+						<div id="memoryChart" >
+							<svg style="height:190px;width:100%">
+							</svg>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-4">
+					<div class="thumbnail nodeblock">
+						<div class="text-center nodeblock-headfont">
+							<span class="glyphicon glyphicon-tasks"></span>
+							Application name<br/><br/>
+							IP : <br/><br/>
+							POD : <br/>
+							<hr/>
+						</div>
+						<div class="row"> 
+							<div class="col-md-6">
+								<div id="appmemory" >
+									<svg style="margin-left: -55px; margin-bottom: 0px; height:40px; width:270px;">
+									</svg>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div id="appcpu" >
+									<svg style="margin-left: -90px; margin-bottom: 0px; height:40px; width:270px;">
+									</svg>
+								</div>
+							</div>
+						</div>
+						<div class="row"> 
+							<div class="col-md-6">
+								<div id="appnetwork" >
+									<svg style="margin-left: -55px; margin-bottom: 0px; height:40px; width:270px;">
+									</svg>
+								</div>
+							</div>
+							<div class="col-md-6">
+								<div id="appdisk" >
+									<svg style="margin-left: -90px; margin-bottom: 0px; height:40px; width:270px;">
+									</svg>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	  	<div class="modal-dialog" role="document">
+	    	<div class="modal-content">
+	      		<div class="modal-header">
+	        		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+	        		</button>
+	        		<h4 class="modal-title" id="myModalLabel">Log out</h4>
+	      		</div>
+	      		<div class="modal-body">
+	        	Are you sure to log out ?
+	      		</div>
+	      		<div class="modal-footer">
+	        		<button type="button" class="btn btn-default" data-dismiss="modal">Cancle</button>
+	        		<button type="button" class="btn btn-primary">Log out</button>
+	      		</div>
+	    	</div>
+	  	</div>
+	</div>
+	<div class="modal fade" id="searchModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+	  	<div class="modal-dialog" role="document">
+	    	<div class="modal-content">
+	      		<div class="modal-header">
+	        		<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
+	        		</button>
+	        		<h4 class="modal-title" id="myModalLabel">Search</h4>
+	      		</div>
+	      		<div class="modal-body">
+					<li class="nav-item">
+				    	<a href="#">
+				    		<i class="icon-microphone icon-margin"></i> Voic search
+				    	</a>
+				    </li>
+					<li class="nav-item">
+				    	<a href="#">
+				    		<i class="icon-search icon-margin"></i> Search
+				    	</a>
+				    </li>
+	      		</div>
+	      		<div class="modal-footer">
+	        		<button type="button" class="btn btn-default" data-dismiss="modal">Cancle</button>
+	      		</div>
+	    	</div>
+	  	</div>
+	</div>
+
+
+	<!-- Java script Code -->
+	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.js"></script>
+
+	<script type="text/javascript">
+	
+
+		nv.addGraph(function() {
+		  var chart = nv.models.lineChart()
+		                .margin({left: 60})  //Adjust chart margins to give the x-axis some breathing room.
+		                .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
+		                //.transitionDuration(350)  //how fast do you want the lines to transition?
+		                .showLegend(true)       //Show the legend, allowing users to turn on/off line series.
+		                .showYAxis(true)        //Show the y-axis
+		                .showXAxis(true)        //Show the x-axis
+		  ;
+		  chart.xAxis     //Chart x-axis settings
+		      .axisLabel('Time (ms)')
+		      .tickFormat(d3.format(',r'));
+
+		  chart.yAxis     //Chart y-axis settings
+		      .axisLabel('Resource usage')
+		      .tickFormat(d3.format('.02f'));
+		     
+
+		  /* Done setting the chart up? Time to render it!*/
+		  var myData = cpu();   //You need data...
+		  
+		  d3.select('#cpuChart svg')    //Select the <svg> element you want to render the chart in.   
+		      .datum(myData)         //Populate the <svg> element with chart data...
+		      .call(chart); 
+
+		  d3.select("svg g.nv-series-2").style("fill-opacity", 0);         //Finally, render the chart!
+		d3.selectAll("svg .nv-line")
+	  		.style("fill", "none");
+		  //Update the chart when window resizes.
+		  nv.utils.windowResize(function() { chart.update() });
+		  return chart;
+		});
+
+
+		function cpu() {
+		  var cpu = [];
+
+		  //Data is represented as an array of {x,y} pairs.
+		  for (var i = 0; i < 100; i++) {
+		    cpu.push({x: i, y: Math.sin(i/4)*0.2});
+		  }
+
+		  //Line chart data should be sent as an array of series objects.
+		  return [
+		    {
+		      values: cpu,      //values - represents the array of {x,y} data points
+		      key: 'CPU', //key  - the name of the series.
+		      color: '#95a5a6'  //color - optional: choose your own line color.
+		    }
+		  ];
+		}
+
+    </script>
+
+
+    <script type="text/javascript">
+
+			nv.addGraph(function() {
+			  var chart = nv.models.lineChart()
+			                .margin({left: 60})  //Adjust chart margins to give the x-axis some breathing room.
+			                .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
+			                //.transitionDuration(350)  //how fast do you want the lines to transition?
+			                .showLegend(true)       //Show the legend, allowing users to turn on/off line series.
+			                .showYAxis(true)        //Show the y-axis
+			                .showXAxis(true)        //Show the x-axis
+			  ;
+			  chart.xAxis     //Chart x-axis settings
+			      .axisLabel('Time (ms)')
+			      .tickFormat(d3.format(',r'));
+
+			  chart.yAxis     //Chart y-axis settings
+			      .axisLabel('Resource usage')
+			      .tickFormat(d3.format('.02f'));
+			     
+
+			  /* Done setting the chart up? Time to render it!*/
+			  var myData = memory();   //You need data...
+			  
+			  d3.select('#memoryChart svg')    //Select the <svg> element you want to render the chart in.   
+			      .datum(myData)         //Populate the <svg> element with chart data...
+			      .call(chart); 
+
+			  d3.select("svg g.nv-series-2").style("fill-opacity", 0);         //Finally, render the chart!
+			d3.selectAll("svg .nv-line")
+		  		.style("fill", "none");
+			  //Update the chart when window resizes.
+			  nv.utils.windowResize(function() { chart.update() });
+			  return chart;
+			});
+
+
+
+			function memory() {
+			  var memory = [];
+
+			  //Data is represented as an array of {x,y} pairs.
+			  for (var i = 0; i < 100; i++) {
+			    memory.push({x: i, y: .7*Math.sin(i/7) + 0.5});
+			  }
+
+			  //Line chart data should be sent as an array of series objects.
+			  return [
+			   
+			    {
+			      values: memory,
+			      key: 'Memory',
+			      color: '#2ecc71'
+			    }
+			  ];
+			}
+
+    </script>
+
+
+    <script type="text/javascript">
+
+			nv.addGraph(function() {
+			  var chart = nv.models.lineChart()
+			                .margin({left: 60})  //Adjust chart margins to give the x-axis some breathing room.
+			                .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
+			                //.transitionDuration(350)  //how fast do you want the lines to transition?
+			                .showLegend(true)       //Show the legend, allowing users to turn on/off line series.
+			                .showYAxis(true)        //Show the y-axis
+			                .showXAxis(true)        //Show the x-axis
+			  ;
+			  chart.xAxis     //Chart x-axis settings
+			      .axisLabel('Time (ms)')
+			      .tickFormat(d3.format(',r'));
+
+			  chart.yAxis     //Chart y-axis settings
+			      .axisLabel('Resource usage')
+			      .tickFormat(d3.format('.02f'));
+			     
+
+			  /* Done setting the chart up? Time to render it!*/
+			  var myData = disk();   //You need data...
+			  
+			  d3.select('#diskChart svg')    //Select the <svg> element you want to render the chart in.   
+			      .datum(myData)         //Populate the <svg> element with chart data...
+			      .call(chart); 
+
+			  d3.select("svg g.nv-series-2").style("fill-opacity", 0);         //Finally, render the chart!
+			d3.selectAll("svg .nv-line")
+		  		.style("fill", "none");
+			  //Update the chart when window resizes.
+			  nv.utils.windowResize(function() { chart.update() });
+			  return chart;
+			});
+
+
+
+			function disk() {
+			  var disk = [];
+
+			  //Data is represented as an array of {x,y} pairs.
+			  for (var i = 0; i < 100; i++) {
+			    disk.push({x: i, y: .5 * Math.cos(i/9)*0.7+0.33});
+			  }
+
+			  //Line chart data should be sent as an array of series objects.
+			  return [
+			   
+			    {
+			      values: disk,
+			      key: 'Disk',
+			      color: '#9b59b6',
+			          //area - set to true if you want this line to turn into a filled area chart.
+			    }
+			  ];
+			}
+
+    </script>
+
+
+    <script type="text/javascript">
+
+			nv.addGraph(function() {
+			  var chart = nv.models.lineChart()
+			                .margin({left: 60})  //Adjust chart margins to give the x-axis some breathing room.
+			                .useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
+			                //.transitionDuration(350)  //how fast do you want the lines to transition?
+			                .showLegend(true)       //Show the legend, allowing users to turn on/off line series.
+			                .showYAxis(true)        //Show the y-axis
+			                .showXAxis(true)        //Show the x-axis
+			  ;
+			  chart.xAxis     //Chart x-axis settings
+			      .axisLabel('Time (ms)')
+			      .tickFormat(d3.format(',r'));
+
+			  chart.yAxis     //Chart y-axis settings
+			      .axisLabel('Resource usage')
+			      .tickFormat(d3.format('.02f'));
+			     
+
+			  /* Done setting the chart up? Time to render it!*/
+			  var myData = network();   //You need data...
+			  
+			  d3.select('#networkChart svg')    //Select the <svg> element you want to render the chart in.   
+			      .datum(myData)         //Populate the <svg> element with chart data...
+			      .call(chart); 
+
+			  d3.select("svg g.nv-series-2").style("fill-opacity", 0);         //Finally, render the chart!
+			d3.selectAll("svg .nv-line")
+		  		.style("fill", "none");
+			  //Update the chart when window resizes.
+			  nv.utils.windowResize(function() { chart.update() });
+			  return chart;
+			});
+
+
+			function network() {
+			  var network = [];
+
+			  //Data is represented as an array of {x,y} pairs.
+			  for (var i = 0; i < 100; i++) {
+			     network.push({x: i, y: .15 * Math.cos(i/13)+0.8});
+			  }
+
+			  //Line chart data should be sent as an array of series objects.
+			  return [
+			   
+			     {
+			      values: network,
+			      key: 'Network',
+			      color: '#f1c40f',
+			         //area - set to true if you want this line to turn into a filled area chart.
+			    }
+			  ];
+			}
+    </script>
+
+
+
+
+    <script type="text/javascript">
+		nv.addGraph(function() {  
+		  var chart = nv.models.bulletChart();
+
+		  d3.select('#appcpu svg')
+		      .datum(appcpu())
+		      //.transition().duration(1000)
+		      .call(chart);
+
+		  return chart;
+		});
+
+
+		function appcpu() {
+		  return {
+		  	"title":"CPU",		//Label the bullet chart
+		  	"ranges":[150,225,300],	 //Minimum, mean and maximum values.
+		  	"measures":[220],		 //Value representing current measurement (the thick blue line in the example)
+		  	"markers":[250]			 //Place a marker on the chart (the white triangle marker)
+		  };
+		}
+    </script>
+
+    <script type="text/javascript">
+		nv.addGraph(function() {  
+		  var chart = nv.models.bulletChart();
+
+		  d3.select('#appdisk svg')
+		      .datum(appdisk())
+		      //.transition().duration(1000)
+		      .call(chart);
+
+		  return chart;
+		});
+
+
+		function appdisk() {
+		  return {
+		  	"title":"Disk",		//Label the bullet chart
+		  	"ranges":[150,180,220],	 //Minimum, mean and maximum values.
+		  	"measures":[160],		 //Value representing current measurement (the thick blue line in the example)
+		  	"markers":[200]			 //Place a marker on the chart (the white triangle marker)
+		  };
+		}
+    </script>
+
+    <script type="text/javascript">
+		nv.addGraph(function() {  
+		  var chart = nv.models.bulletChart();
+
+		  d3.select('#appnetwork svg')
+		      .datum(appnetwork())
+		      //.transition().duration(1000)
+		      .call(chart);
+
+		  return chart;
+		});
+
+
+		function appnetwork() {
+		  return {
+		  	"title":"Network",		//Label the bullet chart
+		  	"ranges":[100,150,200],	 //Minimum, mean and maximum values.
+		  	"measures":[180],		 //Value representing current measurement (the thick blue line in the example)
+		  	"markers":[150]			 //Place a marker on the chart (the white triangle marker)
+		  };
+		}
+    </script>
+
+    <script type="text/javascript">
+		nv.addGraph(function() {  
+		  var chart = nv.models.bulletChart();
+
+		  d3.select('#appmemory svg')
+		      .datum(appmemory())
+		      //.transition().duration(1000)
+		      .call(chart);
+
+		  return chart;
+		});
+
+
+		function appmemory() {
+		  return {
+		  	"title":"Memory",		//Label the bullet chart
+		  	"ranges":[150,225,300],	 //Minimum, mean and maximum values.
+		  	"measures":[150],		 //Value representing current measurement (the thick blue line in the example)
+		  	"markers":[300]			 //Place a marker on the chart (the white triangle marker)
+		  };
+		}
+    </script>
+
+
+
+</body>
+</html>

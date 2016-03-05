@@ -1,4 +1,4 @@
-<html>
+<html ng-app="thothEyes">
 <head>
 	<title></title>
 	<!-- Latest compiled and minified CSS -->
@@ -7,6 +7,12 @@
 	<!-- Optional theme -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
 
+        <script src="bower_components/angular/angular.js"></script>
+        <script src="bower_components/d3/d3.js"></script>
+        <script src="bower_components/nvd3/build/nv.d3.js"></script>
+        <script src="bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
+        <script src="js/thothEyes.js"></script>
+        <link rel="stylesheet" href="bower_components/nvd3/build/nv.d3.css">
 	<!-- Latest compiled and minified JavaScript -->
 	<style type="text/css">
 		
@@ -161,8 +167,7 @@
 		}
 	</style>
 </head>
-<body>
-	
+<body ng-controller="NodesCtrl">
 <ul class="navigation">
 	<div class = "contact-icon" >
 		<span style="font-size:33; margin-right: 10px;"class="glyphicon glyphicon-user "></span>   Contact detail
@@ -228,8 +233,9 @@
 					    <div class="frame-border">
 					    	<div class="text-center"><br/> Name </div>
 					      	<div id="nodeChart">
-	  							<svg style="height:190px;width:100%">
-  								</svg>
+	  							<!-- <svg style="height:190px;width:100%">
+                                                                </svg> -->
+                                                                <nvd3 options="resourceOptions" data="nodes[0].data"></nvd3>
 							</div>
 				        		Name :
 				        		<br/>
@@ -284,44 +290,6 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.js"></script>
 	<script type="text/javascript">
 			/*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
-		nv.addGraph(function() {
-			
-
-		  var chart = nv.models.lineChart()
-		                .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
-		               	.useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
-		              
-		                .showLegend(true)       //Show the legend, allowing users to turn on/off line series.
-		                .showYAxis(true)        //Show the y-axis
-		                .showXAxis(true)        //Show the x-axis
-		                //.width(width)
-		                //.height(height)
-		               	.showVoronoi(false)
-		              	.isArea(false)
-
-		  ;
-		  chart.interactiveLayer.tooltip.fixedTop(100);
-		  chart.clipEdge(false);
-		  chart.xAxis     //Chart x-axis settings
-		      .axisLabel('Time (ms)')
-		      .tickFormat(d3.format(',r'));
-
-		  chart.yAxis     //Chart y-axis settings
-		      .axisLabel('Percent')
-		      .tickFormat(d3.format('.02f'));
-
-		  /* Done setting the chart up? Time to render it!*/
-		  var myData = sinAndCos();   //You need data...
-
-		  d3.select('#nodeChart svg')    //Select the <svg> element you want to render the chart in.   
-		      .datum(myData)         //Populate the <svg> element with chart data...
-		      //.style({ 'width': width, 'height': height })
-		      .call(chart);          //Finally, render the chart!
-
-		  //Update the chart when window resizes.
-		  nv.utils.windowResize(function() { chart.update() });
-		  return chart;
-		});
 		nv.addGraph(function() {
 		  var chart = nv.models.lineChart()
 		                .margin({left: 100})  //Adjust chart margins to give the x-axis some breathing room.
@@ -422,11 +390,6 @@
 		    {
 		      values: sin2,
 		      key: 'Network',
-		      color: '#f39c12'
-		    },
-		    {
-		      values: sin3,
-		      key: 'Memory',
 		      color: '#f39c12'
 		    }
 		  ];

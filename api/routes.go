@@ -98,9 +98,16 @@ var routes = Routes{
 		CreateRc,
 	},
 	Route{
+<<<<<<< HEAD
 		"speech",
 		"POST",
 		"/speech/",
 		SpeechRecog,
+=======
+		"getErrorApp",
+		"GET",
+		"/error/app",
+		getErrorApp,
+>>>>>>> origin/thotheyes-error
 	},
 }
