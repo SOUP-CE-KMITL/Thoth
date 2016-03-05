@@ -42,8 +42,16 @@ angular.module('thothEyes', ['nvd3'])
         labelThreshold: 0.03,
         labelType: 'percent',
         donut: true,
-        donutRatio: 0.3
-
+        donutRatio: 0.3,
+        pie: {
+          dispatch: {
+            elementClick: function (element){ 
+              alert(element.data.label.toLowerCase());
+              alert(document.location.href)
+              document.location.href = document.location.href + "nodes#" + element.data.label.toLowerCase();
+            }
+          }
+        }
       }
     }
 
@@ -76,6 +84,7 @@ angular.module('thothEyes', ['nvd3'])
     // get application profile
     // initail array
     $scope.nodes[i] = {}
+    $scope.nodes[i].name = "A"
     $scope.nodes[i].data = [];
     $scope.nodes[i].data[0] = {};
     $scope.nodes[i].data[0].values = [];

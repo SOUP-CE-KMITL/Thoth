@@ -230,52 +230,14 @@
 					</div>
 				</div>
 				<div class="row">
-					<div class="col-sm-6 col-md-4">
+					<div class="col-sm-6 col-md-4" ng-repeat="node in nodes">
 					    <div class="frame-border">
-					    	<div class="text-center"><br/> Name </div>
+                                              <div class="text-center"><br/> {{ node.name }}</div>
 					      	<div id="nodeChart">
 	  							<!-- <svg style="height:190px;width:100%">
                                                                 </svg> -->
-                                                                <nvd3 options="resourceOptions" data="nodes[0].data"></nvd3>
-							</div>
-				        		Name :
-				        		<br/>
-				        		IP : 
-				        		<br/>
-				        		APP# :
-				        		<br/> 
-				        	<p><a href="file:///C:/Users/admin/Desktop/node.html" class="btn btn-default" role="button">More</a></p>
-					    </div>
-					</div>
-					<div class="col-sm-6 col-md-4">
-					    <div class="frame-border">
-					    	<div class="text-center"><br/> Name </div>
-					      	<div id="node2Chart">
-	  							<svg style="height:190px;width:100%">
-  								</svg>
-							</div>
-				        		Name :
-				        		<br/>
-				        		IP : 
-				        		<br/>
-				        		APP# :
-				        		<br/> 
-				        	<p><a href="file:///C:/Users/admin/Desktop/node.html" class="btn btn-default" role="button">More</a></p>
-					    </div>
-					</div>
-					<div class="col-sm-6 col-md-4">
-					    <div class="frame-border">
-					    	<div class="text-center"><br/> Name </div>
-					      	<div id="node3Chart">
-	  							<svg style="height:190px;width:100%">
-  								</svg>
-							</div>
-				        		Name :
-				        		<br/>
-				        		IP : 
-				        		<br/>
-				        		APP# :
-				        		<br/> 
+                                                  <nvd3 options="resourceOptions" data="node.data"></nvd3>
+                                                </div>
 				        	<p><a href="file:///C:/Users/admin/Desktop/node.html" class="btn btn-default" role="button">More</a></p>
 					    </div>
 					</div>
