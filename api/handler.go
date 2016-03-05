@@ -704,8 +704,6 @@ func SpeechRecog(w http.ResponseWriter, r *http.Request) {
 	// DataBinary
 	// URL Test https://sj8vwegp7eew.runscope.net
 
-	fmt.Fprint(w, "Speech-------------")
-	fmt.Fprint(w, r)
 	//fmt.Println(w, r)
 
 	url := "https://stream.watsonplatform.net/speech-to-text/api/v1/recognize?continuous=true"
@@ -729,7 +727,9 @@ func SpeechRecog(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(string(body))
+	//	fmt.Println(string(body))
+
+	fmt.Fprint(w, string(body))
 	/*
 		var response map[string]interface{}
 		if err := json.Unmarshal(body, &response); err != nil {
