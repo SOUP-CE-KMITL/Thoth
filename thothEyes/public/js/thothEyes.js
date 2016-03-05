@@ -1,6 +1,5 @@
 angular.module('thothEyes', ['nvd3'])
-.controller('DashboardCtrl', function($scope){
-
+.controller('DashboardCtrl', ['$scope', '$http', function($scope, $http){
   function getPieChartData() {
     return  [
       { 
@@ -30,26 +29,33 @@ angular.module('thothEyes', ['nvd3'])
       } 
 
     ];
+  }  
+  var errorAppsNum = 0;
+  function checkErrorApp() {
+    $http.get('/error/apps')
+     .success(function(data, status) {
+        if(data.length != 0){
+          console.log(data);
+          $scope.errorApps = data;
+        }
+      });
   }
+  checkErrorApp();
 
-  function getErrorApplication(){
-    
-  }
-    
-    $scope.computeOptions = {
-      chart: {
-        type: 'pieChart',
-        height: 300,
-        x: function(d){return d.label;},
-        y: function(d){return d.value;},
-        showLabels: true,
-        labelThreshold: 0.03,
-        labelType: 'percent',
-        donut: true,
-        donutRatio: 0.3
+  $scope.computeOptions = {
+    chart: {
+      type: 'pieChart',
+      height: 300,
+      x: function(d){return d.label;},
+      y: function(d){return d.value;},
+      showLabels: true,
+      labelThreshold: 0.03,
+      labelType: 'percent',
+      donut: true,
+      donutRatio: 0.3
 
-      }
     }
+  }
 
     //set initial mock data, going to remove after connect to API.
     $scope.computeData = getPieChartData();
@@ -61,6 +67,7 @@ angular.module('thothEyes', ['nvd3'])
     $scope.fileData = angular.copy($scope.computeData);
 
     setInterval(function(){
+      checkErrorApp();
       // update data from API here.
       $scope.computeData = getPieChartData();
       $scope.dataData = getPieChartData();
@@ -68,9 +75,9 @@ angular.module('thothEyes', ['nvd3'])
       //$scope.api.updateWithData($scope.data);
       $scope.$apply();
     }, 5000);
-
-  })
+  }])
 .controller('NodesCtrl', ['$scope', '$http', '$q', function($scope, $http, $q){
+  $scope.testing = "testing";
   //for contain all nodes.
   nodes = ['thotheyes.cloudapp.net'];
   node_datas = [];

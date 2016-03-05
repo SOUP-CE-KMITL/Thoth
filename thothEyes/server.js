@@ -17,6 +17,7 @@ app.set('views', __dirname + '/views');
 app.set('view cache', false);
 
 swig.setDefaults({ cache: false });
+swig.setDefaults({ varControls: ['<%=', '%>'] });
 
 //app.use('/bower_components/nvd3', express.static( __dirname + '/bower_components/nvd3'));
 
