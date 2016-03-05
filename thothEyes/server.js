@@ -90,13 +90,19 @@ app.get('/node/:nodeName', function(reg, res){
 		});
 });
 
-app.get('/error/apps', function(reg, res) {
+app.get('/monitor/apps', function(reg, res) {
 	// This number should configuration by user.
 	err5xx_threshold = 0;
 	
 	namespace = "thoth";
 	apps_name = [];
 	apps_error = [];
+	// maximum resource usage for application 
+	max_cpu_app = {num: 0};
+	max_mem_app = {num: 0};
+	max_res_app = {num: 0};
+	max_req_app = {num: 0};
+
 	sequence = Sequence.create();
 
 	var get_app_name = {
@@ -147,6 +153,22 @@ app.get('/error/apps', function(reg, res) {
 				console.log(res.statusCode)
 				res.on('data', function (data) {
 					data = JSON.parse(data);
+					if(data.cpu > max_cpu_app.num){
+						max_cpu_app.name = data.app;
+						max_cpu_app.num = data.cpu;
+					}
+					if(data.memory > max_mem_app.num){
+						max_mem_app.name = data.app;
+						max_mem_app.num = data.cpu;
+					}
+					if(data.Request > max_req_app.num){
+						max_req_app.name = data.app;
+						max_req_app.num = data.cpu;
+					}
+					if(data.Response > max_res_app.num){
+						max_res_app.name = data.app;
+						max_res_app.num = data.cpu;
+					}
 					if(data.Response5xx >= err5xx_threshold){
 						apps_error.push(item);
 					}

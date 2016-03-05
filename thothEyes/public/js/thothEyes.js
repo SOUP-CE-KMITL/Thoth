@@ -32,7 +32,7 @@ angular.module('thothEyes', ['nvd3'])
   }  
   var errorAppsNum = 0;
   function checkErrorApp() {
-    $http.get('/error/apps')
+    $http.get('/monitor/apps')
      .success(function(data, status) {
         if(data.length != 0){
           console.log(data);
