@@ -1,7 +1,9 @@
 var app 	 = require('express')(),
-        express = require('express'),
+    express  = require('express'),
 	Sequence = require('sequence').Sequence,
 	http 	 = require('http'),
+	request	 = require('request'),
+	async    = require('async'),
 	swig 	 = require('swig'),
 	people;
 
@@ -15,6 +17,7 @@ app.set('views', __dirname + '/views');
 app.set('view cache', false);
 
 swig.setDefaults({ cache: false });
+swig.setDefaults({ varControls: ['<%=', '%>'] });
 
 //app.use('/bower_components/nvd3', express.static( __dirname + '/bower_components/nvd3'));
 
@@ -57,6 +60,7 @@ app.get('/node/:nodeName', function(reg, res){
 			  res.on('data', function (data) {
 			    data = JSON.parse(data);	
 			    node = data;
+
 			    // create node information
 				info = {
 					nodeName: name,
@@ -84,6 +88,102 @@ app.get('/node/:nodeName', function(reg, res){
 			if (err) return console.log(err);
 			res.render('nodes', info)
 		});
+});
+
+app.get('/monitor/apps', function(reg, res) {
+	// This number should configuration by user.
+	err5xx_threshold = 0;
+	
+	namespace = "thoth";
+	apps_name = [];
+	apps_error = [];
+	// maximum resource usage for application 
+	max_cpu_app = {num: 0};
+	max_mem_app = {num: 0};
+	max_res_app = {num: 0};
+	max_req_app = {num: 0};
+
+	sequence = Sequence.create();
+
+	var get_app_name = {
+		host: api_server_ip,
+		port: api_server_port,
+		path: '/apps/'+namespace,
+		method:  'GET'
+	}
+
+	sequence
+	.then(function(next) {
+		var req = http.request(get_app_name, function(res) {
+			console.log('STATUS: ' + res.statusCode);
+			console.log('HEADERS: ' + JSON.stringify(res.headers));
+			res.setEncoding('utf8');
+			res.on('data', function (data) {
+				data = JSON.parse(data);
+				var app = {};
+				// get all application name
+				for(var i = 0;i < data.items.length;i++){
+					app.name = data.items[i].metadata.name;
+					app.replicas  = data.items[i].spec.replicas;
+					app.containers  = data.items[i].spec.template.spec.containers; 
+					apps_name.push(app);
+				}
+				// not have any error and pass app name to next
+				next("", apps_name)
+			});
+		});
+		req.on('error', function(e) {
+		  console.log('problem with request: ' + e.message);
+		});
+		req.end();
+	}).then(function(next, err, apps){
+		console.log(apps);
+		if (err) return console.log(err);
+		// check 5xx status
+		var get_app_error;
+		apps_error = [];
+
+		async.forEach(apps, function(item, callback){
+			get_app_error = {
+				host: api_server_ip,
+				port: api_server_port,
+				path: '/app/'+item.name+'/metrics/'+namespace
+			}
+			var req = http.request(get_app_error, function(res){
+				console.log(res.statusCode)
+				res.on('data', function (data) {
+					data = JSON.parse(data);
+					if(data.cpu > max_cpu_app.num){
+						max_cpu_app.name = data.app;
+						max_cpu_app.num = data.cpu;
+					}
+					if(data.memory > max_mem_app.num){
+						max_mem_app.name = data.app;
+						max_mem_app.num = data.cpu;
+					}
+					if(data.Request > max_req_app.num){
+						max_req_app.name = data.app;
+						max_req_app.num = data.cpu;
+					}
+					if(data.Response > max_res_app.num){
+						max_res_app.name = data.app;
+						max_res_app.num = data.cpu;
+					}
+					if(data.Response5xx >= err5xx_threshold){
+						apps_error.push(item);
+					}
+					callback();
+				});
+			});
+			req.on('error', function(e) {
+			  console.log('problem with request: ' + e.message);
+			  res.status(500).json("error");
+			});
+			req.end();
+		}, function() {
+			res.status(200).json(apps_error);
+		});
+	});
 });
 
 

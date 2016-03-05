@@ -7,16 +7,6 @@
 
 	<!-- Optional theme -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
-
-	<script type="text/javascript" src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
-	<!-- Latest compiled and minified JavaScript -->
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-
-	<script src="bower_components/angular/angular.js"></script>
-	<script src="bower_components/d3/d3.js"></script>
-	<script src="bower_components/nvd3/build/nv.d3.js"></script>
-	<script src="bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
-	<script src="js/thothEyes.js"></script>
 	
 	<link rel="stylesheet" href="bower_components/nvd3/build/nv.d3.css">
 	
@@ -67,7 +57,7 @@
 						<div class="upperblock-bodyfont">
 							<li> 
 								<span class="glyphicon glyphicon-list-alt"></span>
-								Notisication massege
+								Notification massege
 							</li>
 						</div>
 					</div>
@@ -94,29 +84,34 @@
 							<span class="glyphicon glyphicon-refresh pull-right"></span>
 							<hr/>
 						</div>
-						<div class="upperblock-bodyfont">
-							<div class="thumbnail text-center errorapp">
+						<div class="upperblock-bodyfont ">
+							<div ng-repeat="errorApp in errorApps" class="thumbnail text-center errorapp">
 								<div class="row">
-									NAME : application name<br/><br/>
+									NAME {{errorApp.name}}<br/><br/>
 								</div>
 								<div class="row">
-									NODE : application node <br/><br/>
+									replicas : {{errorApp.replicas}} <br/><br/>
+								</div>
+								<div class="row">
+									container port 
+									<span ng-repeat="con in errorApp.containers">
+											{{con.ports[0].containerPort}}
+									</span>
 								</div>
 								<div class="row">
 									<div class="col-md-4">
-										<div class="botton">
+										<button class="btn btn-default">
 											<span class="glyphicon glyphicon-pause"></span>
-										</div>
+										</button>
 									</div>
 									<div class="col-md-4">
-										<div class="botton">
+										<button class="btn btn-default">
 											<span class="glyphicon glyphicon-plus"></span>
-										</div>
+										</button>
 									</div>
 									<div class="col-md-4">
-										<div class="botton">
+										<button class="btn btn-default">
 											<span class="glyphicon glyphicon-minus"></span>
-										</div>
 									</div>
 								</div>
 							</div>
@@ -238,67 +233,15 @@
 		</div>
 	</div>
 
-	<!-- Java script Code -->
-	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.js"></script>
+	<script type="text/javascript" src="https://code.jquery.com/jquery-2.2.1.min.js"></script>
+	<!-- Latest compiled and minified JavaScript -->
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
-	<script type="text/javascript">
-	//Regular pie chart example
-
-	nv.addGraph(function() {
-		var ratioInside = 0.3;
-		//var width = 300,height=300;
-		var chart = nv.models.pieChart()
-		.x(function(d) { return d.label })
-		.y(function(d) { return d.value })
-	      .showLabels(true)     //Display pie labels
-	      .labelThreshold(0.01)  //Configure the minimum slice size for labels to show up
-	      .labelType("percent") //Configure what type of data to show in the label. Can be "key", "value" or "percent"
-	      .donut(true)          //Turn on Donut mode. Makes pie chart look tasty!
-	      .donutRatio(ratioInside)     //Configure how big you want the donut hole size to be.
-	      ;
-	      chart.legendPosition("top")
-	      chart.pie.dispatch.on("elementClick", function(e) {
-	      	console.log(e);
-	      	window.location.href = 'file:///C:/Users/admin/Desktop/nodes.html';
-	      });
-
-	      d3.select("#Chart svg")
-	      .datum(exampleData())
-	      .transition().duration(350)
-	      .call(chart);
-	      
-	      return chart;
-	  });
-	//Pie chart example data. Note how there is only a single array of key-value pairs.
-	function exampleData() {
-		return  [
-		{ 
-			"label": "Extreme",
-			"value" : 10,
-			"color" : '#e74c3c'
-		} , 
-		{ 
-			"label": "Dangerous",
-			"value" : 32.807804682612,
-			"color" : '#e67e22'
-		} , 
-		{ 
-			"label": "Becareful",
-			"value" : 96.45946739256,
-			"color" : '#f1c40f'
-		} , 
-		{ 
-			"label": "Normal",
-			"value" : 56.19434030906893,
-			"color" : '#2ecc71'
-		} 
-		
-		];
-	}
-</script>
+	<script src="bower_components/angular/angular.js"></script>
+	<script src="bower_components/d3/d3.js"></script>
+	<script src="bower_components/nvd3/build/nv.d3.js"></script>
+	<script src="bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
+	<script src="js/thothEyes.js"></script>
 
 </body>
 </html>

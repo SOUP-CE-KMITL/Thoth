@@ -1,4 +1,4 @@
-<html>
+<html ng-app="thothEyes">
 <head>
 	<title></title>
 	<!-- Latest compiled and minified CSS -->
@@ -7,6 +7,12 @@
 	<!-- Optional theme -->
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
 
+        <script src="bower_components/angular/angular.js"></script>
+        <script src="bower_components/d3/d3.js"></script>
+        <script src="bower_components/nvd3/build/nv.d3.js"></script>
+        <script src="bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
+        <script src="js/thothEyes.js"></script>
+        <link rel="stylesheet" href="bower_components/nvd3/build/nv.d3.css">
 	<style type="text/css">
 		.box{
 		background-color: white;
@@ -178,7 +184,7 @@
 	
 	</style>
 </head>
-<body style="background-color: white;">
+<body style="background-color: white;" ng-controller="NodeCtrl">
 <ul class="navigation">
 		<div class = "contact-icon" >
 			<span style="font-size:33; margin-right: 10px;"class="glyphicon glyphicon-user "></span>   Contact detail
@@ -227,7 +233,7 @@
 					 </div>
 					<br/>
 					<div id="CPUchart">		
-					    <svg style="height:190px;width:100%"></svg>
+                                            <nvd3 options="resourceOptions" data="node.cpu"></nvd3>
 					</div>	
 				</div>
 				<div class="col-md-3 frame-border chart-box">

@@ -1,6 +1,5 @@
 angular.module('thothEyes', ['nvd3'])
-.controller('DashboardCtrl', function($scope){
-
+.controller('DashboardCtrl', ['$scope', '$http', function($scope, $http){
   function getPieChartData() {
     return  [
       { 
@@ -30,30 +29,39 @@ angular.module('thothEyes', ['nvd3'])
       } 
 
     ];
+  }  
+  var errorAppsNum = 0;
+  function checkErrorApp() {
+    $http.get('/monitor/apps')
+     .success(function(data, status) {
+        if(data.length != 0){
+          console.log(data);
+          $scope.errorApps = data;
+        }
+      });
   }
-    
-    $scope.computeOptions = {
-      chart: {
-        type: 'pieChart',
-        height: 300,
-        x: function(d){return d.label;},
-        y: function(d){return d.value;},
-        showLabels: true,
-        labelThreshold: 0.03,
-        labelType: 'percent',
-        donut: true,
-        donutRatio: 0.3,
-        pie: {
-          dispatch: {
-            elementClick: function (element){ 
-              alert(element.data.label.toLowerCase());
-              alert(document.location.href)
-              document.location.href = document.location.href + "nodes#" + element.data.label.toLowerCase();
-            }
+  checkErrorApp();
+
+  $scope.computeOptions = {
+    chart: {
+      type: 'pieChart',
+      height: 300,
+      x: function(d){return d.label;},
+      y: function(d){return d.value;},
+      showLabels: true,
+      labelThreshold: 0.03,
+      labelType: 'percent',
+      donut: true,
+      donutRatio: 0.3,
+      pie: {
+        dispatch: {
+          elementClick: function (element){ 
+            document.location.href = document.location.href + "nodes#" + element.data.label.toLowerCase();
           }
         }
       }
     }
+  }
 
     //set initial mock data, going to remove after connect to API.
     $scope.computeData = getPieChartData();
@@ -65,6 +73,7 @@ angular.module('thothEyes', ['nvd3'])
     $scope.fileData = angular.copy($scope.computeData);
 
     setInterval(function(){
+      checkErrorApp();
       // update data from API here.
       $scope.computeData = getPieChartData();
       $scope.dataData = getPieChartData();
@@ -72,9 +81,9 @@ angular.module('thothEyes', ['nvd3'])
       //$scope.api.updateWithData($scope.data);
       $scope.$apply();
     }, 5000);
-
-  })
+  }])
 .controller('NodesCtrl', ['$scope', '$http', '$q', function($scope, $http, $q){
+  $scope.testing = "testing";
   //for contain all nodes.
   nodes = ['thotheyes.cloudapp.net'];
   node_datas = [];
@@ -84,7 +93,7 @@ angular.module('thothEyes', ['nvd3'])
     // get application profile
     // initail array
     $scope.nodes[i] = {}
-    $scope.nodes[i].name = "A"
+    $scope.nodes[i].name = ""
     $scope.nodes[i].data = [];
     $scope.nodes[i].data[0] = {};
     $scope.nodes[i].data[0].values = [];
@@ -151,4 +160,51 @@ angular.module('thothEyes', ['nvd3'])
       
     }, 1000);
 
+  }])
+.controller('NodeCtrl', ['$scope', '$http', '$q', function($scope, $http, $q){
+  $scope.node = {}
+  $scope.node.name = "thotheyes.cloudapp.net"
+  $scope.node.cpu = [{
+    values: [],
+    key: 'cpu',
+    color: '#ff7f0e'
+  }];
+
+    $scope.resourceOptions = {
+      chart: {
+        type: 'lineChart',
+        height: 190,
+        margin: {
+          left: 100
+        },
+        duration: 0,
+        yDomain: [0,100],
+        x: function(d){ return d.x },
+        y: function(d){ return d.y },
+        useInteractiveGuideline: true,
+        xAxis: {
+          axisLabel: 'Time (s)'
+        },
+        yAxis: {
+          axisLabel: 'Resource (%)',
+          tickFormat: function(d){
+            return d3.format('.02f')(d);
+          },
+          axisLabelDistance: -10
+        }
+      }
+    }
+    var t = 0;
+  setInterval(function(){
+
+    $http.get("http://"+ $scope.node.name+":8182/metrics").then(
+      function(response){
+        $scope.node.cpu[0].values.push({ x:t, y: response.data.cpu[0]});
+       if($scope.node.cpu[0].values.length > 20) $scope.node.cpu[0].values.shift();
+      },
+      function(err){
+        console.log(err)
+      });
+      t++;
+  }, 1000);
   }]);

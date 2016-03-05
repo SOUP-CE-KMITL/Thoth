@@ -168,7 +168,6 @@
 	</style>
 </head>
 <body ng-controller="NodesCtrl">
-	
 <ul class="navigation">
 	<div class = "contact-icon" >
 		<span style="font-size:33; margin-right: 10px;"class="glyphicon glyphicon-user "></span>   Contact detail
@@ -232,13 +231,13 @@
 				<div class="row">
 					<div class="col-sm-6 col-md-4" ng-repeat="node in nodes">
 					    <div class="frame-border">
-                                              <div class="text-center"><br/> {{ node.name }}</div>
+                                              <div class="text-center"><br/> <b>{{ node.name }}</b></div>
 					      	<div id="nodeChart">
 	  							<!-- <svg style="height:190px;width:100%">
                                                                 </svg> -->
                                                   <nvd3 options="resourceOptions" data="node.data"></nvd3>
                                                 </div>
-				        	<p><a href="file:///C:/Users/admin/Desktop/node.html" class="btn btn-default" role="button">More</a></p>
+                                                <p><a href="/node#{{node.name}}" class="btn btn-default" role="button">More</a></p>
 					    </div>
 					</div>
 				</div>

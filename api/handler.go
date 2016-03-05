@@ -700,6 +700,7 @@ func postJson(url string, data []byte) (int, map[string]interface{}) {
 	return resp.StatusCode, response
 }
 
+// The error application 
 func getErrorApp(w http.ResponseWriter, r *http.Request) {
 	var MyDB string = "thoth"
 	var username string = "thoth"
@@ -711,10 +712,12 @@ func getErrorApp(w http.ResponseWriter, r *http.Request) {
 		Username: username,
 		Password: password,
 	})
-	fmt.Println("error")
-	queryRes, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT count(code5xx) FROM thoth"))
+	// TODO: iterate to query for each app 
+	queryRes, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT last(code5xx) FROM thoth"))
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println(queryRes)
+	errorNum5xx := queryRes[0].Series[0].Values[0][1];
+	fmt.Println(errorNum5xx);
+	// TODO: need to implement some algorithm searching error application 
 }
