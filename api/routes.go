@@ -97,4 +97,10 @@ var routes = Routes{
 		"/rc/create/",
 		CreateRc,
 	},
+	Route{
+		"speech",
+		"POST",
+		"/speech/",
+		SpeechRecog,
+	},
 }

@@ -694,3 +694,48 @@ func postJson(url string, data []byte) (int, map[string]interface{}) {
 	}
 	return resp.StatusCode, response
 }
+
+func SpeechRecog(w http.ResponseWriter, r *http.Request) {
+	//curl -u 0648b905-6758-4ae0-9c15-5cc53fadfa24:9e90DAlqVwoK -X POST --header "Content-Type: audio/wav" --header "Transfer-Encoding: chunked" --data-binary @hello.wav "https://stream.watsonplatform.net/speech-to-text/api/v1/recognize?continuous=true"
+	// Basic-Auth
+	// POST
+	// Content-Type
+	// TransferEncoding
+	// DataBinary
+	// URL Test https://sj8vwegp7eew.runscope.net
+
+	fmt.Fprint(w, "Speech-------------")
+	fmt.Fprint(w, r)
+	//fmt.Println(w, r)
+
+	url := "https://stream.watsonplatform.net/speech-to-text/api/v1/recognize?continuous=true"
+	//url := "https://sj8vwegp7eew.runscope.net"
+
+	req, err := http.NewRequest("POST", url, r.Body)
+	req.Header.Set("Accept", "*/*")
+	req.Header.Set("User-Agent", "curl/7.46.0")
+	req.Header.Set("Content-Type", "audio/wav")
+	req.SetBasicAuth("0648b905-6758-4ae0-9c15-5cc53fadfa24", "9e90DAlqVwoK")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	// defer for ensure
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(string(body))
+	/*
+		var response map[string]interface{}
+		if err := json.Unmarshal(body, &response); err != nil {
+			panic(err)
+		}
+		fmt.Println(response)
+	*/
+
+}

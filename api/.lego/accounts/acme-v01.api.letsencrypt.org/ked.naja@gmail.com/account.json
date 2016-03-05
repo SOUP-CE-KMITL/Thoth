@@ -1,0 +1,22 @@
+{
+	"email": "ked.naja@gmail.com",
+	"registration": {
+		"body": {
+			"resource": "reg",
+			"id": 720619,
+			"key": {
+				"kty": "EC",
+				"crv": "P-384",
+				"x": "pfTbvRgHHU67hULUVQmCHgWVtTVT8S6ruPTmuglcDF2X2cKB9EWHEn6vkpRkYTWi",
+				"y": "AGkfeBMcjHmYukmEmS96-yHqYu0mNIKUbuCQm6VbsKFoqngRqCPaBIClaoXMQRP4"
+			},
+			"contact": [
+				"mailto:ked.naja@gmail.com"
+			],
+			"agreement": "https://letsencrypt.org/documents/LE-SA-v1.0.1-July-27-2015.pdf"
+		},
+		"uri": "https://acme-v01.api.letsencrypt.org/acme/reg/720619",
+		"new_authzr_uri": "https://acme-v01.api.letsencrypt.org/acme/new-authz",
+		"terms_of_service": "https://letsencrypt.org/documents/LE-SA-v1.0.1-July-27-2015.pdf"
+	}
+}
