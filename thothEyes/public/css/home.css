@@ -214,3 +214,14 @@
 	.notification-block {
 		height: 200px;
 	}
+
+	.voice-block {
+		height: 120px;
+	}
+
+	.list-noti {
+		border-bottom-style: solid;
+		border-bottom-color: #888888;
+		border-bottom-width: 2px;
+
+	}
