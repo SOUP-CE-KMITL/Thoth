@@ -219,9 +219,12 @@
 		height: 120px;
 	}
 
+	.max-block {
+		height: 130px;
+	}
+
 	.list-noti {
 		border-bottom-style: solid;
 		border-bottom-color: #888888;
 		border-bottom-width: 2px;
-
 	}
