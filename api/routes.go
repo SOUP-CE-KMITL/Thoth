@@ -98,16 +98,15 @@ var routes = Routes{
 		CreateRc,
 	},
 	Route{
-<<<<<<< HEAD
 		"speech",
 		"POST",
 		"/speech/",
 		SpeechRecog,
-=======
+	},
+	Route{
 		"getErrorApp",
 		"GET",
 		"/error/app",
 		getErrorApp,
->>>>>>> origin/thotheyes-error
 	},
 }
