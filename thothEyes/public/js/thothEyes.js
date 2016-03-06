@@ -6,41 +6,41 @@ angular.module('thothEyes', ['nvd3'])
         "label": "Extreme",
         "value" : 10,
         "color" : '#e74c3c'
-
-
       } , 
       { 
         "label": "Dangerous",
         "value" : Math.floor((Math.random() * 20) + 1),
         "color" : '#e67e22'
-
       } , 
       { 
         "label": "Becareful",
         "value" : Math.floor((Math.random() * 20) + 1),
         "color" : '#f1c40f'
-
       } , 
       { 
         "label": "Normal",
         "value" : Math.floor((Math.random() * 20) + 1),
         "color" : '#2ecc71'
-
       } 
 
     ];
-  }  
+  }
   var errorAppsNum = 0;
-  function checkErrorApp() {
+  function MonitorApp() {
     $http.get('/monitor/apps')
      .success(function(data, status) {
         if(data.length != 0){
           console.log(data);
-          $scope.errorApps = data;
+          $scope.errorApps = data.errors;
+          $scope.max_cpu = [data.top_cpu];
+          $scope.max_mem = [data.top_mem];
+          $scope.max_req = [data.top_req];
+          $scope.max_res = [data.top_res];
         }
       });
   }
-  checkErrorApp();
+
+  MonitorApp();
 
   $scope.computeOptions = {
     chart: {
@@ -73,7 +73,7 @@ angular.module('thothEyes', ['nvd3'])
     $scope.fileData = angular.copy($scope.computeData);
 
     setInterval(function(){
-      checkErrorApp();
+      MonitorApp();
       // update data from API here.
       $scope.computeData = getPieChartData();
       $scope.dataData = getPieChartData();

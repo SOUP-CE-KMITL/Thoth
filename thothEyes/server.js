@@ -1,10 +1,12 @@
-var app 	 = require('express')(),
-    express  = require('express'),
-	Sequence = require('sequence').Sequence,
-	http 	 = require('http'),
-	request	 = require('request'),
-	async    = require('async'),
-	swig 	 = require('swig'),
+var app 	   = require('express')(),
+    express    = require('express'),
+	Sequence   = require('sequence').Sequence,
+	http 	   = require('http'),
+	request	   = require('request'),
+	async      = require('async'),
+	jsonminify = require('jsonminify'),
+	sleep 	   = require('sleep'),
+	swig 	   = require('swig'),
 	people;
 
 // setup swig for render file before serve to user 
@@ -98,10 +100,10 @@ app.get('/monitor/apps', function(reg, res) {
 	apps_name = [];
 	apps_error = [];
 	// maximum resource usage for application 
-	max_cpu_app = {num: 0};
-	max_mem_app = {num: 0};
-	max_res_app = {num: 0};
-	max_req_app = {num: 0};
+	max_cpu_app = {name: 'none', num: 0};
+	max_mem_app = {name: 'none', num: 0};
+	max_res_app = {name: 'none', num: 0};
+	max_req_app = {name: 'none', num: 0};
 
 	sequence = Sequence.create();
 
@@ -115,14 +117,20 @@ app.get('/monitor/apps', function(reg, res) {
 	sequence
 	.then(function(next) {
 		var req = http.request(get_app_name, function(res) {
+			var res_app = "";
 			console.log('STATUS: ' + res.statusCode);
 			console.log('HEADERS: ' + JSON.stringify(res.headers));
 			res.setEncoding('utf8');
+			// concat the response from api server.
 			res.on('data', function (data) {
-				data = JSON.parse(data);
-				var app = {};
+				res_app += data;
+			});
+			// when already received all response.  
+			res.on('end', function(){
+				data = JSON.parse(res_app);
 				// get all application name
 				for(var i = 0;i < data.items.length;i++){
+					var app = {};
 					app.name = data.items[i].metadata.name;
 					app.replicas  = data.items[i].spec.replicas;
 					app.containers  = data.items[i].spec.template.spec.containers; 
@@ -137,7 +145,6 @@ app.get('/monitor/apps', function(reg, res) {
 		});
 		req.end();
 	}).then(function(next, err, apps){
-		console.log(apps);
 		if (err) return console.log(err);
 		// check 5xx status
 		var get_app_error;
@@ -159,15 +166,15 @@ app.get('/monitor/apps', function(reg, res) {
 					}
 					if(data.memory > max_mem_app.num){
 						max_mem_app.name = data.app;
-						max_mem_app.num = data.cpu;
+						max_mem_app.num = data.memory;
 					}
 					if(data.Request > max_req_app.num){
 						max_req_app.name = data.app;
-						max_req_app.num = data.cpu;
+						max_req_app.num = data.Request;
 					}
 					if(data.Response > max_res_app.num){
 						max_res_app.name = data.app;
-						max_res_app.num = data.cpu;
+						max_res_app.num = data.Response;
 					}
 					if(data.Response5xx >= err5xx_threshold){
 						apps_error.push(item);
@@ -181,7 +188,8 @@ app.get('/monitor/apps', function(reg, res) {
 			});
 			req.end();
 		}, function() {
-			res.status(200).json(apps_error);
+			var monitor = { errors: apps_error, top_cpu: max_cpu_app, top_mem: max_mem_app, top_res: max_res_app, top_req: max_req_app };
+			res.status(200).json(monitor);
 		});
 	});
 });
