@@ -111,10 +111,23 @@ function PostToWatson() {
 		
 		// ------------Command-------------
 		// Next,Back,App,Node,error(era)
-		if (text.indexOf("app")>=0){
-			alert("Apps");
+		if (text.indexOf("app")>=0 || text.indexOf("ABS")>=0 || text.indexOf("application")>=0){
+                        responsiveVoice.speak('show applications', "UK English Female", {
+                          onstart: function(){return;},
+                          onend: function(){
+                            document.location.href = document.location.href + "node#";
+                          }
+                        });
+			//alert("Apps");
 		}else if (text.indexOf("node")>=0||text.indexOf("nose")>=0||text.indexOf("north")>=0||text.indexOf("no")>=0){
-			alert("Nodes");
+                        responsiveVoice.speak('show nodes', "UK English Female", {
+                          onstart: function(){return;},
+                          onend: function(){
+                            document.location.href = document.location.href + "nodes#";
+                          }
+                        });
+			//alert("Nodes");
+                        //responsiveVoice.speak("sorry, i don't understand");
 		}else if (text.indexOf("error")>=0||text.indexOf("era")>=0){
 			alert("Error Apps");
 		}else if (text.indexOf("next")>=0){
@@ -122,7 +135,9 @@ function PostToWatson() {
 		}else if (text.indexOf("back")>=0){
 			alert("Back");
 		}else{
-			alert("I can't understand your command");
+			//alert("I can't understand your command");
+                        responsiveVoice.speak("sorry, i don't understand");
+                  //
 		}
 	});
 }

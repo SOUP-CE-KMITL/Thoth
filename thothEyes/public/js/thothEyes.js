@@ -85,7 +85,7 @@ angular.module('thothEyes', ['nvd3'])
 .controller('NodesCtrl', ['$scope', '$http', '$q', function($scope, $http, $q){
   $scope.testing = "testing";
   //for contain all nodes.
-  nodes = ['161.246.6.235'];
+  nodes = ['paas.jigko.net'];
   node_datas = [];
   $scope.nodes = [];
 
@@ -161,7 +161,7 @@ angular.module('thothEyes', ['nvd3'])
   }])
 .controller('NodeCtrl', ['$scope', '$http', '$q', function($scope, $http, $q){
   $scope.node = {}
-  $scope.node.name = "161.246.6.235"
+  $scope.node.name = "paas.jigko.net"
   $scope.node.cpu = [{
     values: [],
     key: 'cpu',
@@ -227,7 +227,7 @@ angular.module('thothEyes', ['nvd3'])
     }
   }
 
-  var t = 1;
+  var t = 0;
   function getNodeResource(){
     $http.get("https://"+ $scope.node.name+"/metrics").then(
       function(response){
