@@ -501,8 +501,8 @@ func GetAppResource(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("rps: ", rps, ", rtime: ", rtime)
 	// find the cpu avarage of application cpu usage
 	average_cpu := summary_cpu / float32(len(container_ids))
-	fmt.Println("avg_cpu : ",average_cpu);
-	fmt.Println("summary_cpu : ",summary_cpu);
+	fmt.Println("avg_cpu : ", average_cpu)
+	fmt.Println("summary_cpu : ", summary_cpu)
 	// Cal Avg Mem usage
 	var avgMem uint64
 	for i := 0; i < podNum; i++ {
@@ -700,7 +700,51 @@ func postJson(url string, data []byte) (int, map[string]interface{}) {
 	return resp.StatusCode, response
 }
 
-// The error application 
+func SpeechRecog(w http.ResponseWriter, r *http.Request) {
+	//curl -u 0648b905-6758-4ae0-9c15-5cc53fadfa24:9e90DAlqVwoK -X POST --header "Content-Type: audio/wav" --header "Transfer-Encoding: chunked" --data-binary @hello.wav "https://stream.watsonplatform.net/speech-to-text/api/v1/recognize?continuous=true"
+	// Basic-Auth
+	// POST
+	// Content-Type
+	// TransferEncoding
+	// DataBinary
+	// URL Test https://sj8vwegp7eew.runscope.net
+
+	//fmt.Println(w, r)
+
+	url := "https://stream.watsonplatform.net/speech-to-text/api/v1/recognize?continuous=true"
+	//url := "https://sj8vwegp7eew.runscope.net"
+
+	req, err := http.NewRequest("POST", url, r.Body)
+	req.Header.Set("Accept", "*/*")
+	req.Header.Set("User-Agent", "curl/7.46.0")
+	req.Header.Set("Content-Type", "audio/wav")
+	req.SetBasicAuth("0648b905-6758-4ae0-9c15-5cc53fadfa24", "9e90DAlqVwoK")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	// defer for ensure
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	//	fmt.Println(string(body))
+
+	fmt.Fprint(w, string(body))
+	/*
+		var response map[string]interface{}
+		if err := json.Unmarshal(body, &response); err != nil {
+			panic(err)
+		}
+		fmt.Println(response)
+	*/
+}
+
+// The error application
 func getErrorApp(w http.ResponseWriter, r *http.Request) {
 	var MyDB string = "thoth"
 	var username string = "thoth"
@@ -712,12 +756,12 @@ func getErrorApp(w http.ResponseWriter, r *http.Request) {
 		Username: username,
 		Password: password,
 	})
-	// TODO: iterate to query for each app 
+	// TODO: iterate to query for each app
 	queryRes, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT last(code5xx) FROM thoth"))
 	if err != nil {
 		log.Fatal(err)
 	}
-	errorNum5xx := queryRes[0].Series[0].Values[0][1];
-	fmt.Println(errorNum5xx);
-	// TODO: need to implement some algorithm searching error application 
+	errorNum5xx := queryRes[0].Series[0].Values[0][1]
+	fmt.Println(errorNum5xx)
+	// TODO: need to implement some algorithm searching error application
 }

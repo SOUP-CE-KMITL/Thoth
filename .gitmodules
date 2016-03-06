@@ -1,0 +1,3 @@
+[submodule "docs/kubenetes/k8s-coreos"]
+	path = docs/kubenetes/k8s-coreos
+	url = git@github.com:jigkoxsee/k8s-coreos.git

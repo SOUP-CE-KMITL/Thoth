@@ -3,3 +3,4 @@
 /thothEyes/voiceToText/node_modules
 /thothEyes/node_modules
 /thothEyes/public/bower_components
+*.swp

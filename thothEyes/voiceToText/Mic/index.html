@@ -1,0 +1,128 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>HTML5 Audio Editor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le styles -->
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+    <style>
+      body {
+        padding-top: 60px; /* 60px to make the container go all the way to the bottom of the topbar */
+      }
+      .soundBite input {
+        margin-right: 4px;
+      }
+    </style>
+    <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="bootstrap/ico/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="bootstrap/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="bootstrap/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="bootstrap/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="bootstrap/ico/apple-touch-icon-57-precomposed.png">
+  </head>
+
+  <body>
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="brand" href="#">Sound collector</a>
+        </div>
+      </div>
+    </div>
+    <div class="recorder container">
+      <h2>Record</h2>
+      <p>
+        <button class="btn btn-primary" onclick="startRecording(this);">Record</button>
+        <button class="btn btn-warning" onclick="stopRecording(this);" disabled>Stop</button>
+      </p>
+      <p>
+        <button class="btn btn-primary" onclick="PostToWatson();">Post to Watson</button>        
+      </p>
+      
+      <table id="recordingslist">
+        <tr>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th></th>
+        </tr>
+        <tr>
+          <th></th>
+          <th></th>
+          <th></th>
+          <th><!-- <input type="checkbox" id="droneToggle" checked/> --></th>
+        </tr>
+      </table>
+    </div>
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="jquery/js/jquery-1.7.2.js"></script>
+    <!-- <script src="bootstrap/js/bootstrap-transition.js"></script>
+    <script src="bootstrap/js/bootstrap-alert.js"></script>
+    <script src="bootstrap/js/bootstrap-modal.js"></script>
+    <script src="bootstrap/js/bootstrap-dropdown.js"></script>
+    <script src="bootstrap/js/bootstrap-scrollspy.js"></script>
+    <script src="bootstrap/js/bootstrap-tab.js"></script>
+    <script src="bootstrap/js/bootstrap-tooltip.js"></script>
+    <script src="bootstrap/js/bootstrap-popover.js"></script>
+    <script src="bootstrap/js/bootstrap-button.js"></script>
+    <script src="bootstrap/js/bootstrap-collapse.js"></script>
+    <script src="bootstrap/js/bootstrap-carousel.js"></script>
+    <script src="bootstrap/js/bootstrap-typeahead.js"></script> -->
+
+    <script type="text/javascript">
+      function PostToWatson() {
+      
+        $.ajax({
+          url: "https://paas.jigko.net/speech/",
+          type: "POST",
+          contentType: "audio/wav",
+          data: speech,
+          processData: false
+        }).done(function( data ) {
+          console.log( data );
+        });
+      }
+    </script>
+
+    <!-- <script type="text/javascript" src="app/js/ACFIRFilter.js"></script>
+    <script type="text/javascript" src="app/js/ACAAFilter.js"></script> 
+    <script type="text/javascript" src="app/js/ACSpectrum.js"></script>    
+    <script type="text/javascript" src="app/js/ACFFT.js"></script>
+    <script type="text/javascript" src="app/js/SpectrumWorker.js"></script>
+    <script type="text/javascript" src="app/js/SpectrumDisplay.js"></script>
+    <script type="text/javascript" src="app/js/audioplayback.js"></script>
+    <script type="text/javascript" src="app/js/filedropbox.js"></script>
+    <script type="text/javascript" src="app/js/fft.js"></script>
+    <script type="text/javascript" src="app/js/audioLayerControl.js"></script>
+    <script type="text/javascript" src="app/js/audiosequence.js"></script>
+    <script type="text/javascript" src="app/js/AudioSequenceEditor.js"></script>
+    <script type="text/javascript" src="app/js/mathutilities.js"></script>
+    <script type="text/javascript" src="app/js/wavetrack.js"></script>
+    <script type="text/javascript" src="app/js/binarytoolkit.js"></script>
+    <script type="text/javascript" src="app/js/filesystemutility.js"></script>
+    <script type="text/javascript" src="app/js/editorapp.js"></script>-->
+
+    <script src="js/lib/recorder.js"></script>
+    <script src="js/recordLive.js"></script>
+    <!-- <script src="js/sequencer.js"></script>
+    <script src="js/drone.js"></script> -->
+
+    <script type="text/javascript">
+      $(window).load(function()
+      {
+        $('.editor.container').addClass('invisible');
+        onDocumentLoaded();
+      });
+    </script>
+  </body>
+</html>
