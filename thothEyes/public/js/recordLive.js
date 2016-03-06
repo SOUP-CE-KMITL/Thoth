@@ -87,8 +87,43 @@ function PostToWatson() {
 	contentType: "audio/wav",
 	data: speech,
 	processData: false
-	}).done(function( data ) {
-		console.log( data );
+	}).done(function(result) {
+		console.log(result);
+		/*
+		   {
+		   "results": [
+		   	{
+		   		"alternatives": [
+		   			{
+				   	"confidence": 0.994, 
+				   	"transcript": "hello "
+				   	}
+		   		], 
+			   	"final": true
+		   	}
+		   ], 
+		   "result_index": 0
+		   }
+		*/
+		resJson = JSON.parse(result);
+		text = resJson.results[0].alternatives[0].transcript;
+		console.log(text);
+		
+		// ------------Command-------------
+		// Next,Back,App,Node,error(era)
+		if (text.indexOf("app")>=0){
+			alert("Apps");
+		}else if (text.indexOf("node")>=0||text.indexOf("nose")>=0||text.indexOf("north")>=0||text.indexOf("no")>=0){
+			alert("Nodes");
+		}else if (text.indexOf("error")>=0||text.indexOf("era")>=0){
+			alert("Error Apps");
+		}else if (text.indexOf("next")>=0){
+			alert("Next");
+		}else if (text.indexOf("back")>=0){
+			alert("Back");
+		}else{
+			alert("I can't understand your command");
+		}
 	});
 }
 

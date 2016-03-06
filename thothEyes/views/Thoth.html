@@ -1,120 +1,120 @@
 <html ng-app="thothEyes">
 <head>
-	<title></title>
-	<link rel="stylesheet" href="css/home.css">
-	<!-- Latest compiled and minified CSS -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+<title></title>
+<link rel="stylesheet" href="css/home.css">
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
 
-	<!-- Optional theme -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
-	
-	<link rel="stylesheet" href="bower_components/nvd3/build/nv.d3.css">
-	
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap-theme.min.css" integrity="sha384-fLW2N01lMqjakBkx3l/M9EahuwpSfeNvV63J5ezn3uZzapT0u7EYsXMjQV+0En5r" crossorigin="anonymous">
+
+<link rel="stylesheet" href="bower_components/nvd3/build/nv.d3.css">
+
 
 </head>
 <body ng-controller="DashboardCtrl">
-	<ul class="navigation">
-		<div class = "contact-icon" >
-			<span style="font-size:33; margin-right: 10px;" class="glyphicon glyphicon-user "></span>   Contact detail
-		</div>
-		<li class="nav-item">
-			<a href="file:///C:/Users/admin/Desktop/Thoth.html">
-				<span class="glyphicon glyphicon-home icon-margin"></span> Home
-			</a>
-		</li>
-		<li class="nav-item">
-			<a href="file:///C:/Users/admin/Desktop/nodes.html">
-				<span class="glyphicon glyphicon-tasks icon-margin"></span> Control panel
-			</a>
-		</li>
-		<li class="nav-item" data-toggle="modal" data-target="#searchModal">
-			<a href="#">
-				<span class="glyphicon glyphicon-search icon-margin"></span> 
-				Search
-			</a>
-		</li>
-		<li class="nav-item"  data-toggle="modal" data-target="#logoutModal">    		
-			<a href="#">
-				<span class="glyphicon glyphicon-log-out icon-margin"></span> 
-				Log out
-			</a>
-		</li>
-	</ul>
+<ul class="navigation">
+	<div class = "contact-icon" >
+		<span style="font-size:33; margin-right: 10px;" class="glyphicon glyphicon-user "></span>   Contact detail
+	</div>
+	<li class="nav-item">
+	<a href="file:///C:/Users/admin/Desktop/Thoth.html">
+		<span class="glyphicon glyphicon-home icon-margin"></span> Home
+	</a>
+	</li>
+	<li class="nav-item">
+	<a href="file:///C:/Users/admin/Desktop/nodes.html">
+		<span class="glyphicon glyphicon-tasks icon-margin"></span> Control panel
+	</a>
+	</li>
+	<li class="nav-item" data-toggle="modal" data-target="#searchModal">
+	<a href="#">
+		<span class="glyphicon glyphicon-search icon-margin"></span> 
+		Search
+	</a>
+	</li>
+	<li class="nav-item"  data-toggle="modal" data-target="#logoutModal">    		
+	<a href="#">
+		<span class="glyphicon glyphicon-log-out icon-margin"></span> 
+		Log out
+	</a>
+	</li>
+</ul>
 
-	<input type="checkbox" id="nav-trigger" class="nav-trigger" />
-	<label for="nav-trigger"></label>
-	<div class="site-wrap">
-		<div class="container">
-			<div class="row">
-				<div class="col-md-3">
-					<div class="thumbnail upperblock">
-						<div class="text-center upperblock-headfont">
-							<span class="glyphicon glyphicon-globe"></span>
-							Notification
-							<span class="glyphicon glyphicon-refresh pull-right"></span>
-							<hr/>
-						</div>
-						<div class="upperblock-bodyfont">
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger"></label>
+<div class="site-wrap">
+	<div class="container">
+		<div class="row">
+			<div class="col-md-3">
+				<div class="thumbnail upperblock">
+					<div class="text-center upperblock-headfont">
+						<span class="glyphicon glyphicon-globe"></span>
+						Notification
+						<span class="glyphicon glyphicon-refresh pull-right"></span>
+						<hr/>
+					</div>
+					<div class="upperblock-bodyfont">
 
-	<button class="btn btn-primary" onclick="startRecording(this);">Record</button>
-	<button class="btn btn-warning" onclick="stopRecording(this);" disabled>Stop</button>
-							<li> 
-								<span class="glyphicon glyphicon-list-alt"></span>
-								Notification massege
-							</li>
-						</div>
+						<button class="btn btn-primary" onclick="startRecording(this);">Record</button>
+						<button class="btn btn-warning" onclick="stopRecording(this);" disabled>Stop</button>
+						<li> 
+						<span class="glyphicon glyphicon-list-alt"></span>
+						Notification massege
+						</li>
 					</div>
 				</div>
-				<div class="col-md-6">
-					<div class="thumbnail upperblock">
-						<div class="text-center upperblock-headfont">
-							<span class="glyphicon glyphicon-stats"></span>
-							Status chart
-							<span class="glyphicon glyphicon-refresh pull-right"></span>
-							<hr/>
-						</div>
-						<!-- <div id="Chart">	
+			</div>
+			<div class="col-md-6">
+				<div class="thumbnail upperblock">
+					<div class="text-center upperblock-headfont">
+						<span class="glyphicon glyphicon-stats"></span>
+						Status chart
+						<span class="glyphicon glyphicon-refresh pull-right"></span>
+						<hr/>
+					</div>
+					<!-- <div id="Chart">	
 						    <svg style="margin-left: 40px; margin-top: -10px; height:290px;width:80%"></svg>
 						</div> -->
-						<nvd3 options="computeOptions" data="computeData"></nvd3>
-					</div>
+					<nvd3 options="computeOptions" data="computeData"></nvd3>
 				</div>
-				<div class="col-md-3">
-					<div class="thumbnail upperblock">
-						<div class="text-center upperblock-headfont">
-							<span class="glyphicon glyphicon-exclamation-sign"></span>
-							Error Application
-							<span class="glyphicon glyphicon-refresh pull-right"></span>
-							<hr/>
-						</div>
-						<div class="upperblock-bodyfont ">
-							<div ng-repeat="errorApp in errorApps" class="thumbnail text-center errorapp">
-								<div class="row">
-									NAME {{errorApp.name}}<br/><br/>
+			</div>
+			<div class="col-md-3">
+				<div class="thumbnail upperblock">
+					<div class="text-center upperblock-headfont">
+						<span class="glyphicon glyphicon-exclamation-sign"></span>
+						Error Application
+						<span class="glyphicon glyphicon-refresh pull-right"></span>
+						<hr/>
+					</div>
+					<div class="upperblock-bodyfont ">
+						<div ng-repeat="errorApp in errorApps" class="thumbnail text-center errorapp">
+							<div class="row">
+								NAME {{errorApp.name}}<br/><br/>
+							</div>
+							<div class="row">
+								replicas : {{errorApp.replicas}} <br/><br/>
+							</div>
+							<div class="row">
+								container port 
+								<span ng-repeat="con in errorApp.containers">
+									{{con.ports[0].containerPort}}
+								</span>
+							</div>
+							<div class="row">
+								<div class="col-md-4">
+									<button class="btn btn-default">
+										<span class="glyphicon glyphicon-pause"></span>
+									</button>
 								</div>
-								<div class="row">
-									replicas : {{errorApp.replicas}} <br/><br/>
+								<div class="col-md-4">
+									<button class="btn btn-default">
+										<span class="glyphicon glyphicon-plus"></span>
+									</button>
 								</div>
-								<div class="row">
-									container port 
-									<span ng-repeat="con in errorApp.containers">
-											{{con.ports[0].containerPort}}
-									</span>
-								</div>
-								<div class="row">
-									<div class="col-md-4">
-										<button class="btn btn-default">
-											<span class="glyphicon glyphicon-pause"></span>
-										</button>
-									</div>
-									<div class="col-md-4">
-										<button class="btn btn-default">
-											<span class="glyphicon glyphicon-plus"></span>
-										</button>
-									</div>
-									<div class="col-md-4">
-										<button class="btn btn-default">
-											<span class="glyphicon glyphicon-minus"></span>
+								<div class="col-md-4">
+									<button class="btn btn-default">
+										<span class="glyphicon glyphicon-minus"></span>
 									</div>
 								</div>
 							</div>
@@ -133,8 +133,8 @@
 						</div>
 						<div class="upperblock-bodyfont">
 							<li> 
-								<span class="glyphicon glyphicon-tasks"></span>
-								Application name
+							<span class="glyphicon glyphicon-tasks"></span>
+							Application name
 							</li>
 						</div>
 					</div>
@@ -149,8 +149,8 @@
 						</div>
 						<div class="upperblock-bodyfont">
 							<li> 
-								<span class="glyphicon glyphicon-tasks"></span>
-								Application name
+							<span class="glyphicon glyphicon-tasks"></span>
+							Application name
 							</li>
 						</div>
 					</div>
@@ -165,8 +165,8 @@
 						</div>
 						<div class="upperblock-bodyfont">
 							<li> 
-								<span class="glyphicon glyphicon-tasks"></span>
-								Application name
+							<span class="glyphicon glyphicon-tasks"></span>
+							Application name
 							</li>
 						</div>
 					</div>
@@ -181,8 +181,8 @@
 						</div>
 						<div class="upperblock-bodyfont">
 							<li> 
-								<span class="glyphicon glyphicon-tasks"></span>
-								Application name
+							<span class="glyphicon glyphicon-tasks"></span>
+							Application name
 							</li>
 						</div>
 					</div>
@@ -219,14 +219,14 @@
 				</div>
 				<div class="modal-body">
 					<li class="nav-item">
-						<a href="#">
-							<i class="icon-microphone icon-margin"></i> Voic search
-						</a>
+					<a href="#">
+						<i class="icon-microphone icon-margin"></i> Voic search
+					</a>
 					</li>
 					<li class="nav-item">
-						<a href="#">
-							<i class="icon-search icon-margin"></i> Search
-						</a>
+					<a href="#">
+						<i class="icon-search icon-margin"></i> Search
+					</a>
 					</li>
 				</div>
 				<div class="modal-footer">
@@ -249,5 +249,5 @@
 	<script src="js/recordLive.js"></script>
 	<script src="js/thothEyes.js"></script>
 
-</body>
-</html>
+	</body>
+	</html>
