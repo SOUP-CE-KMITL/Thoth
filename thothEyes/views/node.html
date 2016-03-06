@@ -1,654 +1,297 @@
 <html ng-app="thothEyes">
 <head>
-	<title></title>
-	<!-- Latest compiled and minified CSS -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-	<link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.css" >
-	<!-- Optional theme -->
-	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+<title></title>
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.css" >
+<!-- Optional theme -->
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
 
-        <script src="bower_components/angular/angular.js"></script>
-        <script src="bower_components/d3/d3.js"></script>
-        <script src="bower_components/nvd3/build/nv.d3.js"></script>
-        <script src="bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
-        <script src="js/thothEyes.js"></script>
-        <link rel="stylesheet" href="bower_components/nvd3/build/nv.d3.css">
-	<style type="text/css">
-		.box{
-		background-color: white;
-		padding-top: 20px;
-		
-		padding-bottom: 20px;
-		margin-top: -10px;
-	}
-	.fixed-size{
-		width: 100%;
-		/*margin-top: -40px;
-		margin-left: -60px;*/
-		padding-right: 0px;
-		background-color: #f0ece5;
-	}
-	.frame-border{
-		border-style: solid;
-		border-size: 0.5px;
-		border-color: #f0ece5;
-	}
-	.chart-box{
-		height:300px;
-		width:24%;
-		margin-left: 5px;
-		margin-right: 5px;
-	}
+<script src="bower_components/angular/angular.js"></script>
+<script src="bower_components/d3/d3.js"></script>
+<script src="bower_components/nvd3/build/nv.d3.js"></script>
+<script src="bower_components/angular-nvd3/dist/angular-nvd3.js"></script>
+<script src="js/thothEyes.js"></script>
+<link rel="stylesheet" href="bower_components/nvd3/build/nv.d3.css">
+<style type="text/css">
+.box{
+  background-color: white;
+  padding-top: 20px;
 
-	.frame-border-second{
-		margin-top: 20px;
-		border-style: solid;
-		border-size: 0.5px;
-		border-color: #f0ece4;
-		padding-bottom: 100px;
-	}
-	.frame-border-third{
-	
-		margin-top: 20px;
-		border-style: dashed;
-		border-size: 0.5px;
-		border-color: #f0ece5;
-	}
-	.space{
-		margin-top: 100px;
-	}
-			/* Navigation Menu - Background */
-		.navigation {
-		  /* critical sizing and position styles */
-		  width: 100%;
-		  height: 100%;
-		  position: fixed;
-		  top: 0;
-		  right: 0;
-		  bottom: 0;
-		  left: 0;
-		  z-index: 0;
-		  
-		  /* non-critical appearance styles */
-		  list-style: none;
-		  background: white;
-		}
+  padding-bottom: 20px;
+  margin-top: -10px;
+}
+.fixed-size{
+  width: 100%;
+  /*margin-top: -40px;
+  margin-left: -60px;*/
+  padding-right: 0px;
+  background-color: #f0ece5;
+}
+.frame-border{
+  border-style: solid;
+  border-size: 0.5px;
+  border-color: #f0ece5;
+}
+.chart-box{
+  height:300px;
+  width:24%;
+  margin-left: 5px;
+  margin-right: 5px;
+}
 
-		/* Navigation Menu - List items */
-		.nav-item {
-		  /* non-critical appearance styles */
-		  width: 200px;
-		  border-top: 1px solid white;
-		  border-bottom: 1px solid white;
-		}
+.frame-border-second{
+  margin-top: 20px;
+  border-style: solid;
+  border-size: 0.5px;
+  border-color: #f0ece4;
+  padding-bottom: 100px;
+}
+.frame-border-third{
 
-		.nav-item a {
-		  /* non-critical appearance styles */
-		  display: block;
-		  padding: 1em;
-		  background: white;
-		  color: black;
-		  font-size: 1em;
-		  text-decoration: none;
-		  transition: color 0.2s, background 0.5s;
-		}
+  margin-top: 20px;
+  border-style: dashed;
+  border-size: 0.5px;
+  border-color: #f0ece5;
+}
+.space{
+  margin-top: 100px;
+}
+/* Navigation Menu - Background */
+.navigation {
+  /* critical sizing and position styles */
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 0;
 
-		.nav-item a:hover {
-		  color: #34495e;
-		  background-color: #ecf0f1;
-		}
+  /* non-critical appearance styles */
+  list-style: none;
+  background: white;
+}
 
-		/* Site Wrapper - Everything that isn't navigation */
-		.site-wrap {
-		  /* Critical position and size styles */
-		  min-height: 100%;
-		  min-width: 100%;
-		  background-color: white; /* Needs a background or else the nav will show through */
-		  position: relative;
-		  top: 0;
-		  bottom: 100%;
-		  left: 0;
-		  z-index: 1;
-		  
-		  /* non-critical apperance styles */
-		  padding: 0em;
-		  background-color: #f0ece5;
-		  background-size: 100%;
-		}
+/* Navigation Menu - List items */
+.nav-item {
+  /* non-critical appearance styles */
+  width: 200px;
+  border-top: 1px solid white;
+  border-bottom: 1px solid white;
+}
 
-		/* Nav Trigger */
-		.nav-trigger {
-		  /* critical styles - hide the checkbox input */
-		  position: absolute;
-		  clip: rect(0, 0, 0, 0);
-		}
+.nav-item a {
+  /* non-critical appearance styles */
+  display: block;
+  padding: 1em;
+  background: white;
+  color: black;
+  font-size: 1em;
+  text-decoration: none;
+  transition: color 0.2s, background 0.5s;
+}
 
-		label[for="nav-trigger"] {
-		  /* critical positioning styles */
-		  position: fixed;
-		  left: 15px; top: 15px;
-		  z-index: 2;
-		  
-		  /* non-critical apperance styles */
-		  height: 14px;
-		  width: 24px;
-		  cursor: pointer;
-		  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' x='0px' y='0px' width='30px' height='30px' viewBox='0 0 30 30' enable-background='new 0 0 30 30' xml:space='preserve'><rect width='30' height='6'/><rect y='24' width='30' height='6'/><rect y='12' width='30' height='6'/></svg>");
-		  background-size: contain;
-		}
+.nav-item a:hover {
+  color: #34495e;
+  background-color: #ecf0f1;
+}
 
-		/* Make the Magic Happen */
-		.nav-trigger + label, .site-wrap {
-		  transition: left 0.2s;
-		}
+/* Site Wrapper - Everything that isn't navigation */
+.site-wrap {
+  /* Critical position and size styles */
+  min-height: 100%;
+  min-width: 100%;
+  background-color: white; /* Needs a background or else the nav will show through */
+  position: relative;
+  top: 0;
+  bottom: 100%;
+  left: 0;
+  z-index: 1;
 
-		.nav-trigger:checked + label {
-		  left: 215px;
-		}
+  /* non-critical apperance styles */
+  padding: 0em;
+  background-color: #f0ece5;
+  background-size: 100%;
+}
 
-		.nav-trigger:checked ~ .site-wrap {
-		  left: 200px;
-		 box-shadow: 0 0 5px 5px rgba(0,0,0,0.5);
-		}
+/* Nav Trigger */
+.nav-trigger {
+  /* critical styles - hide the checkbox input */
+  position: absolute;
+  clip: rect(0, 0, 0, 0);
+}
 
-		body {
-		    /* Without this, the body has excess horizontal scroll when the menu is open */
-		  overflow-x: hidden;
-		}
+label[for="nav-trigger"] {
+  /* critical positioning styles */
+  position: fixed;
+  left: 15px; top: 15px;
+  z-index: 2;
 
-		/* Additional non-critical styles */
+  /* non-critical apperance styles */
+  height: 14px;
+  width: 24px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' version='1.1' x='0px' y='0px' width='30px' height='30px' viewBox='0 0 30 30' enable-background='new 0 0 30 30' xml:space='preserve'><rect width='30' height='6'/><rect y='24' width='30' height='6'/><rect y='12' width='30' height='6'/></svg>");
+  background-size: contain;
+}
 
-		h1, h3, p {
-		  max-width: 600px;
-		  margin: 0 auto 1em;
-		}
+/* Make the Magic Happen */
+.nav-trigger + label, .site-wrap {
+  transition: left 0.2s;
+}
 
-		code {
-		    padding: 2px;
-		    background: #ddd;
-		}
+.nav-trigger:checked + label {
+  left: 215px;
+}
 
-		/* Micro reset */
-		*,*:before,*:after{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0;}
-		html, body { height: 100%; width: 100%; font-family: Helvetica, Arial, sans-serif; }
-		.contact-icon{
-			padding-left: 30px;
-			padding-top: 60px;
-			background-color: #bdc3c7;
-			height: 120px;
-		}
-		.icon-margin{
-			margin-right: 10px;
-			font-size: 1.2em;
-		}
-	
-	</style>
+.nav-trigger:checked ~ .site-wrap {
+  left: 200px;
+  box-shadow: 0 0 5px 5px rgba(0,0,0,0.5);
+}
+
+body {
+  /* Without this, the body has excess horizontal scroll when the menu is open */
+  overflow-x: hidden;
+}
+
+/* Additional non-critical styles */
+
+h1, h3, p {
+  max-width: 600px;
+  margin: 0 auto 1em;
+}
+
+code {
+  padding: 2px;
+  background: #ddd;
+}
+
+/* Micro reset */
+*,*:before,*:after{-webkit-box-sizing:border-box;-moz-box-sizing:border-box;box-sizing:border-box;margin:0;padding:0;}
+html, body { height: 100%; width: 100%; font-family: Helvetica, Arial, sans-serif; }
+.contact-icon{
+  padding-left: 30px;
+  padding-top: 60px;
+  background-color: #bdc3c7;
+  height: 120px;
+}
+.icon-margin{
+  margin-right: 10px;
+  font-size: 1.2em;
+}
+
+</style>
 </head>
 <body style="background-color: white;" ng-controller="NodeCtrl">
 <ul class="navigation">
-		<div class = "contact-icon" >
-			<span style="font-size:33; margin-right: 10px;"class="glyphicon glyphicon-user "></span>   Contact detail
-		</div>
-	    <li class="nav-item">
-	    	<a href="file:///C:/Users/admin/Desktop/Thoth.html">
-	    		<span class="glyphicon glyphicon-home icon-margin"></span> Home
-	    	</a>
-	    </li>
-	    <li class="nav-item">
-	    	<a href="file:///C:/Users/admin/Desktop/nodes.html">
-	    		<span class="glyphicon glyphicon-compressed icon-margin"></span> Compute
-	    	</a>
-	    </li>
-	    <li class="nav-item">
-	    	<a href="file:///C:/Users/admin/Desktop/nodes.html">
-	    		<span class="glyphicon glyphicon-book icon-margin"></span> Data
-	    	</a>
-	    </li>
-	    <li class="nav-item">
-	    	<a href="file:///C:/Users/admin/Desktop/nodes.html">
-	    		<span class="glyphicon glyphicon-file icon-margin"></span> File
-	    	</a>
-	    </li>
-	    <li class="nav-item">
-	    	<a href="#">
-	    		<span class="glyphicon glyphicon-log-out icon-margin"></span> Log out
-	    	</a>
-	    </li>
-	</ul>
+  <div class = "contact-icon" >
+    <span style="font-size:33; margin-right: 10px;"class="glyphicon glyphicon-user "></span>   Contact detail
+  </div>
+  <li class="nav-item">
+  <a href="file:///C:/Users/admin/Desktop/Thoth.html">
+    <span class="glyphicon glyphicon-home icon-margin"></span> Home
+  </a>
+  </li>
+  <li class="nav-item">
+  <a href="file:///C:/Users/admin/Desktop/nodes.html">
+    <span class="glyphicon glyphicon-compressed icon-margin"></span> Compute
+  </a>
+  </li>
+  <li class="nav-item">
+  <a href="file:///C:/Users/admin/Desktop/nodes.html">
+    <span class="glyphicon glyphicon-book icon-margin"></span> Data
+  </a>
+  </li>
+  <li class="nav-item">
+  <a href="file:///C:/Users/admin/Desktop/nodes.html">
+    <span class="glyphicon glyphicon-file icon-margin"></span> File
+  </a>
+  </li>
+  <li class="nav-item">
+  <a href="#">
+    <span class="glyphicon glyphicon-log-out icon-margin"></span> Log out
+  </a>
+  </li>
+</ul>
 
-	<input type="checkbox" id="nav-trigger" class="nav-trigger" />
-	<label for="nav-trigger"></label>
+<input type="checkbox" id="nav-trigger" class="nav-trigger" />
+<label for="nav-trigger"></label>
 
-	<div class="site-wrap">
-		<div class="container-fluid fixed-size" >
-			<div class="row box">
-				<div class="text-center">
-					xyz Node
-				</div>
-				<br/>			
-				<div class="col-md-3 frame-border chart-box">
-					<br/>
-					<div class="text-center">
-					 CPU chart
-					 </div>
-					<br/>
-					<div id="CPUchart">		
-                                            <nvd3 options="resourceOptions" data="node.cpu"></nvd3>
-					</div>	
-				</div>
-				<div class="col-md-3 frame-border chart-box">
-					<br/>
-					<div class="text-center">
-					 Memory chart
-					</div>
-					<br/>
-					<div id="Memchart">		
-					    <svg style="height:190px;width:100%"></svg>
-					</div>	
-				</div>
-				<div class="col-md-3 frame-border chart-box">
-					<br/>
-					<div class="text-center">
-					 Network chart
-					</div>
-					<br/>
-					<div id="Netchart">		
-					    <svg style="height:190px;width:100%"></svg>
-					</div>	
-				</div>
-				<div class="col-md-3 frame-border chart-box">
-					<br/>
-					<div class="text-center">
-					 DiskCPU chart
-					</div>
-					<br/>
-					<div id="Diskchart">		
-					    <svg style="height:190px;width:100%"></svg>
-					</div>
-				</div>
-			</div>
-			<div class="row text-center box">
-				<div class="col-md-12 frame-border-second">
-					<div class="col-md-2 col-xs-offset-5">
-					    <div class="text-center">
-					    	<br/>
-					    	App
-					    </div>
-					</div>    
-				    <div class="col-md-2 col-xs-offset-10" style="margin-top:-30px;">
-						<div class="dropdown">
-						  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
-						    Sort by
-						    <span class="caret"></span>
-						  </button>
-						  <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-						    <li><a href="#">Action</a></li>
-						    <li><a href="#">Another action</a></li>
-						    <li><a href="#">Something else here</a></li>
-						    <li><a href="#">Separated link</a></li>
-						  </ul>
-						</div>
-					</div>
-					<div class="row">
-						<div class="col-sm-6 col-md-4">
-						    <div class="frame-border-third">
-						    	<div class="text-center">
-						    		<br/>
-						    		 Name 
-						    	</div>
-						      	<div id="appChart">
-		  							<svg style="height:190px;width:100%">
-										</svg>
-								</div>
-				        		Name :
-				        		<br/>
-				        		IP : 
-				        		<br/>
-				        		POD :
-				        		<br/> 
-						    </div>
-						</div>
-						<div class="col-sm-6 col-md-4">
-						    <div class="frame-border-third">
-						    	<div class="text-center">
-						    		<br/>
-						    		 Name 
-						    	</div>
-						      	<div id="app2Chart">
-		  							<svg style="height:190px;width:100%">
-										</svg>
-								</div>
-				        		Name :
-				        		<br/>
-				        		IP : 
-				        		<br/>
-				        		POD :
-				        		<br/> 
-						    </div>
-						</div>
-						<div class="col-sm-6 col-md-4">
-						    <div class="frame-border-third">
-						    	<div class="text-center">
-						    		<br/>
-						    		 Name 
-						    	</div>
-						      	<div id="app3Chart">
-		  							<svg style="height:190px;width:100%">
-										</svg>
-								</div>
-				        		Name :
-				        		<br/>
-				        		IP : 
-				        		<br/>
-				        		POD :
-				        		<br/> 
-						    </div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div><!--container -->
-	</div><!--Site-wrap -->
-	<!-- Java script Code -->
-	<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
-	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.js"></script>
-	<script type="text/javascript">
-			/*These lines are all chart setup.  Pick and choose which chart features you want to utilize. */
-		nv.addGraph(function() {
-			
-
-		  var chart = nv.models.lineChart()
-		                .margin({left: 60})  //Adjust chart margins to give the x-axis some breathing room.
-		               	.useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
-		              
-		                .showLegend(false)       //Show the legend, allowing users to turn on/off line series.
-		                .showYAxis(true)        //Show the y-axis
-		                .showXAxis(true)        //Show the x-axis
-		                //.width(width)
-		                //.height(height)
-		               	.showVoronoi(false)
-		              	.isArea(false)
-		  ;
-		  chart.clipEdge(false);
-		  chart.xAxis     //Chart x-axis settings
-		      .axisLabel('mins')
-		      .tickFormat(d3.format(',r'));
-
-		  chart.yAxis     //Chart y-axis settings
-		      .axisLabel('%')
-		      .tickFormat(d3.format('.02f'));
-
-		   var myData = [{x: 0, y: 0.5},{x: 1, y: 0.8},{x: 2, y: 0.9},{x: 3, y: 0.5}];   //You need data
-				  var objData = [
-					    {
-					      values: myData,      //values - represents the array of {x,y} data points
-					     // key: 'sin chart', //key  - the name of the series.
-					      color: '#e74c3c',  //color - optional: choose your own line color.
-					    }
-					  ]
-
-		  d3.select('#CPUchart svg')    //Select the <svg> element you want to render the chart in.   
-		      .datum(objData)         //Populate the <svg> element with chart data...
-		      //.style({ 'width': width, 'height': height })
-		      .call(chart);          //Finally, render the chart!
-
-		  //Update the chart when window resizes.
-		  nv.utils.windowResize(function() { chart.update() });
-		  return chart;
-		});
-		nv.addGraph(function() {
-					
-
-				  var chart = nv.models.lineChart()
-				                .margin({left: 60})  //Adjust chart margins to give the x-axis some breathing room.
-				               	.useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
-				              
-				                .showLegend(false)       //Show the legend, allowing users to turn on/off line series.
-				                .showYAxis(true)        //Show the y-axis
-				                .showXAxis(true)        //Show the x-axis
-				                //.width(width)
-				                //.height(height)
-				               	.showVoronoi(false)
-				              	.isArea(false)
-				  ;
-				  chart.clipEdge(false);
-				  chart.xAxis     //Chart x-axis settings
-				      .axisLabel('mins')
-				      .tickFormat(d3.format(',r'));
-
-				  chart.yAxis     //Chart y-axis settings
-				      .axisLabel('%')
-				      .tickFormat(d3.format('.02f'));
-
-				 var myData = [{x: 0, y: 0.3},{x: 1, y: 0.5},{x: 2, y: 0.5},{x: 3, y: 0.5}];   //You need data
-				  var objData = [
-					    {
-					      values: myData,      //values - represents the array of {x,y} data points
-					     // key: 'sin chart', //key  - the name of the series.
-					      color: '#e74c3c',  //color - optional: choose your own line color.
-					    }
-					  ]
-
-
-				  d3.select('#Netchart svg')    //Select the <svg> element you want to render the chart in.   
-				      .datum(objData)         //Populate the <svg> element with chart data...
-				      //.style({ 'width': width, 'height': height })
-				      .call(chart);          //Finally, render the chart!
-
-				  //Update the chart when window resizes.
-				  nv.utils.windowResize(function() { chart.update() });
-				  return chart;
-				});
-		nv.addGraph(function() {
-					
-
-				  var chart = nv.models.lineChart()
-				                .margin({left: 60})  //Adjust chart margins to give the x-axis some breathing room.
-				               	.useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
-				              
-				                .showLegend(false)       //Show the legend, allowing users to turn on/off line series.
-				                .showYAxis(true)        //Show the y-axis
-				                .showXAxis(true)        //Show the x-axis
-				                //.width(width)
-				                //.height(height)
-				               	.showVoronoi(false)
-				              	.isArea(false)
-				  ;
-				  chart.clipEdge(false);
-				  chart.xAxis     //Chart x-axis settings
-				      .axisLabel('mins')
-				      .tickFormat(d3.format(',r'));
-
-				  chart.yAxis     //Chart y-axis settings
-				      .axisLabel('%')
-				      .tickFormat(d3.format('.02f'));
-
-				    var myData = [{x: 0, y: 0.5},{x: 1, y: 0.6},{x: 2, y: 0.7},{x: 3, y: 0.8}];   //You need data
-				  var objData = [
-					    {
-					      values: myData,      //values - represents the array of {x,y} data points
-					     // key: 'sin chart', //key  - the name of the series.
-					      color: '#e74c3c',  //color - optional: choose your own line color.
-					    }
-					  ]
-
-				  d3.select('#Diskchart svg')    //Select the <svg> element you want to render the chart in.   
-				      .datum(objData)         //Populate the <svg> element with chart data...
-				      //.style({ 'width': width, 'height': height })
-				      .call(chart);          //Finally, render the chart!
-
-				  //Update the chart when window resizes.
-				  nv.utils.windowResize(function() { chart.update() });
-				  return chart;
-				});
-		nv.addGraph(function() {
-					
-
-				  var chart = nv.models.lineChart()
-				                .margin({left: 60})  //Adjust chart margins to give the x-axis some breathing room.
-				               	.useInteractiveGuideline(true)  //We want nice looking tooltips and a guideline!
-				              
-				                .showLegend(false)       //Show the legend, allowing users to turn on/off line series.
-				                .showYAxis(true)        //Show the y-axis
-				                .showXAxis(true)        //Show the x-axis
-				                //.width(width)
-				                //.height(height)
-				               	.showVoronoi(false)
-				              	.isArea(false)
-				  ;
-				  chart.clipEdge(false);
-				  chart.xAxis     //Chart x-axis settings
-				      .axisLabel('mins')
-				      .tickFormat(d3.format(',r'));
-
-				  chart.yAxis     //Chart y-axis settings
-				      .axisLabel('%')
-				      .tickFormat(d3.format('.02f'));
-
-				  var myData = [{x: 0, y: 0.5},{x: 1, y: 1},{x: 2, y: 1},{x: 3, y: 0.75}];   //You need data
-				  var objData = [
-					    {
-					      values: myData,      //values - represents the array of {x,y} data points
-					     // key: 'sin chart', //key  - the name of the series.
-					      color: '#e74c3c',  //color - optional: choose your own line color.
-					    }
-					  ]
-				  d3.select('#Memchart svg')    //Select the <svg> element you want to render the chart in.   
-				      .datum(objData)         //Populate the <svg> element with chart data...
-				      //.style({ 'width': width, 'height': height })
-				      .call(chart);          //Finally, render the chart!
-
-				  //Update the chart when window resizes.
-				  nv.utils.windowResize(function() { chart.update() });
-				  return chart;
-				});
-		/**************************************
-		 * Simple test data generator
-		 */
-		function sinAndCos() {
-		  var sin = [],sin2 = [],
-		      cos = [];
-
-		  //Data is represented as an array of {x,y} pairs.
-		  for (var i = 0; i < 100; i++) {
-		    sin.push({x: i, y: Math.sin(i/10)});
-		    sin2.push({x: i, y: Math.sin(i/10) *0.25 + 0.5});
-		    cos.push({x: i, y: .5 * Math.cos(i/10)});
-		  }
-
-		  //Line chart data should be sent as an array of series objects.
-		  return [
-		    {
-		      values: sin,      //values - represents the array of {x,y} data points
-		     // key: 'sin chart', //key  - the name of the series.
-		      color: '#e74c3c',  //color - optional: choose your own line color.
-		    }
-		  ];
-		}
-	</script>
-	<script type="text/javascript">
-	 nv.addGraph(function() {
-	    var chart = nv.models.multiBarHorizontalChart()
-	        .x(function(d) { return d.label })
-	        .y(function(d) { return d.value })
-	        .margin({top: 30, right: 20, bottom: 50, left: 60})
-	        .showValues(true)
-	        .groupSpacing(0.5)         //Show bar value next to each bar.
-	        .tooltips(false) 
-	        .showLegend(false)
-	        .showControls(false);        //Allow user to switch between "Grouped" and "Stacked" mode.
-
-	    chart.yAxis
-	        .tickFormat(d3.format(',.2f'));
-
-
-	    d3.select('#app2Chart svg')
-	        .datum(dataObj())
-	        .call(chart);
-
-	    nv.utils.windowResize(chart.update);
-
-	    return chart;
-	  });
-	  nv.addGraph(function() {
-	    var chart = nv.models.multiBarHorizontalChart()
-	        .x(function(d) { return d.label })
-	        .y(function(d) { return d.value })
-	        .margin({top: 30, right: 20, bottom: 50, left: 60})
-	        .showValues(true)
-	        .groupSpacing(0.5)         //Show bar value next to each bar.
-	        .tooltips(false) 
-	        .showLegend(false)
-	        .showControls(false);        //Allow user to switch between "Grouped" and "Stacked" mode.
-
-	    chart.yAxis
-	        .tickFormat(d3.format(',.2f'));
-
-
-	    d3.select('#app3Chart svg')
-	        .datum(dataObj())
-	        .call(chart);
-
-	    nv.utils.windowResize(chart.update);
-
-	    return chart;
-	  });
-	  nv.addGraph(function() {
-	    var chart = nv.models.multiBarHorizontalChart()
-	        .x(function(d) { return d.label })
-	        .y(function(d) { return d.value })
-	        .margin({top: 30, right: 20, bottom: 50, left: 60})
-	        .showValues(true)
-	        .groupSpacing(0.5)         //Show bar value next to each bar.
-	        .tooltips(false) 
-	        .showLegend(false)
-	        .showControls(false);        //Allow user to switch between "Grouped" and "Stacked" mode.
-
-	    chart.yAxis
-	        .tickFormat(d3.format(',.2f'));
-
-
-	    d3.select('#appChart svg')
-	        .datum(dataObj())
-	        .call(chart);
-
-	    nv.utils.windowResize(chart.update);
-
-	    return chart;
-	  });
-
-	  function dataObj() {
-	  	return [ 
-	  			{
-	  				key: "Series 1",
-	  				values: [
-				      { 
-				        label: "CPU",
-				        value: 25.307646510375,
-				        color: '#2ecc71'
-				      }, 
-				      { 
-				        label: "Memory",
-				        value: 16.756779544553,
-				        color: '#9b59b6'
-				      } , 
-				      { 
-				        label: "Network",
-				        value: 18.451534877007,
-				        color: '#f39c12'
-				      } , 
-				      { 
-				        label: "Disk",
-				        value: 8.6142352811805,
-				        color: '#e67e22'
-				      } 
-					]
-				}
-			   ]
-	  }
-	</script>
+<div class="site-wrap">
+  <div class="container-fluid fixed-size" >
+    <div class="row box">
+      <div class="text-center">
+        {{node.name}} Node
+      </div>
+      <br/>			
+      <div class="col-md-6 frame-border chart-box">
+        <br/>
+        <div class="text-center">
+          <b>CPU chart</b>
+        </div>
+        <br/>
+        <div id="CPUchart">		
+          <nvd3 options="cpuOptions" data="node.cpu"></nvd3>
+        </div>	
+      </div>
+      <div class="col-md-6 frame-border chart-box">
+        <br/>
+        <div class="text-center">
+          <b>Memory chart</b>
+        </div>
+        <br/>
+        <div id="Memchart">		
+          <nvd3 options="memoryOptions" data="node.memory"></nvd3>
+        </div>	
+      </div>
+    </div>
+    <div class="row text-center box">
+      <div class="col-md-12 frame-border-second">
+        <div class="col-md-2 col-xs-offset-5">
+          <div class="text-center">
+            <br/>
+            <b>App</b>
+          </div>
+        </div>    
+        <div class="col-md-2 col-xs-offset-10" style="margin-top:-30px;">
+          <div class="dropdown">
+            <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" >
+              Sort by
+              <span class="caret"></span>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+              <li><a href="#">Action</a></li>
+              <li><a href="#">Another action</a></li>
+              <li><a href="#">Something else here</a></li>
+              <li><a href="#">Separated link</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="row">
+          <div ng-repeat="app in apps" class="col-sm-6 col-md-4">
+            <div class="frame-border-third">
+              <div class="text-center">
+                <br/>
+                <b>{{app.key}}</b>
+              </div>
+              <div id="appChart">
+                <nvd3 options="appOptions" data="[app]"></nvd3>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!--container -->
+</div><!--Site-wrap -->
+<!-- Java script Code -->
+<script src="https://code.jquery.com/jquery-2.1.4.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/js/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/nvd3/1.8.1/nv.d3.js"></script>
 
 </body>
 </html>
