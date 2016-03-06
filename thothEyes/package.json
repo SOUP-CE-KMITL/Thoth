@@ -11,7 +11,9 @@
     "sequence": "~3.0.0",
     "swig": "~1.4.2",
     "express": "~4.13.4",
-    "async": "~1.5.2"
+    "async": "~1.5.2",
+    "jsonminify": "~0.4.1",
+    "sleep": "~3.0.1"
   },
   "devDependencies": {},
   "scripts": {
