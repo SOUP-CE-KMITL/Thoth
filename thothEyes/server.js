@@ -35,8 +35,8 @@ app.get('/nodes', function (reg, res) {
 	res.render('nodes');
 });
 
-var api_server_ip   = 'localhost'
-var api_server_port = '8182'
+var api_server_ip   = 'https://localhost'
+var api_server_port = ''
 
 app.get('/node/:nodeName', function(reg, res){
 
