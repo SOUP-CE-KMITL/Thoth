@@ -47,7 +47,7 @@
 	<div class="container">
 		<div class="row">
 			<div class="col-md-3">
-				<div class="thumbnail upperblock">
+				<div class="thumbnail upperblock notification-block">
 					<div class="text-center upperblock-headfont">
 						<span class="glyphicon glyphicon-globe"></span>
 						Notification
@@ -55,13 +55,22 @@
 						<hr/>
 					</div>
 					<div class="upperblock-bodyfont">
-
+							<div class="list-noti">
+								nginx created
+							</div>
+							<br />
+							<div class="list-noti">
+								eight-puzzle created
+							</div>
+					</div>
+				</div>
+				<div class="thumbnail upperblock voice-block">
+					<div class="upperblock-bodyfont text-center">
+						<br/>
+						<b><span class="glyphicon glyphicon-bullhorn"></span> Voice Command</b>
+						<br/><br/>
 						<button class="btn btn-primary" onclick="startRecording(this);">Record</button>
 						<button class="btn btn-warning" onclick="stopRecording(this);" disabled>Stop</button>
-						<li> 
-						<span class="glyphicon glyphicon-list-alt"></span>
-						Notification massege
-						</li>
 					</div>
 				</div>
 			</div>
@@ -87,7 +96,7 @@
 						<span class="glyphicon glyphicon-refresh pull-right"></span>
 						<hr/>
 					</div>
-					<div class="upperblock-bodyfont ">
+					<div class="upperblock-bodyfont error-wrapper">
 						<div ng-repeat="errorApp in errorApps" class="thumbnail text-center errorapp">
 							<div class="row">
 								NAME {{errorApp.name}}<br/><br/>
@@ -124,7 +133,7 @@
 			</div>
 			<div class="row">
 				<div class="col-md-3">
-					<div class="thumbnail lowerblock">
+					<div class="thumbnail lowerblock max-block">
 						<div class="text-center lowerblock-headfont">
 							<span class="glyphicon glyphicon-align-left"></span>
 							Top CPU usage
@@ -132,7 +141,7 @@
 							<hr/>
 						</div>
 						<div class="upperblock-bodyfont">
-							<li ng-repeat="cpu in max_cpu"> 
+							<li ng-repeat="cpu in max_cpu" class="list-max"> 
 								<span class="glyphicon glyphicon-tasks"></span>
 								{{cpu.name}}
 							</li>
@@ -140,7 +149,7 @@
 					</div>
 				</div>
 				<div class="col-md-3 ">
-					<div class="thumbnail lowerblock">
+					<div class="thumbnail lowerblock max-block">
 						<div class="text-center lowerblock-headfont">
 							<span class="glyphicon glyphicon-dashboard"></span>
 							Top memory usage
@@ -148,7 +157,7 @@
 							<hr/>
 						</div>
 						<div class="upperblock-bodyfont">
-							<li ng-repeat="mem in max_mem"> 
+							<li ng-repeat="mem in max_mem" class="list-max"> 
 								<span class="glyphicon glyphicon-tasks"></span>
 								{{mem.name}}
 							</li>
@@ -156,7 +165,7 @@
 					</div>
 				</div>
 				<div class="col-md-3">
-					<div class="thumbnail lowerblock">
+					<div class="thumbnail lowerblock max-block">
 						<div class="text-center lowerblock-headfont">
 							<span class="glyphicon glyphicon-equalizer"></span>
 							Top response time
@@ -164,7 +173,7 @@
 							<hr/>
 						</div>
 						<div class="upperblock-bodyfont">
-							<li ng-repeat="res in max_res"> 
+							<li ng-repeat="res in max_res" class="list-max"> 
 								<span class="glyphicon glyphicon-tasks"></span>
 								{{res.name}}
 							</li>
@@ -172,7 +181,7 @@
 					</div>
 				</div>
 				<div class="col-md-3 ">
-					<div class="thumbnail lowerblock">
+					<div class="thumbnail lowerblock max-block">
 						<div class="text-center lowerblock-headfont">
 							<span class="glyphicon glyphicon-signal"></span>
 							Top req/sec
@@ -180,7 +189,7 @@
 							<hr/>
 						</div>
 						<div class="upperblock-bodyfont">
-							<li ng-repeat="req in max_req"> 
+							<li ng-repeat="req in max_req" class="list-max"> 
 								<span class="glyphicon glyphicon-tasks"></span>
 								{{req.name}}
 							</li>
@@ -220,7 +229,7 @@
 				<div class="modal-body">
 					<li class="nav-item">
 					<a href="#">
-						<i class="icon-microphone icon-margin"></i> Voic search
+						<i class="icon-microphone icon-margin"></i> Voice search
 					</a>
 					</li>
 					<li class="nav-item">
@@ -230,7 +239,7 @@
 					</li>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="btn btn-default" data-dismiss="modal">Cancle</button>
+					<button type="button" class="btn btn-default" data-dismiss="modal">cancel</button>
 				</div>
 			</div>
 		</div>

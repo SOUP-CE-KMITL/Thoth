@@ -201,3 +201,30 @@
 		margin-top: 10px;
 		margin-right: 50px;
 	}
+
+	.error-wrapper {
+		overflow: auto;
+		height: 250px;
+	}
+
+	.list-max {
+		box-shadow: 2px 2px 10px #888888;
+	}
+	
+	.notification-block {
+		height: 200px;
+	}
+
+	.voice-block {
+		height: 120px;
+	}
+
+	.max-block {
+		height: 130px;
+	}
+
+	.list-noti {
+		border-bottom-style: solid;
+		border-bottom-color: #888888;
+		border-bottom-width: 2px;
+	}

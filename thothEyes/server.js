@@ -1,7 +1,7 @@
 var app 	   = require('express')(),
     express    = require('express'),
 	Sequence   = require('sequence').Sequence,
-	http 	   = require('http'),
+	https 	   = require('https'),
 	request	   = require('request'),
 	async      = require('async'),
 	jsonminify = require('jsonminify'),
@@ -35,8 +35,8 @@ app.get('/nodes', function (reg, res) {
 	res.render('nodes');
 });
 
-var api_server_ip   = 'localhost'
-var api_server_port = '8182'
+var api_server_ip   = 'paas.jigko.net'
+var api_server_port = '443';
 
 app.get('/node/:nodeName', function(reg, res){
 
@@ -116,7 +116,7 @@ app.get('/monitor/apps', function(reg, res) {
 
 	sequence
 	.then(function(next) {
-		var req = http.request(get_app_name, function(res) {
+		var req = https.request(get_app_name, function(res) {
 			var res_app = "";
 			console.log('STATUS: ' + res.statusCode);
 			console.log('HEADERS: ' + JSON.stringify(res.headers));
@@ -127,6 +127,7 @@ app.get('/monitor/apps', function(reg, res) {
 			});
 			// when already received all response.  
 			res.on('end', function(){
+				console.log(res_app);
 				data = JSON.parse(res_app);
 				// get all application name
 				for(var i = 0;i < data.items.length;i++){
@@ -156,7 +157,7 @@ app.get('/monitor/apps', function(reg, res) {
 				port: api_server_port,
 				path: '/app/'+item.name+'/metrics/'+namespace
 			}
-			var req = http.request(get_app_error, function(res){
+			var req = https.request(get_app_error, function(res){
 				console.log(res.statusCode)
 				res.on('data', function (data) {
 					data = JSON.parse(data);
