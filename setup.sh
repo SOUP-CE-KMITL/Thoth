@@ -5,7 +5,7 @@
 sleep 10
 
 template=$(<setup/haproxy/vampConfig.template.json)
-for i in {1..100};
+for i in {1..10};
 do
 #echo $template
         let Y=$(($i+9000))

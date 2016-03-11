@@ -142,7 +142,7 @@ angular.module('myApp').factory('AuthService',
 
         console.log(rc_obj);
 
-        $http.post('https://localhost/rc/create/', rc_obj)
+        $http.post('https://paas.jigko.net/rc/create/', rc_obj)
         .success(function() {
           console.log("success to created RC")
           deferred.resolve(data);
