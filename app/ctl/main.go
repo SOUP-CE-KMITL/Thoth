@@ -12,7 +12,6 @@ import (
 	"time"
 )
 
-var thothApiUrl string = "http://localhost:8182"
 var username string = "thoth"
 var password string = "thoth"
 var MyDB string = "thoth"
