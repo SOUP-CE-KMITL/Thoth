@@ -6,7 +6,9 @@ import (
 	"github.com/SOUP-CE-KMITL/Thoth"
 	"github.com/SOUP-CE-KMITL/Thoth/profil"
 	"github.com/influxdata/influxdb/client/v2"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"os/exec"
 	"strconv"
 	"time"
@@ -30,12 +32,30 @@ func main() {
 	//-------------------------------------------------------------
 	for {
 		// Get All RC name
-		jsonRc := profil.GetPods()
-		var objRc interface{}
-		err := json.Unmarshal([]byte(jsonRc), &objRc)
+		/*
+			jsonRc := profil.GetPods()
+			var objRc interface{}
+			err := json.Unmarshal([]byte(jsonRc), &objRc)
+			if err != nil {
+				panic(err)
+			}
+		*/
+
+		rcList, err := http.Get(thoth.KubeApi + "/api/v1/replicationcontrollers")
 		if err != nil {
 			panic(err)
 		}
+		body, err := ioutil.ReadAll(rcList.Body)
+		rcList.Body.Close()
+		if err != nil {
+			panic(err)
+		}
+
+		var objRc interface{}
+		if err := json.Unmarshal([]byte(body), &objRc); err != nil {
+			panic(err)
+		}
+
 		// Extract RC Name
 		RCArray := []thoth.RC{}
 		RCLen := 0

@@ -69,7 +69,7 @@ func main() {
 			// thoth.AppMetric{App,Cpu,Memory,Request,Response,Response2xx,Response4xx,Response5xx
 
 			tags := map[string]string{
-				"name": RCArray[i].Name,
+				"app": RCArray[i].Name,
 			}
 
 			fields := map[string]interface{}{
