@@ -11,6 +11,8 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
+	tcp "net"
 	"net/http"
 	"os/exec"
 	"strconv"
@@ -636,45 +638,53 @@ func CreateRc(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprint(w, rcResBody["message"].(string))
 	} else {
 		// RC Create success
-		fmt.Fprint(w, "yeah")
-		// Creat SVC
-		svc := thoth.Svc{
-			APIVersion: "v1",
-			Kind:       "Service",
-			Metadata: thoth.Metadata{
-				Name:      rc.Name,
-				Namespace: rc.Namespace,
-			},
-			Spec: thoth.SvcSpec{
-				Ports: []thoth.Port{
-					thoth.Port{
-						NodePort:   30003,
-						Port:       80,
-						TargetPort: rc.Port,
-					}},
-				Selector: thoth.Selector{
-					App: rc.Name,
+		// Random Port (30,000-31,000) for SVC
+
+		nodePort := RandomTCPPort()
+		if nodePort == -1 {
+			// Dont have port in specifi range to bind
+			fmt.Println("Can't bind port")
+		} else {
+			// Creat SVC
+			svc := thoth.Svc{
+				APIVersion: "v1",
+				Kind:       "Service",
+				Metadata: thoth.Metadata{
+					Name:      rc.Name,
+					Namespace: rc.Namespace,
 				},
-				Type: "LoadBalancer",
-			},
-			Status: thoth.SvcStatus{
-				LoadBalancer: thoth.SvcLoadBalancer{
-					Ingress: []thoth.SvcIngress{
-						thoth.SvcIngress{
-							IP: "10.0.1.17",
+				Spec: thoth.SvcSpec{
+					Ports: []thoth.Port{
+						thoth.Port{
+							NodePort:   nodePort,
+							Port:       80,
+							TargetPort: rc.Port,
 						}},
+					Selector: thoth.Selector{
+						App: rc.Name,
+					},
+					Type: "LoadBalancer",
 				},
-			},
+				Status: thoth.SvcStatus{
+					LoadBalancer: thoth.SvcLoadBalancer{
+						Ingress: []thoth.SvcIngress{
+							thoth.SvcIngress{
+								IP: "10.0.1.17",
+							}},
+					},
+				},
+			}
+			jsonSvc, err := json.MarshalIndent(svc, "", "\t")
+			if err != nil {
+				panic(err)
+			}
+			//		fmt.Println(svc)
+			//		fmt.Println(string(jsonSvc))
+			svcResCode, svcResBody := postJson(thoth.KubeApi+"/api/v1/namespaces/"+rc.Namespace+"/services", jsonSvc)
+			fmt.Println(svcResCode)
+			fmt.Println(svcResBody)
+			fmt.Fprint(w, "{\"port\":", nodePort, "}")
 		}
-		jsonSvc, err := json.MarshalIndent(svc, "", "\t")
-		if err != nil {
-			panic(err)
-		}
-		//		fmt.Println(svc)
-		//		fmt.Println(string(jsonSvc))
-		svcResCode, svcResBody := postJson(thoth.KubeApi+"/api/v1/namespaces/"+rc.Namespace+"/services", jsonSvc)
-		fmt.Println(svcResCode)
-		fmt.Println(svcResBody)
 	}
 
 }
@@ -764,4 +774,29 @@ func getErrorApp(w http.ResponseWriter, r *http.Request) {
 	errorNum5xx := queryRes[0].Series[0].Values[0][1]
 	fmt.Println(errorNum5xx)
 	// TODO: need to implement some algorithm searching error application
+}
+
+// IsTCPPortAvailable returns a flag indicating whether or not a TCP port is
+// available.
+func IsTCPPortAvailable(port int) bool {
+	conn, err := tcp.Listen("tcp", fmt.Sprintf("127.0.0.1:%d", port))
+	if err != nil {
+		return false
+	}
+	conn.Close()
+	return true
+}
+
+// RandomTCPPort gets a free, random TCP port between 1025-65535. If no free
+// ports are available -1 is returned.
+func RandomTCPPort() int {
+	tcpPortRand := rand.New(rand.NewSource(time.Now().UnixNano()))
+	for i := 0; i < 1000; i++ {
+		p := 30000 + tcpPortRand.Intn(1000)
+		fmt.Println("RndPort", p)
+		if IsTCPPortAvailable(p) {
+			return p
+		}
+	}
+	return -1
 }

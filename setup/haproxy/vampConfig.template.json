@@ -1,6 +1,6 @@
 {
-  "name": "app2_route",
-  "port": 9001,
+  "name": "appX_route",
+  "port": Y,
   "protocol": "http",
   "filters": [],
   "httpQuota": {
@@ -13,15 +13,15 @@
     "rate": 10000,
     "expiryTime": "100s"
   },
-  "services": [                                           
+  "services": [
     {
-      "name": "service_2",                                
-      "weight": 30,                                     
+      "name": "service_X",
+      "weight": 30,
       "servers": [
         {
-          "name": "app-002",
+          "name": "app-X",
           "host": "localhost",
-          "port": 30002
+          "port": Z
         }
       ]
     }

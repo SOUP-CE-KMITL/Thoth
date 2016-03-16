@@ -112,15 +112,17 @@ function PostToWatson() {
 		// ------------Command-------------
 		// Next,Back,App,Node,error(era)
 		if (text.indexOf("app")>=0){
-			alert("Apps");
+			//alert("Apps");
+			window.location.href = "https://paas.jigko.net/node/"
 		}else if (text.indexOf("node")>=0||text.indexOf("nose")>=0||text.indexOf("north")>=0||text.indexOf("no")>=0){
-			alert("Nodes");
+			//alert("Nodes");
+			window.location.href = "https://paas.jigko.net/nodes/"
 		}else if (text.indexOf("error")>=0||text.indexOf("era")>=0){
 			alert("Error Apps");
 		}else if (text.indexOf("next")>=0){
-			alert("Next");
+			window.history.next();
 		}else if (text.indexOf("back")>=0){
-			alert("Back");
+			window.history.back();
 		}else{
 			alert("I can't understand your command");
 		}

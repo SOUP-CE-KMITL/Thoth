@@ -126,12 +126,15 @@ func GetContainerIDList(url string, rc_name string, namespace string) ([]string,
 			pod_name := pod.(map[string]interface{})["metadata"].(map[string]interface{})["generateName"]
 			if pod_name != nil {
 				if pod_name == rc_name+"-" {
-					pod_ips = append(pod_ips, pod.(map[string]interface{})["status"].(map[string]interface{})["podIP"].(string))
-					containers := pod.(map[string]interface{})["status"].(map[string]interface{})["containerStatuses"].([]interface{})
-					// one pod can has many container ,so iterate for get each container
-					for _, container := range containers {
-						container_id := container.(map[string]interface{})["containerID"].(string)[9:]
-						container_ids = append(container_ids, container_id)
+					pod_ip := pod.(map[string]interface{})["status"].(map[string]interface{})["podIP"]
+					if pod_ip != nil {
+						pod_ips = append(pod_ips, pod_ip.(string))
+						containers := pod.(map[string]interface{})["status"].(map[string]interface{})["containerStatuses"].([]interface{})
+						// one pod can has many container ,so iterate for get each container
+						for _, container := range containers {
+							container_id := container.(map[string]interface{})["containerID"].(string)[9:]
+							container_ids = append(container_ids, container_id)
+						}
 					}
 				}
 			}
@@ -161,7 +164,7 @@ func GetAppResource(namespace, name string) thoth.AppMetric {
 
 	container_ids, pod_ips, err := GetContainerIDList(thoth.KubeApi, name, namespace)
 	if err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
 	for _, container_id := range container_ids {
 		//	fmt.Println(container_id, pod_ips)
@@ -259,5 +262,6 @@ func GetCpu(containerId string) (float64, error) {
 	//cpuPercent := strings.Fields(string(result))[14]
 	//fmt.Println("get CPU ", cpuPercent2)
 	cpuPercent = cpuPercent[0 : len(cpuPercent)-1]
+	fmt.Println("get CPU ", cpuPercent)
 	return strconv.ParseFloat(cpuPercent, 32)
 }

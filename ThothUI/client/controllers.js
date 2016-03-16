@@ -185,7 +185,7 @@ angular.module('myApp').controller('AppResourceUsageController',
         // array of Application
         var apps = [];
         // http get application lists.
-        $http.get("http://localhost:8182/apps/"+user.user)
+        $http.get("https://paas.jigko.net/apps/"+user.user)
         .success(function(response) {
 
           console.log("length : " + response.items.length);
@@ -223,7 +223,7 @@ angular.module('myApp').controller('AppResourceUsageController',
             if (!$scope.run) return;
             for(var c = 0; c < apps.length; c++){
               console.log(apps[c].name);
-              app_datas[c] = $http.get("http://localhost:8182/app/"+apps[c].name+"/metrics/"+user.user)
+              app_datas[c] = $http.get("https://paas.jigko.net/app/"+apps[c].name+"/metrics/"+user.user)
             }
             // request resource usage from api
             $q.all(app_datas).then(function(response) {

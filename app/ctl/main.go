@@ -79,13 +79,13 @@ func main() {
 				if err != nil {
 					log.Fatal(err)
 				}
-				fmt.Println(qres1hr)
+				fmt.Println("1D", qres1hr)
 
 				qres10min, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT MEAN(response) FROM "+RCArray[i].Namespace+" WHERE time > now() - 10m"))
 				if err != nil {
 					log.Fatal(err)
 				}
-				fmt.Println(qres10min)
+				fmt.Println("10Min", qres10min)
 				res1hr, err := strconv.ParseFloat(fmt.Sprint(qres1hr[0].Series[0].Values[0][1]), 32)
 				if err == nil {
 					fmt.Println(res1hr)

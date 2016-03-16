@@ -71,8 +71,7 @@ func main() {
 			tags := map[string]string{
 				"name": RCArray[i].Name,
 			}
-			// fmt.Println("CPU ", res.Cpu)
-
+			
 			fields := map[string]interface{}{
 				// CPU
 				// Memory
