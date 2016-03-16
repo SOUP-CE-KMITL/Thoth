@@ -12,7 +12,7 @@ import (
 	"time"
 )
 
-var thothApiUrl string = "http://localhost:8182"
+var thothApiUrl string = "https://localhost"
 var username string = "thoth"
 var password string = "thoth"
 var MyDB string = "thoth"
@@ -102,6 +102,10 @@ func main() {
 									fmt.Println("ResSpread"+qresSpread)
 									resSpread, err := strconv.ParseFloat(fmt.Sprint(qresSpread[0].Series[0].Values[0][1]), 32)*/
 									//									if res10min-res1hr > resSpread {
+									fmt.Println("res10min : ", res10min, " res1hr : ", res1hr)
+									fmt.Println("Scale +1")
+									res, err := scaleOutViaCli(int(replicas)+1, RCArray[i].Namespace, RCArray[i].Name)
+									fmt.Println(res, err)
 									if res10min > res1hr {
 										// Delay each scale 10 min
 
@@ -161,7 +165,7 @@ func scaleOutViaCli(replicas int, namespace, name string) (string, error) {
 	var err error
 	var cmd []byte
 	fmt.Println("s_n : ", replicas, "rc : ", name)
-	if cmd, err = exec.Command("kubectl", "scale", "--replicas="+strconv.Itoa(replicas), "rc", name, "--namespace", namespace).Output(); err != nil {
+	if cmd, err = exec.Command("kubectl", "scale", "--replicas="+strconv.Itoa(replicas), "rc", name, "--namespace=", namespace).Output(); err != nil {
 		fmt.Println(err)
 	}
 	return string(cmd), err

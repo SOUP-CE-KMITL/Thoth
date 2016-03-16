@@ -71,7 +71,7 @@ func main() {
 			tags := map[string]string{
 				"name": RCArray[i].Name,
 			}
-			fmt.Println("CPU ", res.Cpu)
+			// fmt.Println("CPU ", res.Cpu)
 
 			fields := map[string]interface{}{
 				// CPU
@@ -85,7 +85,7 @@ func main() {
 				"code5xx":  res.Response5xx,
 				"replicas": replicas,
 			}
-			fmt.Println(fields)
+			// fmt.Println(fields)
 			if err := profil.WritePoints(c, MyDB, RCArray[i].Namespace, "s", tags, fields); err != nil {
 				panic(err)
 			}
