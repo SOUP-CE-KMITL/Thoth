@@ -8,6 +8,7 @@ import (
 	"github.com/influxdata/influxdb/client/v2"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
 	"os/exec"
 	"strconv"
@@ -107,11 +108,9 @@ func main() {
 				fmt.Println("10Min", qres10min)
 				res1hr, err := strconv.ParseFloat(fmt.Sprint(qres1hr[0].Series[0].Values[0][1]), 32)
 				if err == nil {
-					fmt.Println(res1hr)
 					if res1hr != 0 {
 						res10min, err := strconv.ParseFloat(fmt.Sprint(qres10min[0].Series[0].Values[0][1]), 32)
 						if err == nil {
-							fmt.Println(res10min)
 							if err == nil {
 								if res10min != 0 {
 									/* qresSpread, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT spread(response) FROM "+RCArray[i].Namespace+" WHERE time > now() - 1d"))
@@ -121,10 +120,15 @@ func main() {
 									fmt.Println("ResSpread"+qresSpread)
 									resSpread, err := strconv.ParseFloat(fmt.Sprint(qresSpread[0].Series[0].Values[0][1]), 32)*/
 									//									if res10min-res1hr > resSpread {
+									// Floor
+									res10min = math.Floor(res10min)
+									res1hr = math.Floor(res1hr)
+									fmt.Println(res1hr)
+									fmt.Println(res10min)
 									if res10min > res1hr {
 										// Delay each scale 10 min
 
-										qRepSpread, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT spread(replicas) FROM "+RCArray[i].Namespace+" WHERE time > now() - 10m"))
+										qRepSpread, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT spread(replicas) FROM "+RCArray[i].Namespace+" WHERE time > now() - 5m"))
 										if err != nil {
 											log.Fatal(err)
 										}
@@ -138,7 +142,7 @@ func main() {
 											}
 											fmt.Println(res)
 										}
-									} else if replicas > 1 {
+									} else if res10min < res1hr && replicas > 1 {
 										fmt.Println("Scale -1")
 										res, err := scaleOutViaCli(int(replicas)-1, RCArray[i].Namespace, RCArray[i].Name)
 										if err != nil {
@@ -146,6 +150,7 @@ func main() {
 										}
 										fmt.Println(res)
 									}
+									// res10min == res1hr -->> do nothing
 								}
 							}
 						}
