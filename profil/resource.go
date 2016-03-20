@@ -305,6 +305,5 @@ func GetCpu(containerId string) (float64, error) {
 	//cpuPercent := strings.Fields(string(result))[14]
 	//fmt.Println("get CPU ", cpuPercent2)
 	cpuPercent = cpuPercent[0 : len(cpuPercent)-1]
-	fmt.Println("get CPU ", cpuPercent)
 	return strconv.ParseFloat(cpuPercent, 32)
 }

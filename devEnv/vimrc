@@ -91,6 +91,7 @@ let g:javascript_conceal_static     = "•"
 let g:javascript_conceal_super      = "Ω"
 
 set regexpengine=1
+set paste
 syntax enable
 
 nmap <F8> :TagbarToggle<CR>
@@ -112,3 +113,6 @@ let g:EasyMotion_smartcase = 1
 " JK motions: Line motions
 map <Leader>j <Plug>(easymotion-j)
 map <Leader>k <Plug>(easymotion-k)
+
+" Golang
+au FileType go nmap <leader>f :GoFmt<CR>

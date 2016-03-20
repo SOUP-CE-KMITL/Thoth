@@ -65,7 +65,11 @@ func main() {
 		for i := 0; i < RCLen; i++ {
 			res := profil.GetAppResource(RCArray[i].Namespace, RCArray[i].Name)
 			//	fmt.Println(res)
-			replicas := profil.GetReplicas(RCArray[i].Namespace, RCArray[i].Name)
+			replicas, err := profil.GetReplicas(RCArray[i].Namespace, RCArray[i].Name)
+			if err != nil {
+				//	panic(err)
+				log.Println(err)
+			}
 			// thoth.AppMetric{App,Cpu,Memory,Request,Response,Response2xx,Response4xx,Response5xx
 
 			tags := map[string]string{
@@ -77,7 +81,7 @@ func main() {
 				// Memory
 				"cpu":      res.Cpu,
 				"memory":   res.Memory,
-				"request":  res.Request * int64(30) / int64(replicas),
+				"request":  res.Request,
 				"response": res.Response,
 				"code2xx":  res.Response2xx,
 				"code4xx":  res.Response4xx,
@@ -85,15 +89,9 @@ func main() {
 				"replicas": replicas,
 			}
 			fmt.Println(fields)
-			if err := profil.WritePoints(c, MyDB, RCArray[i].Namespace, "s", tags, fields); err != nil {
+			if err := profil.WritePoints(c, RCArray[i].Namespace, "s", tags, fields); err != nil {
 				panic(err)
 			}
-			queryRes, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT count(response) FROM "+RCArray[i].Namespace))
-			//queryRes, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT * FROM "+RCArray[i].Namespace))
-			if err != nil {
-				log.Fatal(err)
-			}
-			fmt.Println(queryRes)
 		}
 		fmt.Println("Sleep")
 		time.Sleep(10 * time.Second)
