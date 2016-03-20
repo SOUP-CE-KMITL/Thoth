@@ -17,19 +17,60 @@ import (
 	"time"
 )
 
+func GetAllRC() (interface{}, error) {
+	response, err := http.Get(thoth.KubeApi + "/api/v1/replicationcontrollers")
+	if err != nil {
+		panic(err)
+	}
+	body, err := ioutil.ReadAll(response.Body)
+	response.Body.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	var objRc interface{}
+	if err := json.Unmarshal([]byte(body), &objRc); err != nil {
+		panic(err)
+	}
+	return objRc, err
+}
+
+// Get every RC except in default (where kubernetes run)
+func GetUserRC() []thoth.RC {
+	allRc, err := GetAllRC()
+	if err != nil {
+		panic(err)
+	}
+	RCArray := []thoth.RC{}
+	_RCLen := len(allRc.(map[string]interface{})["items"].([]interface{}))
+	for i := 0; i < _RCLen; i++ {
+		namespace := allRc.(map[string]interface{})["items"].([]interface{})[i].(map[string]interface{})["metadata"].(map[string]interface{})["namespace"].(string)
+		if namespace != "default" {
+			rc := thoth.RC{
+				Name:      allRc.(map[string]interface{})["items"].([]interface{})[i].(map[string]interface{})["metadata"].(map[string]interface{})["labels"].(map[string]interface{})["app"].(string),
+				Namespace: namespace,
+			}
+			fmt.Println(rc.Namespace + "/" + rc.Name)
+			RCArray = append(RCArray, rc)
+		}
+	}
+	return RCArray
+}
+
 //"/api/v1/replicationcontrollers"
 //"/api/v1/namespaces/{namespace}/replicationcontrollers"
-func GetReplicas(namespace, name string) int {
+func GetReplicas(namespace, name string) (int, error) {
 
 	res, err := http.Get(thoth.KubeApi + "/api/v1/namespaces/" + namespace + "/replicationcontrollers/" + name)
 	if err != nil {
-		fmt.Println("Can't connect to cadvisor")
-		panic(err)
+		//		panic(err)
+		return -1, err
 	}
 	body, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
+	defer res.Body.Close()
 	if err != nil {
-		panic(err)
+		//	panic(err)
+		return -1, err
 	} else {
 		// json handler type
 		var res_obj map[string]interface{}
@@ -41,7 +82,7 @@ func GetReplicas(namespace, name string) int {
 			panic(err)
 		}
 		//fmt.Println(json)
-		return int(repli)
+		return int(repli), nil
 	}
 }
 
