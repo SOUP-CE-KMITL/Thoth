@@ -6,7 +6,10 @@ import (
 	"github.com/SOUP-CE-KMITL/Thoth"
 	"github.com/SOUP-CE-KMITL/Thoth/profil"
 	"github.com/influxdata/influxdb/client/v2"
+	"io/ioutil"
 	"log"
+	"math"
+	"net/http"
 	"os/exec"
 	"strconv"
 	"time"
@@ -31,12 +34,30 @@ func main() {
 	//-------------------------------------------------------------
 	for {
 		// Get All RC name
-		jsonRc := profil.GetPods()
-		var objRc interface{}
-		err := json.Unmarshal([]byte(jsonRc), &objRc)
+		/*
+			jsonRc := profil.GetPods()
+			var objRc interface{}
+			err := json.Unmarshal([]byte(jsonRc), &objRc)
+			if err != nil {
+				panic(err)
+			}
+		*/
+
+		rcList, err := http.Get(thoth.KubeApi + "/api/v1/replicationcontrollers")
 		if err != nil {
 			panic(err)
 		}
+		body, err := ioutil.ReadAll(rcList.Body)
+		rcList.Body.Close()
+		if err != nil {
+			panic(err)
+		}
+
+		var objRc interface{}
+		if err := json.Unmarshal([]byte(body), &objRc); err != nil {
+			panic(err)
+		}
+
 		// Extract RC Name
 		RCArray := []thoth.RC{}
 		RCLen := 0
@@ -88,11 +109,9 @@ func main() {
 				fmt.Println("10Min", qres10min)
 				res1hr, err := strconv.ParseFloat(fmt.Sprint(qres1hr[0].Series[0].Values[0][1]), 32)
 				if err == nil {
-					fmt.Println(res1hr)
 					if res1hr != 0 {
 						res10min, err := strconv.ParseFloat(fmt.Sprint(qres10min[0].Series[0].Values[0][1]), 32)
 						if err == nil {
-							fmt.Println(res10min)
 							if err == nil {
 								if res10min != 0 {
 									/* qresSpread, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT spread(response) FROM "+RCArray[i].Namespace+" WHERE time > now() - 1d"))
@@ -101,15 +120,16 @@ func main() {
 									}
 									fmt.Println("ResSpread"+qresSpread)
 									resSpread, err := strconv.ParseFloat(fmt.Sprint(qresSpread[0].Series[0].Values[0][1]), 32)*/
-									//									if res10min-res1hr > resSpread {
-									fmt.Println("res10min : ", res10min, " res1hr : ", res1hr)
-									fmt.Println("Scale +1")
-									res, err := scaleOutViaCli(int(replicas)+1, RCArray[i].Namespace, RCArray[i].Name)
-									fmt.Println(res, err)
+									//			
+									// Floor
+									res10min = math.Floor(res10min)
+									res1hr = math.Floor(res1hr)
+									fmt.Println(res1hr)
+									fmt.Println(res10min)
 									if res10min > res1hr {
 										// Delay each scale 10 min
 
-										qRepSpread, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT spread(replicas) FROM "+RCArray[i].Namespace+" WHERE time > now() - 10m"))
+										qRepSpread, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT spread(replicas) FROM "+RCArray[i].Namespace+" WHERE time > now() - 5m"))
 										if err != nil {
 											log.Fatal(err)
 										}
@@ -123,7 +143,7 @@ func main() {
 											}
 											fmt.Println(res)
 										}
-									} else if replicas > 1 {
+									} else if res10min < res1hr && replicas > 1 {
 										fmt.Println("Scale -1")
 										res, err := scaleOutViaCli(int(replicas)-1, RCArray[i].Namespace, RCArray[i].Name)
 										if err != nil {
@@ -131,6 +151,7 @@ func main() {
 										}
 										fmt.Println(res)
 									}
+									// res10min == res1hr -->> do nothing
 								}
 							}
 						}
@@ -169,4 +190,51 @@ func scaleOutViaCli(replicas int, namespace, name string) (string, error) {
 		fmt.Println(err)
 	}
 	return string(cmd), err
+}
+
+func ann() {
+	// Open the file.
+	f, _ := os.Open("file.csv")
+	r := csv.NewReader(f)
+	trainSet := [][][]float64{}
+	for {
+		rec, err := r.Read()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		record := [][]float64{
+			{parse(rec[5]), parse(rec[6]), parse(rec[7]), parse(rec[8]), parse(rec[9])}, {parse(rec[10])},
+		}
+		trainSet = append(trainSet, record)
+	}
+	fmt.Println(trainSet)
+	//-----------
+	rand.Seed(0)
+
+	// instantiate the Feed Forward
+	ff := &gobrain.FeedForward{}
+
+	// initialize the Neural Network;
+	// the networks structure will contain:
+	// inputs, hidden nodes and output.
+	ff.Init(5, 5, 1)
+
+	// train the network using the XOR patterns
+	// the training will run for 1000 epochs
+	// the learning rate is set to 0.6 and the momentum factor to 0.4
+	// use true in the last parameter to receive reports about the learning error
+	ff.Train(trainSet, 1000, 0.6, 0.4, true)
+
+	//Test
+
+	//	ff.Test([][][]float64{{{40, 70, 2, 1965, 13}, {1}}})
+}
+
+func parse(str string) float64 {
+	f, _ := strconv.ParseFloat(str, 64)
+	return f
 }

@@ -231,7 +231,9 @@ func GetAppResource(namespace, name string) thoth.AppMetric {
 	// Cal Avg Mem usage
 	var avgMem uint64
 	for i := 0; i < podNum; i++ {
-		avgMem += memory_bundle[i].MemUsageInBytes
+		if memory_bundle[i] != nil {
+			avgMem += memory_bundle[i].MemUsageInBytes
+		}
 	}
 	avgMem = avgMem / uint64(podNum)
 	avgMem = avgMem / uint64(1024*1024) // MB
