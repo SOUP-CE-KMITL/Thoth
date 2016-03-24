@@ -97,10 +97,8 @@ angular.module('myApp').controller('deployController',
       }
       console.log("create user application : "+user_app.dockerhub);
       // call create app from service
-      AuthService.createApp(user_app)
-      // handle success
-      .then(function (response) {
-        console.log(response);
+      AuthService.createApp(user_app).then(function (response) {
+        console.dir("response from api : " + response);
         $location.path('/deploy');
         $scope.registerForm = {};
       })

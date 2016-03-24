@@ -124,36 +124,35 @@ angular.module('myApp').factory('AuthService',
     function createApp(user_app) {
       console.log(user_obj);
       var deferred = $q.defer();
-      $http.post('/user/create/app/'+user_obj, user_app)
-      .success(function (data) {
-        console.log("response from create user :"+data)
-        // post to pull user's docker image to node  
+      
+      // send essential infor for create replicaion controller
+      var rc_obj = {
+        name: user_app.image_hub,
+        replicas: 1,
+        namespace: user_obj,
+        image: user_app.image_hub,
+        port: user_app.internal_port
+      };
 
-        console.log(user_app);
-        //create rc object
-        // send essential infor for create replicaion controller
-        var rc_obj = {
-          name: user_app.image_hub,
-          replicas: 1,
-          namespace: user_obj,
-          image: user_app.image_hub,
-          port: user_app.internal_port
-        };
-
-        console.log(rc_obj);
-
-        $http.post('https://paas.jigko.net/rc/create/', rc_obj)
-        .success(function() {
-          console.log("success to created RC")
+      $http.post('https://localhost/rc/create/', rc_obj)
+        .success(function(data) {
+          console.log("success to created RC");
+          console.dir(data.port);
+          user_app.external_port = data.port;
+          // adding external port and proxy port receive from api
+          $http.post('/user/create/app/'+user_obj, user_app)
+          .success(function (data) {
+            // post to pull user's docker image to node 
+            console.log(user_app);
+          })
+          .error(function (data) {
+            deferred.reject("error to create store application to DB.");
+          });
           deferred.resolve(data);
         })
         .error(function(data) {
           deferred.reject("error to create replication.");  
-        });                      
-      })
-      .error(function (data) {
-        deferred.reject("error to create store application to DB.");
-      });
+        });
 
       return deferred.promise;
   

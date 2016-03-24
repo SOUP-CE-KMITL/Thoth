@@ -1,6 +1,7 @@
 var express = require('express'),
     router = express.Router(),
-    passport = require('passport');
+    passport = require('passport'),
+    util = require("util");
     User = require('../models/user.js');
 
 
@@ -46,8 +47,7 @@ router.get('/profile', function(req, res){
 
 router.post('/create/app/:username', function(req, res) {
     var username = req.params.username;
-    var external_port = 30000;
-    console.log("username at : "+username)
+    console.log("username at : "+username);
     // save information to database
     User.findOne({username: username}, function(err, userDoc){
       console.log(userDoc.username);
@@ -61,7 +61,6 @@ router.post('/create/app/:username', function(req, res) {
       }else{
         console.log("userDoc existed");
         console.log(userDoc.app);
-
         // find maximum external port
         /*
         this.findOne({username: username})
@@ -71,15 +70,16 @@ router.post('/create/app/:username', function(req, res) {
               external_port = max_port + 1;
             });
         */
-        // TODO : pass type 
+
+        // calculate vamp port from external_port
         var user_app = {
           dockerhub: req.body.dockerhub,
           image_name: req.body.image_name,
           github_repo: req.body.github_repo,
           runtime_env: req.body.runtime_env,
           internal_port: req.body.internal_port,
-          external_port: 8010,
-          vamp_port: 9005,
+          external_port: req.body.external_port,
+          vamp_port: 9000,
           max_instance: req.body.max_instance,
           min_instance: req.body.min_instance
         }
