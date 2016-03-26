@@ -76,7 +76,7 @@ func main() {
 				if response10Min > responseDay { // TODO:Need to check WPI too
 					// Save WPI
 					fmt.Println("Scale+1")
-					if err := profil.WriteWPI(influxDB, RC[i].Namespace, RC[i].Name, metrics.Request, replicas); err != nil {
+					if err := profil.WriteRPI(influxDB, RC[i].Namespace, RC[i].Name, metrics.Request, replicas); err != nil {
 						panic(err)
 						log.Println(err)
 					}
@@ -89,16 +89,16 @@ func main() {
 					}
 				}
 			} else if replicas > 1 {
-				// = wpi/replicas
-				var wpiMax float64
-				if wpiMax, err = profil.GetAvgWPI(influxDB, RC[i].Namespace, RC[i].Name, "10m"); err != nil {
-					wpiMax = -1
+				// = rpi/replicas
+				var rpiMax float64
+				if rpiMax, err = profil.GetAvgRPI(influxDB, RC[i].Namespace, RC[i].Name); err != nil {
+					rpiMax = -1
 					// TODO:Handler
-					panic(err)
+					//panic(err)
 				}
-				fmt.Println("WPI", wpiMax)
-				if wpiMax > 0 {
-					minReplicas := int(metrics.Request / int64(wpiMax)) // TODO: Ceil?
+				fmt.Println("WPI", rpiMax)
+				if rpiMax > 0 {
+					minReplicas := int(metrics.Request / int64(rpiMax)) // TODO: Ceil?
 
 					if minReplicas < replicas {
 						// Scale -1
@@ -118,7 +118,7 @@ func main() {
 		//runFann()
 		//-----------
 		fmt.Println("Sleep TODO:Change to 5 Min")
-		time.Sleep(10 * time.Second)
+		time.Sleep(5 * time.Minute)
 	}
 }
 

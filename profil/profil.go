@@ -17,7 +17,7 @@ func GetProfilAvg(conn influx.Client, namespace, name, field, timeLength string)
 	return strconv.ParseFloat(fmt.Sprint(dbResult[0].Series[0].Values[0][1]), 32)
 }
 
-func WriteWPI(conn influx.Client, namespace, name string, request int64, replicas int) error {
+func WriteRPI(conn influx.Client, namespace, name string, request int64, replicas int) error {
 
 	tags := map[string]string{
 		"app": name,
@@ -26,17 +26,17 @@ func WriteWPI(conn influx.Client, namespace, name string, request int64, replica
 	fields := map[string]interface{}{
 		"request":  request,
 		"replicas": replicas,
-		"wpi":      request / int64(replicas), // TODO:remove?
+		"rpi":      request / int64(replicas), // TODO:remove?
 	}
 	fmt.Println(fields)
-	if err := WritePoints(conn, namespace+"_wpi", "s", tags, fields); err != nil {
+	if err := WritePoints(conn, namespace+"_rpi", "s", tags, fields); err != nil {
 		return err
 	}
 	return nil
 }
 
-func GetAvgWPI(conn influx.Client, namespace, name, timeLength string) (float64, error) {
-	query := fmt.Sprint("SELECT MEAN(wpi) FROM " + namespace + "_wpi WHERE app =~ /" + name + "/ AND time > now() - " + timeLength)
+func GetAvgRPI(conn influx.Client, namespace, name string) (float64, error) {
+	query := fmt.Sprint("SELECT MEAN(rpi) FROM " + namespace + "_rpi WHERE app =~ /" + name + "/ limit 20")
 	dbResult, err := QueryDB(conn, query)
 	if err != nil {
 		panic(err)
