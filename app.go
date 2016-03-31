@@ -13,13 +13,13 @@ type AppMetric struct {
 	App    string  `json:"app"`
 	Cpu    float32 `json:"cpu"`
 	Memory int64   `json:"memory"`
-	/*
-		Request     int64
-		Response    int64
-		Response2xx int64
-		Response4xx int64
-		Response5xx int64
-	*/
+
+	Request          int64
+	Response         int64
+	Response2xx      int64
+	Response4xx      int64
+	Response5xx      int64
+	Response5xxRoute int64
 }
 
 // This is schema of Application Profile
@@ -125,60 +125,67 @@ type Metadata struct {
 	} `json:"labels"`
 }
 
-// Vamp Frontend
-type VampFrontend []struct {
-	Name         string `json:"name"`
-	Mode         string `json:"mode"`
-	BindPort     int    `json:"bindPort"`
-	BindIP       string `json:"bindIp"`
-	UnixSock     string `json:"unixSock"`
-	SockProtocol string `json:"sockProtocol"`
-	Options      struct {
-		AbortOnClose    bool `json:"abortOnClose"`
-		AllBackups      bool `json:"allBackups"`
-		CheckCache      bool `json:"checkCache"`
-		ForwardFor      bool `json:"forwardFor"`
-		HTTPClose       bool `json:"httpClose"`
-		HTTPCheck       bool `json:"httpCheck"`
-		SslHelloCheck   bool `json:"sslHelloCheck"`
-		TCPKeepAlive    bool `json:"tcpKeepAlive"`
-		TCPLog          bool `json:"tcpLog"`
-		TCPSmartAccept  bool `json:"tcpSmartAccept"`
-		TCPSmartConnect bool `json:"tcpSmartConnect"`
-	} `json:"options"`
-	DefaultBackend string `json:"defaultBackend"`
-	HTTPQuota      struct {
-	} `json:"httpQuota"`
-	TCPQuota struct {
-	} `json:"tcpQuota"`
-}
-
-// Vamp Backend
-type VampBackend []struct {
-	Name    string `json:"name"`
-	Mode    string `json:"mode"`
-	Servers []struct {
-		Name          string `json:"name"`
-		Host          string `json:"host"`
-		Port          int    `json:"port"`
-		UnixSock      string `json:"unixSock"`
-		Weight        int    `json:"weight"`
-		Maxconn       int    `json:"maxconn"`
-		Check         bool   `json:"check"`
-		CheckInterval int    `json:"checkInterval"`
-	} `json:"servers"`
-	Options struct {
-		AbortOnClose    bool `json:"abortOnClose"`
-		AllBackups      bool `json:"allBackups"`
-		CheckCache      bool `json:"checkCache"`
-		ForwardFor      bool `json:"forwardFor"`
-		HTTPClose       bool `json:"httpClose"`
-		HTTPCheck       bool `json:"httpCheck"`
-		SslHelloCheck   bool `json:"sslHelloCheck"`
-		TCPKeepAlive    bool `json:"tcpKeepAlive"`
-		TCPLog          bool `json:"tcpLog"`
-		TCPSmartAccept  bool `json:"tcpSmartAccept"`
-		TCPSmartConnect bool `json:"tcpSmartConnect"`
-	} `json:"options"`
-	ProxyMode bool `json:"proxyMode"`
+// Vamp
+type Vamp []struct {
+	Pxname        string `json:"pxname"`
+	Svname        string `json:"svname"`
+	Qcur          string `json:"qcur"`
+	Qmax          string `json:"qmax"`
+	Scur          string `json:"scur"`
+	Smax          string `json:"smax"`
+	Slim          string `json:"slim"`
+	Stot          string `json:"stot"`
+	Bin           string `json:"bin"`
+	Bout          string `json:"bout"`
+	Dreq          string `json:"dreq"`
+	Dresp         string `json:"dresp"`
+	Ereq          string `json:"ereq"`
+	Econ          string `json:"econ"`
+	Eresp         string `json:"eresp"`
+	Wretr         string `json:"wretr"`
+	Wredis        string `json:"wredis"`
+	Status        string `json:"status"`
+	Weight        string `json:"weight"`
+	Act           string `json:"act"`
+	Bck           string `json:"bck"`
+	Chkfail       string `json:"chkfail"`
+	Chkdown       string `json:"chkdown"`
+	Lastchg       string `json:"lastchg"`
+	Downtime      string `json:"downtime"`
+	Qlimit        string `json:"qlimit"`
+	Pid           string `json:"pid"`
+	Iid           string `json:"iid"`
+	Sid           string `json:"sid"`
+	Throttle      string `json:"throttle"`
+	Lbtot         string `json:"lbtot"`
+	Tracked       string `json:"tracked"`
+	Rate          string `json:"rate"`
+	RateLim       string `json:"rate_lim"`
+	RateMax       string `json:"rate_max"`
+	CheckStatus   string `json:"check_status"`
+	CheckCode     string `json:"check_code"`
+	CheckDuration string `json:"check_duration"`
+	Hrsp1xx       string `json:"hrsp_1xx"`
+	Hrsp2xx       string `json:"hrsp_2xx"`
+	Hrsp3xx       string `json:"hrsp_3xx"`
+	Hrsp4xx       string `json:"hrsp_4xx"`
+	Hrsp5xx       string `json:"hrsp_5xx"`
+	HrspOther     string `json:"hrsp_other"`
+	Hanafail      string `json:"hanafail"`
+	ReqRate       string `json:"req_rate"`
+	ReqRateMax    string `json:"req_rate_max"`
+	ReqTot        string `json:"req_tot"`
+	CliAbrt       string `json:"cli_abrt"`
+	SrvAbrt       string `json:"srv_abrt"`
+	CompIn        string `json:"comp_in"`
+	CompOut       string `json:"comp_out"`
+	CompByp       string `json:"comp_byp"`
+	CompRsp       string `json:"comp_rsp"`
+	Lastsess      string `json:"lastsess"`
+	LastChk       string `json:"last_chk"`
+	LastAgt       string `json:"last_agt"`
+	Qtime         string `json:"qtime"`
+	Ctime         string `json:"ctime"`
+	Rtime         string `json:"rtime"`
+	Ttime         string `json:"ttime"`
 }

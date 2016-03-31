@@ -93,6 +93,68 @@ func GetUserRC() []thoth.RC {
 	return RCArray
 }
 
+// map[port]{req,rps,2xx,4xx,5xx}
+func GetHAProxyStats() map[int]thoth.AppMetric {
+	// find the request per sec from haproxy-frontend
+	resFront, err := http.Get(thoth.VampApi + "/v1/stats/frontends")
+	if err != nil {
+		panic(err)
+	}
+	bodyFront, err := ioutil.ReadAll(resFront.Body)
+	resFront.Body.Close()
+	if err != nil {
+		panic(err)
+	}
+	//var rps uint64
+	var objectFront thoth.Vamp
+	err = json.Unmarshal([]byte(bodyFront), &objectFront)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	//find resonse time from haproxy-backends
+	resBack, err := http.Get(thoth.VampApi + "/v1/stats/backends")
+	if err != nil {
+		panic(err)
+	}
+	bodyBack, err := ioutil.ReadAll(resBack.Body)
+	resBack.Body.Close()
+	if err != nil {
+		panic(err)
+	}
+	var objectBack thoth.Vamp
+	err = json.Unmarshal([]byte(bodyBack), &objectBack)
+	if err != nil {
+		fmt.Println(err)
+	}
+	// Loop Port 9000-9999
+	// Get Front
+	// Get Back
+	// Add to Map
+
+	statsMap := make(map[int]thoth.AppMetric)
+	for i := 0; i < len(objectFront); i = i + 2 {
+		request, _ := strconv.ParseInt(objectFront[i].ReqRate, 10, 64)
+		response, _ := strconv.ParseInt(objectBack[i].Rtime, 10, 64)
+		response2xx, _ := strconv.ParseInt(objectBack[i].Hrsp2xx, 10, 64)
+		response4xx, _ := strconv.ParseInt(objectBack[i].Hrsp4xx, 10, 64)
+		response5xx, _ := strconv.ParseInt(objectBack[i].Hrsp5xx, 10, 64)
+		response5xxRoute, _ := strconv.ParseInt(objectBack[i+1].Hrsp5xx, 10, 64)
+		met := thoth.AppMetric{
+			Request:          request,
+			Response:         response,
+			Response2xx:      response2xx,
+			Response4xx:      response4xx,
+			Response5xx:      response5xx,
+			Response5xxRoute: response5xxRoute,
+		}
+		port := 9001 + i/2
+		statsMap[port] = met
+	}
+	// Merge objectFront, objectBack to thoth.AppMetric
+	return statsMap
+}
+
 //"/api/v1/replicationcontrollers"
 //"/api/v1/namespaces/{namespace}/replicationcontrollers"
 func GetReplicas(namespace, name string) (int, error) {
