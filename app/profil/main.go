@@ -1,14 +1,11 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/SOUP-CE-KMITL/Thoth"
 	"github.com/SOUP-CE-KMITL/Thoth/profil"
 	"github.com/influxdata/influxdb/client/v2"
-	"io/ioutil"
 	"log"
-	"net/http"
 	"time"
 )
 
@@ -26,76 +23,59 @@ func main() {
 
 	//-------------------------------------------------------------
 	for {
-		// Get All RC name
+		// Get All RC&SVC name
+		RC := profil.GetUserRC()
+		SVC := profil.GetUserSVC()
+		fmt.Println(SVC)
+		RCLen := len(RC)
 
-		rcList, err := http.Get(thoth.KubeApi + "/api/v1/replicationcontrollers")
-		if err != nil {
-			panic(err)
-		}
-		body, err := ioutil.ReadAll(rcList.Body)
-		rcList.Body.Close()
-		if err != nil {
-			panic(err)
-		}
-
-		var objRc interface{}
-		if err := json.Unmarshal([]byte(body), &objRc); err != nil {
-			panic(err)
-		}
-
-		// Extract RC Name
-		RCArray := []thoth.RC{}
-		RCLen := 0
-		_RCLen := len(objRc.(map[string]interface{})["items"].([]interface{}))
-		for i := 0; i < _RCLen; i++ {
-			namespace := objRc.(map[string]interface{})["items"].([]interface{})[i].(map[string]interface{})["metadata"].(map[string]interface{})["namespace"].(string)
-			if namespace != "default" {
-				rc := thoth.RC{
-					Name:      objRc.(map[string]interface{})["items"].([]interface{})[i].(map[string]interface{})["metadata"].(map[string]interface{})["labels"].(map[string]interface{})["app"].(string),
-					Namespace: namespace,
-				}
-				fmt.Println(rc.Namespace + "/" + rc.Name)
-				RCArray = append(RCArray, rc)
-				RCLen++
-			}
-		}
-		//fmt.Println(RCArray)
-
+		statsMap := profil.GetHAProxyStats()
+		fmt.Println(statsMap)
 		// Getting App resource usage
 		for i := 0; i < RCLen; i++ {
-			res := profil.GetAppResource(RCArray[i].Namespace, RCArray[i].Name)
-			//	fmt.Println(res)
-			replicas := profil.GetReplicas(RCArray[i].Namespace, RCArray[i].Name)
-			// thoth.AppMetric{App,Cpu,Memory,Request,Response,Response2xx,Response4xx,Response5xx
+			fmt.Println(RC[i].Namespace + "/" + RC[i].Name)
+			res := profil.GetAppResource(RC[i].Namespace, RC[i].Name)
+			replicas, err := profil.GetReplicas(RC[i].Namespace, RC[i].Name)
+			if err != nil {
+				//	panic(err)
+				log.Println(err)
+			}
 
 			tags := map[string]string{
-				"app": RCArray[i].Name,
+				"app": RC[i].Name,
 			}
-			
+			key := RC[i].Namespace + "/" + RC[i].Name
+			svcSpec := SVC[key]
+			fmt.Println(svcSpec)
+			//			if svcSpec != nil {
+			fmt.Println(SVC[key].Spec.Ports)
+			nodePort := SVC[key].Spec.Ports[0].NodePort
+			vampPort := nodePort - 21000
+			//			fmt.Println("VAMPStats ", vampStats.Spec.Ports[0].NodePort)
+			fmt.Println("Port ", vampPort)
+			//			fmt.Println("VAMPStats ", statsMap[vampPort])
+			stats := statsMap[vampPort]
 			fields := map[string]interface{}{
 				// CPU
 				// Memory
-				"cpu":      res.Cpu,
-				"memory":   res.Memory,
-				"request":  res.Request * int64(30) / int64(replicas),
-				"response": res.Response,
-				"code2xx":  res.Response2xx,
-				"code4xx":  res.Response4xx,
-				"code5xx":  res.Response5xx,
+				"cpu":          res.Cpu,
+				"memory":       res.Memory,
+				"request":      stats.Request,
+				"response":     stats.Response,
+				"code2xx":      stats.Response2xx,
+				"code4xx":      stats.Response4xx,
+				"code5xx":      stats.Response5xx,
+				"code5xxroute": stats.Response5xxRoute,
+
 				"replicas": replicas,
 			}
-			// fmt.Println(fields)
-			if err := profil.WritePoints(c, MyDB, RCArray[i].Namespace, "s", tags, fields); err != nil {
+			fmt.Println(fields)
+			if err := profil.WritePoints(c, RC[i].Namespace, "s", tags, fields); err != nil {
 				panic(err)
 			}
-			queryRes, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT count(response) FROM "+RCArray[i].Namespace))
-			//queryRes, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT * FROM "+RCArray[i].Namespace))
-			if err != nil {
-				log.Fatal(err)
-			}
-			fmt.Println(queryRes)
+			//			}
 		}
-		fmt.Println("Sleep")
+		fmt.Println("Sleep\n")
 		time.Sleep(10 * time.Second)
 	}
 	//-------------------------------------------------------------

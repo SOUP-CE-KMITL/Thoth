@@ -1,0 +1,118 @@
+"NeoBundle Scripts-----------------------------
+if &compatible
+  set nocompatible               " Be iMproved
+endif
+
+" Required:
+set runtimepath^=/root/.vim/bundle/neobundle.vim/
+
+" Required:
+call neobundle#begin(expand('/root/.vim/bundle'))
+
+" Let NeoBundle manage NeoBundle
+" Required:
+NeoBundleFetch 'Shougo/neobundle.vim'
+
+" Add or remove your Bundles here:
+NeoBundle 'Shougo/neosnippet.vim'
+NeoBundle 'Shougo/neosnippet-snippets'
+NeoBundle 'tpope/vim-fugitive'
+NeoBundle 'ctrlpvim/ctrlp.vim'
+NeoBundle 'flazz/vim-colorschemes'
+NeoBundle 'fatih/vim-go'
+NeoBundle 'pangloss/vim-javascript'
+NeoBundle 'easymotion/vim-easymotion'
+NeoBundle 'bling/vim-airline'
+NeoBundle 'majutsushi/tagbar'
+
+"NeoBundle 'valloric/youcompleteme'
+
+" You can specify revision/branch/tag.
+NeoBundle 'Shougo/vimshell', { 'rev' : '3787e5' }
+
+" Required:
+call neobundle#end()
+
+" Required:
+filetype plugin indent on
+
+" If there are uninstalled bundles found on startup,
+" this will conveniently prompt you to install them.
+NeoBundleCheck
+"End NeoBundle Scripts-------------------------
+colorscheme Tomorrow-Night
+set t_Co=256
+syntax on
+set nu
+
+let g:tagbar_type_go = {
+                        \ 'ctagstype' : 'go',
+                        \ 'kinds'     : [
+                        \ 'p:package',
+                        \ 'i:imports:1',
+                        \ 'c:constants',
+                        \ 'v:variables',
+                        \ 't:types',
+                        \ 'n:interfaces',
+                        \ 'w:fields',
+                        \ 'e:embedded',
+                        \ 'm:methods',
+                        \ 'r:constructor',
+                        \ 'f:functions'
+                        \ ],
+                        \ 'sro' : '.',
+                        \ 'kind2scope' : {
+                        \ 't' : 'ctype',
+                        \ 'n' : 'ntype'
+                        \ },
+                        \ 'scope2kind' : {
+                        \ 'ctype' : 't',
+                        \ 'ntype' : 'n'
+                        \ },
+                        \ 'ctagsbin'  : 'gotags',
+                        \ 'ctagsargs' : '-sort -silent'
+                        \ }
+let g:ctrlp_map = '<c-p>'
+let g:ctrlp_cmd = 'CtrlP'
+
+set wildignore+=*/tmp/*,*.so,*.swp,*.zip     " MacOSX/Linux
+set wildignore+=*\\tmp\\*,*.swp,*.zip,*.exe  " Windows
+
+let g:ctrlp_custom_ignore = '\v[\/]\.(git|hg|svn)$'
+
+let g:javascript_conceal_function   = "ƒ"
+let g:javascript_conceal_null       = "ø"
+let g:javascript_conceal_this       = "@"
+let g:javascript_conceal_return     = "⇚"
+let g:javascript_conceal_undefined  = "¿"
+let g:javascript_conceal_NaN        = "ℕ"
+let g:javascript_conceal_prototype  = "¶"
+let g:javascript_conceal_static     = "•"
+let g:javascript_conceal_super      = "Ω"
+
+set regexpengine=1
+set paste
+syntax enable
+
+nmap <F8> :TagbarToggle<CR>
+
+map <Leader> <Plug>(easymotion-prefix)
+let g:EasyMotion_do_mapping = 0 " Disable default mappings
+
+" Jump to anywhere you want with minimal keystrokes, with just one key binding.
+" `s{char}{label}`
+nmap s <Plug>(easymotion-overwin-f)
+" or
+" `s{char}{char}{label}`
+" Need one more keystroke, but on average, it may be more comfortable.
+" nmap s <Plug>(easymotion-overwin-f2)
+
+" Turn on case insensitive feature
+let g:EasyMotion_smartcase = 1
+
+" JK motions: Line motions
+map <Leader>j <Plug>(easymotion-j)
+map <Leader>k <Plug>(easymotion-k)
+
+" Golang
+au FileType go nmap <leader>f :GoFmt<CR>

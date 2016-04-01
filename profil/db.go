@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+var myDB string = "thoth"
+
 //func main2() {
 // Make client
 /*
@@ -25,23 +27,12 @@ import (
 //fmt.Print(res)
 //}
 
-func WritePoints(clnt client.Client, database string, measurement string, precision string, tags map[string]string, fields map[string]interface{}) error {
+func WritePoints(clnt client.Client, measurement string, precision string, tags map[string]string, fields map[string]interface{}) error {
 
 	bp, _ := client.NewBatchPoints(client.BatchPointsConfig{
-		Database:  database,
+		Database:  myDB,
 		Precision: precision,
 	})
-
-	//tags := map[string]string{
-	//	"cpu":    "cpu-total",
-	//	"host":   fmt.Sprintf("host%d", rand.Intn(1000)),
-	//	"region": regions[rand.Intn(len(regions))],
-	//}
-
-	//fields := map[string]interface{}{
-	//	"idle": idle,
-	//	"busy": 100.0 - idle,
-	//}
 
 	pt, _ := client.NewPoint(measurement, tags, fields, time.Now())
 	bp.AddPoint(pt)
@@ -49,10 +40,10 @@ func WritePoints(clnt client.Client, database string, measurement string, precis
 	return clnt.Write(bp)
 }
 
-func QueryDB(clnt client.Client, database string, cmd string) (res []client.Result, err error) {
+func QueryDB(clnt client.Client, cmd string) (res []client.Result, err error) {
 	q := client.Query{
 		Command:  cmd,
-		Database: database,
+		Database: myDB,
 	}
 	if response, err := clnt.Query(q); err == nil {
 		if response.Error() != nil {

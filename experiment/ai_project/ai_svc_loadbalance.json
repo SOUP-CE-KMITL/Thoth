@@ -2,7 +2,7 @@
     "kind": "Service",
     "apiVersion": "v1",
     "metadata": {
-        "name": "eight-puzzle-svc",
+        "name": "eight-puzzle",
         "namespace":"thoth"
     },
     "spec": {

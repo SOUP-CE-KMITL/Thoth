@@ -17,19 +17,158 @@ import (
 	"time"
 )
 
+func GetAllSVC() (thoth.ServiceList, error) {
+	response, err := http.Get(thoth.KubeApi + "/api/v1/services")
+	if err != nil {
+		panic(err)
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	response.Body.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	//var objSvc interface{}
+	objSvc := thoth.ServiceList{}
+	if err := json.Unmarshal([]byte(body), &objSvc); err != nil {
+		panic(err)
+	}
+	return objSvc, err
+}
+
+// map[namespace/name]Spec
+func GetUserSVC() map[string]thoth.SvcSpec {
+	allSvc, err := GetAllSVC()
+	if err != nil {
+		return nil
+	}
+	svcMap := make(map[string]thoth.SvcSpec)
+	for _, svc := range allSvc.Items {
+		if svc.Metadata.Namespace != "default" {
+			key := svc.Metadata.Namespace + "/" + svc.Metadata.Name
+			svcMap[key] = svc
+		}
+	}
+	return svcMap
+}
+
+func GetAllRC() (interface{}, error) {
+	response, err := http.Get(thoth.KubeApi + "/api/v1/replicationcontrollers")
+	if err != nil {
+		panic(err)
+	}
+	body, err := ioutil.ReadAll(response.Body)
+	response.Body.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	var objRc interface{}
+	if err := json.Unmarshal([]byte(body), &objRc); err != nil {
+		panic(err)
+	}
+	return objRc, err
+}
+
+// Get every RC except in default (where kubernetes run)
+func GetUserRC() []thoth.RC {
+	allRc, err := GetAllRC()
+	if err != nil {
+		panic(err)
+	}
+	RCArray := []thoth.RC{}
+	_RCLen := len(allRc.(map[string]interface{})["items"].([]interface{}))
+	for i := 0; i < _RCLen; i++ {
+		namespace := allRc.(map[string]interface{})["items"].([]interface{})[i].(map[string]interface{})["metadata"].(map[string]interface{})["namespace"].(string)
+		if namespace != "default" {
+			rc := thoth.RC{
+				Name:      allRc.(map[string]interface{})["items"].([]interface{})[i].(map[string]interface{})["metadata"].(map[string]interface{})["labels"].(map[string]interface{})["app"].(string),
+				Namespace: namespace,
+			}
+			fmt.Println(rc.Namespace + "/" + rc.Name)
+			RCArray = append(RCArray, rc)
+		}
+	}
+	return RCArray
+}
+
+// map[port]{req,rps,2xx,4xx,5xx}
+func GetHAProxyStats() map[int]thoth.AppMetric {
+	// find the request per sec from haproxy-frontend
+	resFront, err := http.Get(thoth.VampApi + "/v1/stats/frontends")
+	if err != nil {
+		panic(err)
+	}
+	bodyFront, err := ioutil.ReadAll(resFront.Body)
+	resFront.Body.Close()
+	if err != nil {
+		panic(err)
+	}
+	//var rps uint64
+	var objectFront thoth.Vamp
+	err = json.Unmarshal([]byte(bodyFront), &objectFront)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	//find resonse time from haproxy-backends
+	resBack, err := http.Get(thoth.VampApi + "/v1/stats/backends")
+	if err != nil {
+		panic(err)
+	}
+	bodyBack, err := ioutil.ReadAll(resBack.Body)
+	resBack.Body.Close()
+	if err != nil {
+		panic(err)
+	}
+	var objectBack thoth.Vamp
+	err = json.Unmarshal([]byte(bodyBack), &objectBack)
+	if err != nil {
+		fmt.Println(err)
+	}
+	// Loop Port 9000-9999
+	// Get Front
+	// Get Back
+	// Add to Map
+
+	statsMap := make(map[int]thoth.AppMetric)
+	for i := 0; i < len(objectFront); i = i + 2 {
+		request, _ := strconv.ParseInt(objectFront[i].ReqRate, 10, 64)
+		response, _ := strconv.ParseInt(objectBack[i].Rtime, 10, 64)
+		response2xx, _ := strconv.ParseInt(objectBack[i].Hrsp2xx, 10, 64)
+		response4xx, _ := strconv.ParseInt(objectBack[i].Hrsp4xx, 10, 64)
+		response5xx, _ := strconv.ParseInt(objectBack[i].Hrsp5xx, 10, 64)
+		response5xxRoute, _ := strconv.ParseInt(objectBack[i+1].Hrsp5xx, 10, 64)
+		met := thoth.AppMetric{
+			Request:          request,
+			Response:         response,
+			Response2xx:      response2xx,
+			Response4xx:      response4xx,
+			Response5xx:      response5xx,
+			Response5xxRoute: response5xxRoute,
+		}
+		port := 9001 + i/2
+		statsMap[port] = met
+	}
+	// Merge objectFront, objectBack to thoth.AppMetric
+	return statsMap
+}
+
 //"/api/v1/replicationcontrollers"
 //"/api/v1/namespaces/{namespace}/replicationcontrollers"
-func GetReplicas(namespace, name string) int {
+func GetReplicas(namespace, name string) (int, error) {
 
 	res, err := http.Get(thoth.KubeApi + "/api/v1/namespaces/" + namespace + "/replicationcontrollers/" + name)
 	if err != nil {
-		fmt.Println("Can't connect to cadvisor")
-		panic(err)
+		//		panic(err)
+		return -1, err
 	}
 	body, err := ioutil.ReadAll(res.Body)
-	res.Body.Close()
+	defer res.Body.Close()
 	if err != nil {
-		panic(err)
+		//	panic(err)
+		return -1, err
 	} else {
 		// json handler type
 		var res_obj map[string]interface{}
@@ -41,7 +180,7 @@ func GetReplicas(namespace, name string) int {
 			panic(err)
 		}
 		//fmt.Println(json)
-		return int(repli)
+		return int(repli), nil
 	}
 }
 
@@ -177,54 +316,8 @@ func GetAppResource(namespace, name string) thoth.AppMetric {
 	}
 
 	podNum := len(pod_ips)
-
-	// find the request per sec from haproxy-frontend
-	res_front, err := http.Get(thoth.VampApi + "/v1/stats/frontends")
-	if err != nil {
-		panic(err)
-	}
-	body_front, err := ioutil.ReadAll(res_front.Body)
-	res_front.Body.Close()
-	if err != nil {
-		panic(err)
-	}
-	//var rps uint64
-	var object_front []map[string]interface{}
-	err = json.Unmarshal([]byte(body_front), &object_front)
-	rps := object_front[0]["req_rate"].(string)
-	rps_int, _ := strconv.ParseInt(rps, 10, 64)
-	if err == nil {
-	} else {
-		fmt.Println(err)
-	}
-
-	//find resonse time from haproxy-backends
-	//var rtime uint64
-	res_back, err := http.Get(thoth.VampApi + "/v1/stats/backends")
-	if err != nil {
-		panic(err)
-	}
-	body_back, err := ioutil.ReadAll(res_back.Body)
-	res_back.Body.Close()
-	if err != nil {
-		panic(err)
-	}
-
-	var object_back []map[string]interface{}
-	err = json.Unmarshal([]byte(body_back), &object_back)
-	rtime := object_back[0]["rtime"].(string)
-	res_2xx := object_back[0]["hrsp_2xx"].(string)
-	res_4xx := object_back[0]["hrsp_4xx"].(string)
-	res_5xx := object_back[0]["hrsp_5xx"].(string)
-	rtime_int, _ := strconv.ParseInt(rtime, 10, 64)
-	res2xx_int, _ := strconv.ParseInt(res_2xx, 10, 64)
-	res4xx_int, _ := strconv.ParseInt(res_4xx, 10, 64)
-	res5xx_int, _ := strconv.ParseInt(res_5xx, 10, 64)
-	if err == nil {
-	} else {
-		fmt.Println(err)
-	}
-
+	/*
+	 */
 	//fmt.Println("rps: ", rps, ", rtime: ", rtime)
 	// find the cpu avarage of application cpu usage
 	average_cpu := summary_cpu / float32(len(container_ids))
@@ -240,14 +333,16 @@ func GetAppResource(namespace, name string) thoth.AppMetric {
 
 	// create appliction object
 	app_metric := thoth.AppMetric{
-		App:         name,
-		Cpu:         average_cpu,
-		Memory:      int64(avgMem),
-		Request:     rps_int,
-		Response:    rtime_int,
-		Response2xx: res2xx_int,
-		Response4xx: res4xx_int,
-		Response5xx: res5xx_int,
+		App:    name,
+		Cpu:    average_cpu,
+		Memory: int64(avgMem),
+		/*
+			Request:     rps_int,
+			Response:    rtime_int,
+			Response2xx: res2xx_int,
+			Response4xx: res4xx_int,
+			Response5xx: res5xx_int,
+		*/
 	}
 	return app_metric
 
@@ -264,6 +359,5 @@ func GetCpu(containerId string) (float64, error) {
 	//cpuPercent := strings.Fields(string(result))[14]
 	//fmt.Println("get CPU ", cpuPercent2)
 	cpuPercent = cpuPercent[0 : len(cpuPercent)-1]
-	fmt.Println("get CPU ", cpuPercent)
 	return strconv.ParseFloat(cpuPercent, 32)
 }
