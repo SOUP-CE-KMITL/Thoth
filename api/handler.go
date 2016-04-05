@@ -653,7 +653,7 @@ func CreateRc(w http.ResponseWriter, r *http.Request) {
 					Name:      rc.Name,
 					Namespace: rc.Namespace,
 				},
-				Spec: thoth.SvcSpec{
+				Spec: thoth.Spec{
 					Ports: []thoth.Port{
 						thoth.Port{
 							NodePort:   nodePort,
@@ -756,7 +756,6 @@ func SpeechRecog(w http.ResponseWriter, r *http.Request) {
 
 // The error application
 func getErrorApp(w http.ResponseWriter, r *http.Request) {
-	var MyDB string = "thoth"
 	var username string = "thoth"
 	var password string = "thoth"
 
@@ -767,7 +766,7 @@ func getErrorApp(w http.ResponseWriter, r *http.Request) {
 		Password: password,
 	})
 	// TODO: iterate to query for each app
-	queryRes, err := profil.QueryDB(c, MyDB, fmt.Sprint("SELECT last(code5xx) FROM thoth"))
+	queryRes, err := profil.QueryDB(c, fmt.Sprint("SELECT last(code5xx) FROM thoth"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -791,8 +790,8 @@ func IsTCPPortAvailable(port int) bool {
 // ports are available -1 is returned.
 func RandomTCPPort() int {
 	tcpPortRand := rand.New(rand.NewSource(time.Now().UnixNano()))
-	for i := 0; i < 1000; i++ {
-		p := 30000 + tcpPortRand.Intn(1000)
+	for i := 0; i < 100; i++ {
+		p := 30000 + tcpPortRand.Intn(100)
 		fmt.Println("RndPort", p)
 		if IsTCPPortAvailable(p) {
 			return p

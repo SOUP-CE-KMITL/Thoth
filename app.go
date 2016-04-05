@@ -51,12 +51,21 @@ type Svc struct {
 	APIVersion string    `json:"apiVersion"`
 	Kind       string    `json:"kind"`
 	Metadata   Metadata  `json:"metadata"`
-	Spec       SvcSpec   `json:"spec"`
+	Spec       Spec      `json:"spec"`
 	Status     SvcStatus `json:"status"`
 }
 
+type Spec struct {
+	Ports           []Port   `json:"ports"`
+	Selector        Selector `json:"selector"`
+	ClusterIP       string   `json:"clusterIP"`
+	Type            string   `json:"type"`
+	SessionAffinity string   `json:"sessionAffinity"`
+}
+
 type SvcSpec struct {
-	Metadata struct {
+	APIVersion string
+	Metadata   struct {
 		Name              string    `json:"name"`
 		Namespace         string    `json:"namespace"`
 		SelfLink          string    `json:"selfLink"`
@@ -115,14 +124,14 @@ type ServiceList struct {
 type Metadata struct {
 	Name              string    `json:"name"`
 	Namespace         string    `json:"namespace"`
-	SelfLink          string    `json:"selfLink"`
-	UID               string    `json:"uid"`
-	ResourceVersion   string    `json:"resourceVersion"`
-	CreationTimestamp time.Time `json:"creationTimestamp"`
+	SelfLink          string    `json:"selfLink,omitempty"`
+	UID               string    `json:"uid,omitempty"`
+	ResourceVersion   string    `json:"resourceVersion,omitempty"`
+	CreationTimestamp time.Time `json:"creationTimestamp,omitempty"`
 	Labels            struct {
 		Component string `json:"component"`
 		Provider  string `json:"provider"`
-	} `json:"labels"`
+	} `json:"labels,omitempty"`
 }
 
 // Vamp
