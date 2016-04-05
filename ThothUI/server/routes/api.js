@@ -93,7 +93,7 @@ router.post('/create/app/:username', function(req, res) {
         userDoc.save(function (err) {
           console.log("come inside save")
           if (err){
-            console.log("cannot save application to user")
+            console.log("cannot save application to user"+err)
             res.json({err: 'cannot save application to user'});
           }
           res.status(200).json({status: "work"});
