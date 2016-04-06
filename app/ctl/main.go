@@ -1,19 +1,19 @@
 package main
 
 import (
-	//	"encoding/json"
+	"encoding/csv"
 	"fmt"
 	"github.com/SOUP-CE-KMITL/Thoth"
+	"github.com/SOUP-CE-KMITL/Thoth/learn"
 	"github.com/SOUP-CE-KMITL/Thoth/profil"
+	"github.com/goml/gobrain"
 	"github.com/influxdata/influxdb/client/v2"
 	"github.com/white-pony/go-fann"
-	"strings"
-	//	"io/ioutil"
-	"encoding/csv"
-	"github.com/goml/gobrain"
 	"io"
 	"log"
-	"math"
+	"os/signal"
+	"strings"
+	//"math"
 	"math/rand"
 	"os"
 	"strconv"
@@ -24,6 +24,23 @@ var username string = "thoth"
 var password string = "thoth"
 
 func main() {
+	agent := learn.QLearn{Gamma: 0.4, Epsilon: 0.6}
+	agent.Init()
+	if err := agent.Load("ql.da"); err != nil {
+		fmt.Println("Load Fail", err)
+	}
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for sig := range c {
+			// sig is a ^C, handle it
+			fmt.Println(sig)
+			agent.Save("ql.da")
+			os.Exit(0)
+		}
+	}()
+
 	// Connect InfluxDB
 	influxDB, err := client.NewHTTPClient(client.HTTPConfig{
 		Addr:     thoth.InfluxdbApi,
@@ -36,7 +53,6 @@ func main() {
 	}
 
 	for {
-
 		// Get all user RC
 		RC := profil.GetUserRC()
 		RCLen := len(RC)
@@ -50,66 +66,82 @@ func main() {
 			}
 			fmt.Println(replicas)
 
-			// Check Resposne time & Label & Save WPI
-			var responseDay, response10Min float64
-			if responseDay, err = profil.GetProfilAvg(influxDB, RC[i].Namespace, RC[i].Name, "response", "1d"); err != nil {
-				panic(err)
-				log.Println(err)
-			}
-			if response10Min, err = profil.GetProfilAvg(influxDB, RC[i].Namespace, RC[i].Name, "response", "5m"); err != nil {
-				panic(err)
-				log.Println(err)
-			}
-			// Floor
-			responseDay = math.Floor(responseDay)
-			response10Min = math.Floor(response10Min)
-			fmt.Println("D", responseDay, " 10M", response10Min)
-			metrics := profil.GetAppResource(RC[i].Namespace, RC[i].Name)
-			var cpu10Min float64
-			if cpu10Min, err = profil.GetProfilAvg(influxDB, RC[i].Namespace, RC[i].Name, "cpu", "5m"); err != nil {
-				panic(err)
-				log.Println(err)
-			}
-			fmt.Println("CPU ", cpu10Min)
-			if cpu10Min > 70 {
-				fmt.Println("Response check")
-				if response10Min > responseDay { // TODO:Need to check WPI too
-					// Save WPI
-					fmt.Println("Scale+1")
-					if err := profil.WriteRPI(influxDB, RC[i].Namespace, RC[i].Name, metrics.Request, replicas); err != nil {
-						panic(err)
-						log.Println(err)
-					}
-					// Scale +1
-					// TODO: Limit
-					if replicas < 10 {
-						if _, err := thoth.ScaleOutViaCli(replicas+1, RC[i].Namespace, RC[i].Name); err != nil {
+			// TODO : Chane time interval
+			res := profil.GetProfilLast(influxDB, RC[i].Namespace, RC[i].Name, "1m")
+			fmt.Println(res)
+
+			agent.SetCurrentState(res["cpu"], res["memory"], res["rps"], res["rtime"], int(res["r5xx"]), replicas)
+			//agent.States[learn.State{Replicas: 2}] = learn.Action{Plus: 1, Stay: 2, Minus: -1}
+			fmt.Println(agent)
+			//func (q *QLearn) SetCurrentState(cpu, mem, rps, rtime float32, r5xx, replicas int) {
+			//			agent.CurrentState = learn.State{Replicas: 2}
+			//			fmt.Println("MAX", agent.MaximumOp())
+			//			profil.GetProfilAvg(influxDB, RC[i].Namespace, RC[i].Name, "response", "5m")
+			/*
+				// Check Resposne time & Label & Save WPI
+				var responseDay, response10Min float64
+				if responseDay, err = profil.GetProfilAvg(influxDB, RC[i].Namespace, RC[i].Name, "response", "1d"); err != nil {
+					panic(err)
+					log.Println(err)
+				}
+				if response10Min, err = profil.GetProfilAvg(influxDB, RC[i].Namespace, RC[i].Name, "response", "5m"); err != nil {
+					panic(err)
+					log.Println(err)
+				}
+				// Floor
+				responseDay = math.Floor(responseDay)
+				response10Min = math.Floor(response10Min)
+				fmt.Println("D", responseDay, " 10M", response10Min)
+				metrics := profil.GetAppResource(RC[i].Namespace, RC[i].Name)
+				var cpu10Min float64
+				if cpu10Min, err = profil.GetProfilAvg(influxDB, RC[i].Namespace, RC[i].Name, "cpu", "5m"); err != nil {
+					panic(err)
+					log.Println(err)
+				}
+				fmt.Println("CPU ", cpu10Min)
+				if cpu10Min > 70 {
+					fmt.Println("Response check")
+					if response10Min > responseDay { // TODO:Need to check WPI too
+						// Save WPI
+						fmt.Println("Scale+1")
+						if err := profil.WriteRPI(influxDB, RC[i].Namespace, RC[i].Name, metrics.Request, replicas); err != nil {
 							panic(err)
+							log.Println(err)
+						}
+						// Scale +1
+						// TODO: Limit
+						if replicas < 10 {
+							/*
+								if _, err := thoth.ScaleOutViaCli(replicas+1, RC[i].Namespace, RC[i].Name); err != nil {
+									panic(err)
+								}
+
+						}
+					}
+				} else if replicas > 1 {
+					// = rpi/replicas
+					var rpiMax float64
+					if rpiMax, err = profil.GetAvgRPI(influxDB, RC[i].Namespace, RC[i].Name); err != nil {
+						rpiMax = -1
+						// TODO:Handler
+						//panic(err)
+					}
+					fmt.Println("WPI", rpiMax)
+					if rpiMax > 0 {
+						minReplicas := int(metrics.Request / int64(rpiMax)) // TODO: Ceil?
+
+						if minReplicas < replicas {
+							// Scale -1
+							fmt.Println("Scale-1")
+							/*
+								if _, err := thoth.ScaleOutViaCli(replicas-1, RC[i].Namespace, RC[i].Name); err != nil {
+									panic(err)
+								}
+
 						}
 					}
 				}
-			} else if replicas > 1 {
-				// = rpi/replicas
-				var rpiMax float64
-				if rpiMax, err = profil.GetAvgRPI(influxDB, RC[i].Namespace, RC[i].Name); err != nil {
-					rpiMax = -1
-					// TODO:Handler
-					//panic(err)
-				}
-				fmt.Println("WPI", rpiMax)
-				if rpiMax > 0 {
-					minReplicas := int(metrics.Request / int64(rpiMax)) // TODO: Ceil?
-
-					if minReplicas < replicas {
-						// Scale -1
-						fmt.Println("Scale-1")
-						if _, err := thoth.ScaleOutViaCli(replicas-1, RC[i].Namespace, RC[i].Name); err != nil {
-							panic(err)
-						}
-					}
-				}
-			}
-
+			*/
 		}
 		// -----Prediction-----
 		// Normalize
@@ -118,7 +150,7 @@ func main() {
 		//runFann()
 		//-----------
 		fmt.Println("Sleep TODO:Change to 5 Min")
-		time.Sleep(5 * time.Minute)
+		time.Sleep(10 * time.Second)
 	}
 }
 

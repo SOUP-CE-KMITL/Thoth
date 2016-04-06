@@ -330,6 +330,8 @@ func GetAppResource(namespace, name string) thoth.AppMetric {
 	}
 	avgMem = avgMem / uint64(podNum)
 	avgMem = avgMem / uint64(1024*1024) // MB
+	// Convert to percentage 100%=200MB
+	avgMem = avgMem / 2
 
 	// create appliction object
 	app_metric := thoth.AppMetric{

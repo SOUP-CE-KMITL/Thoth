@@ -58,14 +58,14 @@ func main() {
 			fields := map[string]interface{}{
 				// CPU
 				// Memory
-				"cpu":          res.Cpu,
-				"memory":       res.Memory,
-				"request":      stats.Request,
-				"response":     stats.Response,
-				"code2xx":      stats.Response2xx,
-				"code4xx":      stats.Response4xx,
-				"code5xx":      stats.Response5xx,
-				"code5xxroute": stats.Response5xxRoute,
+				"cpu":       res.Cpu,
+				"memory":    res.Memory,
+				"rps":       stats.Request,
+				"rtime":     stats.Response,
+				"r2xx":      stats.Response2xx,
+				"r4xx":      stats.Response4xx,
+				"r5xx":      stats.Response5xx,
+				"r5xxroute": stats.Response5xxRoute,
 
 				"replicas": replicas,
 			}
