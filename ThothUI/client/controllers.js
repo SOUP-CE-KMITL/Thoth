@@ -17,6 +17,9 @@ angular.module('myApp').controller('loginController',
           $location.path('/');
           $scope.disabled = false;
           $scope.loginForm = {};
+          
+          $scope.user = {username:AuthService.getUsername()};
+
         })
         // handle error
         .catch(function () {
@@ -252,22 +255,18 @@ angular.module('myApp').controller('HeaderController',
     $scope.isActive = function (viewLocation) {
       return $location.path().indexOf(viewLocation) == 0;
     };
-    // get user details
-    AuthService.getUser().then(function(user) {
-      $scope.user = user;
-    });
 
-    $scope.$watchCollection('user', function(newVal){
-      $scope.user = newVal;
-    });
-
-    $scope.user_status = AuthService.isLoggedIn();
+    // $scope.user_status = AuthService.isLoggedIn();
     $scope.$watch(AuthService.isLoggedIn, function(newVal, oldVal) {
       console.log("user object"+AuthService.getUserStatus());
       console.log("data form watch : "+newVal);
       $scope.user_status = newVal;
     });
-    
+
+
+    $scope.$watch(AuthService.getUsername, function(newVal, oldVal) {
+      $scope.user = newVal;
+    });
 
   }
 ]);
