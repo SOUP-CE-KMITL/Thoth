@@ -42,6 +42,7 @@ router.get('/profile', function(req, res){
   if(req.user == undefined) {
     return "none";
   }
+  console.log("backend user : "+req.user.username);
   res.status(200).json({user: req.user.username});
 });
 

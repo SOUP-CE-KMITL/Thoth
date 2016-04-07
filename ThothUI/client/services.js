@@ -5,7 +5,7 @@ angular.module('myApp').factory('AuthService',
     // create user variable
     var user = null;
 
-    var user_obj;
+    var user_obj = "none";
 
 
     // return available functions for use in controllers
@@ -16,7 +16,8 @@ angular.module('myApp').factory('AuthService',
       logout: logout,
       register: register,
       getUser: getUser,
-      createApp: createApp
+      createApp: createApp,
+      getUsername: getUsername
     });
 
     function isLoggedIn() {
@@ -31,6 +32,10 @@ angular.module('myApp').factory('AuthService',
       return user;
     }
 
+    function getUsername() {
+      return user_obj;
+    }
+
     function login(username, password) {
 
       // create a new instance of deferred
@@ -42,7 +47,8 @@ angular.module('myApp').factory('AuthService',
         .success(function (data, status) {
           if(status === 200 && data.status){
             user = true;
-            console.log("user status : "+ isLoggedIn());
+            user_obj = username;
+            alert("username from service : "+user_obj);
             deferred.resolve();
           } else {
             user = false;
