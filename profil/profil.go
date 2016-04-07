@@ -19,10 +19,9 @@ func GetProfilAvg(conn influx.Client, namespace, name, field, timeLength string)
 
 func GetProfilLast(conn influx.Client, namespace, name, timeLength string) map[string]float64 {
 	//mean(cpu),mean(memory),mean(request),mean(response),stddev(code5xx)
-	query := fmt.Sprint("SELECT mean(cpu) as cpu,mean(memory) as memory,mean(rps) as rps,mean(rtime) as rtime,stddev(r2xx) as r2xx,stddev(r5xx) as r5xx FROM " + namespace + " WHERE app =~ /" + name + "/ AND time > now() - " + timeLength)
+	query := fmt.Sprint("SELECT mean(cpu) as cpu,mean(memory) as memory,mean(rps) as rps,mean(rtime) as rtime,stddev(r2xx) as r2xx,stddev(r5xx) as r5xx,last(replicas) as replicas FROM " + namespace + " WHERE app =~ /" + name + "/ AND time > now() - " + timeLength)
 	dbResult, err := QueryDB(conn, query)
 	if err != nil {
-		panic(err)
 		return nil
 	}
 	res := make(map[string]float64)
@@ -32,6 +31,7 @@ func GetProfilLast(conn influx.Client, namespace, name, timeLength string) map[s
 	res[fmt.Sprint(dbResult[0].Series[0].Columns[4])], _ = strconv.ParseFloat(fmt.Sprint(dbResult[0].Series[0].Values[0][4]), 32)
 	res[fmt.Sprint(dbResult[0].Series[0].Columns[5])], _ = strconv.ParseFloat(fmt.Sprint(dbResult[0].Series[0].Values[0][5]), 32)
 	res[fmt.Sprint(dbResult[0].Series[0].Columns[6])], _ = strconv.ParseFloat(fmt.Sprint(dbResult[0].Series[0].Values[0][6]), 32)
+	res[fmt.Sprint(dbResult[0].Series[0].Columns[7])], _ = strconv.ParseFloat(fmt.Sprint(dbResult[0].Series[0].Values[0][7]), 32)
 	return res
 }
 

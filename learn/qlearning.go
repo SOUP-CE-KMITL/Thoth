@@ -29,8 +29,8 @@ type Action struct {
 }
 
 type QLearn struct {
-	Gamma   float32 `json:"gamma"` //0.4
-	Epsilon float32 `json:"epsilon"`
+	Gamma   float64 `json:"gamma"` //0.4
+	Epsilon float64 `json:"epsilon"`
 	rnd     *rand.Rand
 	States  map[string]Action `json:"states"`
 	//	Action int -1,0,+1
@@ -38,41 +38,93 @@ type QLearn struct {
 	CurrentState State
 }
 
-// Choose and Fill Reward
-// esp = epislon -- explore prob
+// If prob < eps then Explore
+// Else then choose maxRewardAction
 func (q QLearn) ChooseAction() int {
-	// Rand prob
-	// If prob < eps then Explore
-	// Else then choose maxRewardAction
-
-	// Don,t allow to cause app to be 0 replicas
-	action := 1
-	return action
+	var nextAction int
+	prob := q.rnd.Float64()
+	fmt.Println("Prob ", prob, "? Epsilon", q.Epsilon)
+	if prob < q.Epsilon {
+		fmt.Println("Go Explore")
+		nextAction = q.rnd.Intn(3) - 1 // -1,0,1
+	} else {
+		fmt.Println("Go Best")
+		action := q.States[toKey(q.CurrentState)]
+		maxR := math.Max(action.Plus, math.Max(action.Stay, action.Minus))
+		if action.Minus == maxR {
+			nextAction = -1
+		} else if action.Plus == maxR {
+			nextAction = +1
+		} else { // Stay
+			nextAction = 0
+		}
+	}
+	fmt.Println("Action :", nextAction)
+	return nextAction
 }
 
+/*
 func (q QLearn) ValidAction(action int) bool {
+	// TODO: May be 0 is good when no one using it
 	if q.CurrentState.Replicas+action <= 0 {
 		return false
 	}
 	return true
 }
-
 // TODO: This fn may not need
 func (q *QLearn) GoNextState(action int) {
 	q.CurrentState.Replicas += action
 	// TODO: What about cpu,mem,etc..
 }
-
-func (q QLearn) MaximumOp() float32 {
+*/
+func (q QLearn) MaximumOp(state State) float64 {
 	// Find Best action then return it Q-Matrix
-
-	action := q.States[toKey(q.CurrentState)]
-
-	return float32(math.Max(action.Plus, math.Max(action.Stay, action.Minus)))
+	action := q.States[toKey(state)]
+	max := math.Max(action.Plus, math.Max(action.Stay, action.Minus))
+	fmt.Println("Max ", action)
+	fmt.Println("Max=", max)
+	return max
 }
 
-func (q QLearn) Reward() {
+func (q *QLearn) Reward(state State, action int, nowStatus map[string]float64) float64 {
+	reward := 0.0
+	// ACTION
+	if action == 1 {
+		reward -= 10
+	} else if action == -1 {
+		reward += 10
+	} else {
+		reward += 0
+	}
+	// Replicas - More replicas more penalty
+	reward += 1 - nowStatus["replicas"]
+	// Replicas 1-1=0
+	if nowStatus["replicas"] == 1 {
+		reward -= 100
+	}
+
+	// RTime
+	reward += 5 - nowStatus["rtime"]
+
+	// 5XX
+	reward -= nowStatus["r5xx"]
+
 	// R(current,action)+gamma*MaximumOp
+	reward += q.Gamma * q.MaximumOp(state)
+	fmt.Println("Reward ", reward)
+	// Update Q-Matrix
+	qAction := q.States[toKey(state)]
+	if action == 0 {
+		qAction.Plus += reward
+		q.States[toKey(state)] = qAction
+	} else if action == -1 {
+		qAction.Minus += reward
+		q.States[toKey(state)] = qAction
+	} else {
+		qAction.Stay += reward
+		q.States[toKey(state)] = qAction
+	}
+	return reward
 }
 
 func (q *QLearn) Init() {

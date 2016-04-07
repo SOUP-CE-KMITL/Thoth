@@ -24,11 +24,12 @@ var username string = "thoth"
 var password string = "thoth"
 
 func main() {
-	agent := learn.QLearn{Gamma: 0.4, Epsilon: 0.6}
+	agent := learn.QLearn{Gamma: 0.4, Epsilon: 0.4}
 	agent.Init()
 	if err := agent.Load("ql.da"); err != nil {
 		fmt.Println("Load Fail", err)
 	}
+	agent.Epsilon = 0.4
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -52,6 +53,9 @@ func main() {
 		panic(err)
 	}
 
+	firstRun := true
+	lastState := learn.State{}
+	lastAction := 0
 	for {
 		// Get all user RC
 		RC := profil.GetUserRC()
@@ -60,97 +64,35 @@ func main() {
 		// Getting App Metric
 		for i := 0; i < RCLen; i++ {
 			replicas, err := profil.GetReplicas(RC[i].Namespace, RC[i].Name)
-
 			if err != nil {
 				panic(err)
 			}
-			fmt.Println(replicas)
 
 			// TODO : Chane time interval
 			res := profil.GetProfilLast(influxDB, RC[i].Namespace, RC[i].Name, "1m")
 			fmt.Println(res)
 
+			if !firstRun {
+				// Reward Last state
+				agent.Reward(lastState, lastAction, res)
+			}
+			firstRun = false
+
+			lastState = agent.CurrentState
 			agent.SetCurrentState(res["cpu"], res["memory"], res["rps"], res["rtime"], int(res["r5xx"]), replicas)
-			//agent.States[learn.State{Replicas: 2}] = learn.Action{Plus: 1, Stay: 2, Minus: -1}
+			action := agent.ChooseAction()
+
+			if action+replicas != 0 {
+				if _, err := thoth.ScaleOutViaCli(replicas+action, RC[i].Namespace, RC[i].Name); err != nil {
+					fmt.Println(err)
+				}
+			}
+			lastAction = action
 			fmt.Println(agent)
-			//func (q *QLearn) SetCurrentState(cpu, mem, rps, rtime float32, r5xx, replicas int) {
-			//			agent.CurrentState = learn.State{Replicas: 2}
-			//			fmt.Println("MAX", agent.MaximumOp())
-			//			profil.GetProfilAvg(influxDB, RC[i].Namespace, RC[i].Name, "response", "5m")
-			/*
-				// Check Resposne time & Label & Save WPI
-				var responseDay, response10Min float64
-				if responseDay, err = profil.GetProfilAvg(influxDB, RC[i].Namespace, RC[i].Name, "response", "1d"); err != nil {
-					panic(err)
-					log.Println(err)
-				}
-				if response10Min, err = profil.GetProfilAvg(influxDB, RC[i].Namespace, RC[i].Name, "response", "5m"); err != nil {
-					panic(err)
-					log.Println(err)
-				}
-				// Floor
-				responseDay = math.Floor(responseDay)
-				response10Min = math.Floor(response10Min)
-				fmt.Println("D", responseDay, " 10M", response10Min)
-				metrics := profil.GetAppResource(RC[i].Namespace, RC[i].Name)
-				var cpu10Min float64
-				if cpu10Min, err = profil.GetProfilAvg(influxDB, RC[i].Namespace, RC[i].Name, "cpu", "5m"); err != nil {
-					panic(err)
-					log.Println(err)
-				}
-				fmt.Println("CPU ", cpu10Min)
-				if cpu10Min > 70 {
-					fmt.Println("Response check")
-					if response10Min > responseDay { // TODO:Need to check WPI too
-						// Save WPI
-						fmt.Println("Scale+1")
-						if err := profil.WriteRPI(influxDB, RC[i].Namespace, RC[i].Name, metrics.Request, replicas); err != nil {
-							panic(err)
-							log.Println(err)
-						}
-						// Scale +1
-						// TODO: Limit
-						if replicas < 10 {
-							/*
-								if _, err := thoth.ScaleOutViaCli(replicas+1, RC[i].Namespace, RC[i].Name); err != nil {
-									panic(err)
-								}
-
-						}
-					}
-				} else if replicas > 1 {
-					// = rpi/replicas
-					var rpiMax float64
-					if rpiMax, err = profil.GetAvgRPI(influxDB, RC[i].Namespace, RC[i].Name); err != nil {
-						rpiMax = -1
-						// TODO:Handler
-						//panic(err)
-					}
-					fmt.Println("WPI", rpiMax)
-					if rpiMax > 0 {
-						minReplicas := int(metrics.Request / int64(rpiMax)) // TODO: Ceil?
-
-						if minReplicas < replicas {
-							// Scale -1
-							fmt.Println("Scale-1")
-							/*
-								if _, err := thoth.ScaleOutViaCli(replicas-1, RC[i].Namespace, RC[i].Name); err != nil {
-									panic(err)
-								}
-
-						}
-					}
-				}
-			*/
 		}
-		// -----Prediction-----
-		// Normalize
-		// Run (Predict)
-		// Label
-		//runFann()
 		//-----------
 		fmt.Println("Sleep TODO:Change to 5 Min")
-		time.Sleep(10 * time.Second)
+		time.Sleep(60 * time.Second)
 	}
 }
 
