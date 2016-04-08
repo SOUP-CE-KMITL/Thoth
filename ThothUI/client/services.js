@@ -17,7 +17,8 @@ angular.module('myApp').factory('AuthService',
       register: register,
       getUser: getUser,
       createApp: createApp,
-      getUsername: getUsername
+      getUsername: getUsername,
+      getDBUser: getDBUser
     });
 
     function isLoggedIn() {
@@ -48,7 +49,6 @@ angular.module('myApp').factory('AuthService',
           if(status === 200 && data.status){
             user = true;
             user_obj = username;
-            alert("username from service : "+user_obj);
             deferred.resolve();
           } else {
             user = false;
@@ -117,12 +117,26 @@ angular.module('myApp').factory('AuthService',
       $http.get('/user/profile')
       .success(function (data) {
         console.log("user from backend (service) :"+data.user)
-        user_obj = data.user; 
+        user_obj = data.user;
         deferred.resolve(data);
       })
       .error(function (data) {
         deferred.reject("error");
       });
+
+      return deferred.promise;
+    }
+
+    function getDBUser() {
+      var deferred = $q.defer();
+      
+      $http.get("/user/get/apps/"+user_obj)
+        .success(function(data){
+          deferred.resolve(data);
+        })
+        .error(function(data){
+          deferred.reject("error");
+        });
 
       return deferred.promise;
     }
@@ -140,7 +154,7 @@ angular.module('myApp').factory('AuthService',
         port: user_app.internal_port
       };
 
-      $http.post('https://paas.jigko.net/rc/create/', rc_obj)
+      $http.post('https://thoth.jigko.net/rc/create/', rc_obj)
         .success(function(data) {
           console.log("success to created RC");
           console.dir(data.port);
