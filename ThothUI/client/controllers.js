@@ -184,65 +184,72 @@ angular.module('myApp').controller('AppResourceUsageController',
         $scope.user = user;
         console.log(" user : " + user.user);
         // array of Application
-        var apps = [];
-        // http get application lists.
-        $http.get("https://paas.jigko.net/apps/"+user.user)
-        .success(function(response) {
 
-          console.log("length : " + response.items.length);
-          for(var i = 0; i < response.items.length; i++){
-            // get application profile
-            apps[i] = {};
-            apps[i].name = response.items[i].metadata.name;
-            apps[i].namespace = response.items[i].metadata.namespace;
-            apps[i].internal_port = response.items[i].spec.template.spec.containers[0].ports[0].containerPort;
-            apps[i].replicas = response.items[i].spec.replicas
-            // initail array
-            apps[i].data = [];
-            apps[i].data[0] = {};
-            apps[i].data[0].values = [];
-            apps[i].data[1] = {};
-            apps[i].data[1].values = [];
+          AuthService.getDBUser().then(function(response){
+            var apps_port = [];
+            apps_port = response.app;
+            console.dir(apps_port);
+            return apps_port;
+          }).then(function(apps_port){
 
-            apps[i].data[0].key = 'cpu';
-            apps[i].data[0].color = '#ff7f0e';
-            apps[i].data[1].key = 'memory';
-            apps[i].data[1].color = '#2ca02c';
-            console.log("created "+i)
-          }
+            var apps = [];
+            // http get application lists.
+            $http.get("https://thoth.jigko.net/apps/"+user.user)
+            .success(function(response) {
+              var api_app = response;
 
-          $scope.options = chart_options;
-          //$scope.data = [{values: [], key: 'cpu', color: '#ff7f0e'},{values: [], key: 'memory', color: '#2ca02c'}];
-          $scope.apps = apps;
-          // pause/play btn
-          $scope.run = true;
-          var app_datas = [];
+              for(var i = 0; i < api_app.items.length; i++){
+                // get application profile
+                apps[i] = {};
+                apps[i].name = api_app.items[i].metadata.name;
+                apps[i].namespace = api_app.items[i].metadata.namespace;
+                apps[i].internal_port = api_app.items[i].spec.template.spec.containers[0].ports[0].containerPort;
+                apps[i].replicas = api_app.items[i].spec.replicas
+                apps[i].vamp_port = apps_port[i].vamp_port
+                // initail array
+                apps[i].data = [];
+                apps[i].data[0] = {};
+                apps[i].data[0].values = [];
+                apps[i].data[1] = {};
+                apps[i].data[1].values = [];
 
-          var t = 0;
-
-          setInterval(function(){
-            if (!$scope.run) return;
-            for(var c = 0; c < apps.length; c++){
-              console.log(apps[c].name);
-              app_datas[c] = $http.get("https://paas.jigko.net/app/"+apps[c].name+"/metrics/"+user.user)
-            }
-            // request resource usage from api
-            $q.all(app_datas).then(function(response) {
-              console.log(response);
-              for(var r = 0; r < response.length; r++){
-                console.log(response[r].data.cpu); 
-                $scope.apps[r].data[0].values.push({ x:t, y:response[r].data.cpu })
-                var percent_mem = response[r].data.memory/200 * 100;
-                $scope.apps[r].data[1].values.push({ x:t, y:percent_mem })
-                console.log("cpu : "+$scope.apps[r].data[1].values.slice(-1)[0].x);
-                if($scope.apps[r].data[0].values.length > 20) $scope.apps[r].data[0].values.shift();
-                if($scope.apps[r].data[1].values.length > 20) $scope.apps[r].data[1].values.shift();
+                apps[i].data[0].key = 'cpu';
+                apps[i].data[0].color = '#ff7f0e';
+                apps[i].data[1].key = 'memory';
+                apps[i].data[1].color = '#2ca02c';
               }
-                t++;
+
             });
-          }, 1000);
-        })
-      })    
+
+            return apps;
+          }).then(function(apps){
+              $scope.options = chart_options;
+              //$scope.data = [{values: [], key: 'cpu', color: '#ff7f0e'},{values: [], key: 'memory', color: '#2ca02c'}];
+              $scope.apps = apps;
+              // pause/play btn
+              $scope.run = true;
+              var app_datas = [];
+              var t = 0;
+
+              setInterval(function(){
+                if (!$scope.run) return;
+                for(var c = 0; c < apps.length; c++){
+                  app_datas[c] = $http.get("https://thoth.jigko.net/app/"+apps[c].name+"/metrics/"+user.user)
+                }
+                // request resource usage from api
+                $q.all(app_datas).then(function(response) {
+                  for(var r = 0; r < response.length; r++){
+                    $scope.apps[r].data[0].values.push({ x:t, y:response[r].data.cpu })
+                    var percent_mem = response[r].data.memory/200 * 100;
+                    $scope.apps[r].data[1].values.push({ x:t, y:percent_mem })
+                    if($scope.apps[r].data[0].values.length > 20) $scope.apps[r].data[0].values.shift();
+                    if($scope.apps[r].data[1].values.length > 20) $scope.apps[r].data[1].values.shift();
+                  }
+                    t++;
+                });
+              }, 1000);
+          });
+      })
     }
 ]);
 
@@ -258,8 +265,6 @@ angular.module('myApp').controller('HeaderController',
 
     // $scope.user_status = AuthService.isLoggedIn();
     $scope.$watch(AuthService.isLoggedIn, function(newVal, oldVal) {
-      console.log("user object"+AuthService.getUserStatus());
-      console.log("data form watch : "+newVal);
       $scope.user_status = newVal;
     });
 
