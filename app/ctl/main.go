@@ -1,19 +1,19 @@
 package main
 
 import (
-	"encoding/csv"
+	//	"encoding/json"
 	"fmt"
 	"github.com/SOUP-CE-KMITL/Thoth"
-	"github.com/SOUP-CE-KMITL/Thoth/learn"
 	"github.com/SOUP-CE-KMITL/Thoth/profil"
-	"github.com/goml/gobrain"
 	"github.com/influxdata/influxdb/client/v2"
 	"github.com/white-pony/go-fann"
+	"strings"
+	//	"io/ioutil"
+	"encoding/csv"
+	"github.com/goml/gobrain"
 	"io"
 	"log"
-	"os/signal"
-	"strings"
-	//"math"
+	"math"
 	"math/rand"
 	"os"
 	"strconv"
@@ -23,25 +23,21 @@ import (
 var username string = "thoth"
 var password string = "thoth"
 
-func main() {
-	agent := learn.QLearn{Gamma: 0.3, Epsilon: 0.3}
-	agent.Init()
-	if err := agent.Load("ql.da"); err != nil {
-		fmt.Println("Load Fail", err)
+type fannObj struct{
+	rcName string
+	input []fann.FannType
+	output []fann.FannType
+} 
+
+func z_score(avg int64, sd float64, val int64) fann.FannType {
+	if sd != 0 {
+		return fann.FannType((float64(val) - float64(avg)) / sd)
+	}else{
+		return fann.FannType(0);
 	}
-	agent.Epsilon = 0.3
+}
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt)
-	go func() {
-		for sig := range c {
-			// sig is a ^C, handle it
-			fmt.Println(sig)
-			agent.Save("ql.da")
-			os.Exit(0)
-		}
-	}()
-
+func main() {
 	// Connect InfluxDB
 	influxDB, err := client.NewHTTPClient(client.HTTPConfig{
 		Addr:     thoth.InfluxdbApi,
@@ -53,60 +49,134 @@ func main() {
 		panic(err)
 	}
 
-	firstRun := true
-	lastState := learn.State{}
-	lastAction := 0
+
+	// TODO:it's need to calculate this for all RC 
+	avg_day := profil.GetProfilLast(influxDB, "thoth", "eight-puzzle", "1d")
+	sd_day := profil.GetProfilStdLast(influxDB, "thoth", "eight-puzzle", "1d")
+		
 	for {
-		// Get all user RC
+		// Get all user RCLen
 		RC := profil.GetUserRC()
 		RCLen := len(RC)
 
+		f_obj := make([]fannObj, RCLen);
+
 		// Getting App Metric
 		for i := 0; i < RCLen; i++ {
+			// Get 15 min avarage of all attribute for feed as input.
+			resUsage15min := profil.GetProfilLast(influxDB, RC[i].Namespace, RC[i].Name, "15min")
+			fmt.Println("count = ", i);
+			f_obj[i].rcName = RC[i].Name
+			// TODO : calculate z value for each attribute
+			f_obj[i].input = []fann.FannType{z_score(avg_day["cpu"] ,sd_day["cpu"] ,resUsage15min["cpu"]),
+			 								z_score(avg_day["memory"] ,sd_day["memory"] ,resUsage15min["memory"]),
+			 								z_score(avg_day["rps"] ,sd_day["rps"] ,resUsage15min["rps"]),
+			 								z_score(avg_day["rtime"] ,sd_day["rtime"] ,resUsage15min["rtime"]),
+			 								z_score(avg_day["r2xx"] ,sd_day["r2xx"] ,resUsage15min["r2xx"]),
+			 								z_score(avg_day["r5xx"] ,sd_day["r5xx"] ,resUsage15min["r5xx"]),
+			 								z_score(avg_day["replicas"] ,sd_day["replicas"] ,resUsage15min["replicas"])}
+			f_obj[i].output = []fann.FannType{0}
+
 			replicas, err := profil.GetReplicas(RC[i].Namespace, RC[i].Name)
+
 			if err != nil {
 				panic(err)
 			}
+			fmt.Println(replicas)
 
-			// TODO : Chane time interval
-			res := profil.GetProfilLast(influxDB, RC[i].Namespace, RC[i].Name, "1m")
-			fmt.Println(res)
-
-			if !firstRun {
-				// Reward Last state
-				agent.Reward(lastState, lastAction, res)
+			// Check Resposne time & Label & Save WPI
+			var responseDay, response10Min float64
+			if responseDay, err = profil.GetProfilAvg(influxDB, RC[i].Namespace, RC[i].Name, "rtime", "1d"); err != nil {
+				panic(err)
+				log.Println(err)
 			}
-			firstRun = false
+			fmt.Println("resDays : ", responseDay)
 
-			lastState = agent.CurrentState
-			agent.SetCurrentState(res["cpu"], res["memory"], res["rps"], res["rtime"], res["r5xx"], replicas)
-			action := agent.ChooseAction()
+			if response10Min, err = profil.GetProfilAvg(influxDB, RC[i].Namespace, RC[i].Name, "rtime", "5m"); err != nil {
+				fmt.Println("res10min : ", response10Min)
+				panic(err)
+				log.Println(err)
+			}
+			// Floor
+			responseDay = math.Floor(responseDay)
+			response10Min = math.Floor(response10Min)
+			fmt.Println("D", responseDay, " 10M", response10Min)
+			metrics := profil.GetAppResource(RC[i].Namespace, RC[i].Name)
+			var cpu10Min float64
+			if cpu10Min, err = profil.GetProfilAvg(influxDB, RC[i].Namespace, RC[i].Name, "cpu", "5m"); err != nil {
+				panic(err)
+				log.Println(err)
+			}
+			fmt.Println("CPU ", cpu10Min)
+			if cpu10Min > 70 {
+				fmt.Println("Response check")
+				if response10Min > responseDay { // TODO:Need to check WPI too
+					// Save WPI
+					fmt.Println("Scale+1")
+					f_obj[i].output = []fann.FannType{1}
+					if err := profil.WriteRPI(influxDB, RC[i].Namespace, RC[i].Name, metrics.Request, replicas); err != nil {
+						panic(err)
+						log.Println(err)
+					}
+					// Scale +1
+					// TODO: Limit
+					if replicas < 10 {
+						if _, err := thoth.ScaleOutViaCli(replicas+1, RC[i].Namespace, RC[i].Name); err != nil {
+							panic(err)
+						}
+					}
+				}
+			} else if replicas > 1 {
+				// = rpi/replicas
+				var rpiMax float64
+				if rpiMax, err = profil.GetAvgRPI(influxDB, RC[i].Namespace, RC[i].Name); err != nil {
+					rpiMax = -1
+					// TODO:Handler
+					//panic(err)
+				}
+				fmt.Println("WPI", rpiMax)
+				if rpiMax > 0 {
+					minReplicas := int(metrics.Request / int64(rpiMax)) // TODO: Ceil?
 
-			if action+replicas != 0 {
-				if _, err := thoth.ScaleOutViaCli(replicas+action, RC[i].Namespace, RC[i].Name); err != nil {
-					fmt.Println(err)
+					if minReplicas < replicas {
+						// Scale -1
+						fmt.Println("Scale-1")
+						f_obj[i].output = []fann.FannType{-1}	
+						if _, err := thoth.ScaleOutViaCli(replicas-1, RC[i].Namespace, RC[i].Name); err != nil {
+							panic(err)
+						}
+					}
 				}
 			}
-			lastAction = action
-			fmt.Println(agent)
+
 		}
+
+		// -----Prediction-----
+		// Normalize
+		// Run (Predict)
+		// Label
+		fmt.Println("============================ RUNNING FANN ============================")
+		runFann(f_obj)
 		//-----------
-		fmt.Println("Sleep TODO:Change to 5 Min")
-		time.Sleep(60 * time.Second)
+		fmt.Println("Sleep TODO:Change to 5 Minnn")
+		time.Sleep(5 * time.Minute)
 	}
 }
 
-func runFann() {
+func runFann(f_obj []fannObj) {
 	const num_layers = 3
 	const num_neurons_hidden = 10
 	const desired_error = 0.001
 
 	train_data := fann.ReadTrainFromFile("file.csv")
+	
+
+	fmt.Println("train data = ", &train_data);
 	//	test_data := fann.ReadTrainFromFile("../../datasets/robot.test")
 
 	var momentum float32
 	//	for momentum = 0.0; momentum < 0.7; momentum += 0.1 {
-	fmt.Printf("============= momentum = %f =============\n", momentum)
+	fmt.Printf("============= momentum = %fann =============\n", momentum)
 
 	ann := fann.CreateStandard(num_layers, []uint32{train_data.GetNumInput(), num_neurons_hidden, train_data.GetNumOutput()})
 	/*
@@ -115,11 +185,15 @@ func runFann() {
 	*/
 	ann.SetActivationFunctionHidden(fann.SIGMOID_SYMMETRIC)
 	ann.SetActivationFunctionOutput(fann.SIGMOID_SYMMETRIC)
-	ann.TrainOnData(train_data, 2000, 500, desired_error)
+	// iterate to train data 
+	for  i := range f_obj {
+		ann.Train(f_obj[i].input, f_obj[i].output)	
+	}
+	
+	//ann.TrainOnData(train_data, 2000, 500, desired_error)
 
 	fmt.Printf("MSE error on train data: %f\n", ann.TestData(train_data))
-	//	fmt.Printf("MSE error on test data : %f\n", ann.TestData(test_data))
-
+	// fmt.Printf("MSE error on test data : %f\n", ann.Run(test_data))
 	ann.Destroy()
 	//	}
 
