@@ -9,7 +9,7 @@ router.post('/register', function(req, res) {
   User.register(new User({ username: req.body.username }), req.body.password, function(err, account) {
     if (err) {
       return res.status(500).json({err: err});
-    }
+    } 
     passport.authenticate('local')(req, res, function () {
       return res.status(200).json({status: 'Registration successful!'});
     });
@@ -42,7 +42,17 @@ router.get('/profile', function(req, res){
   if(req.user == undefined) {
     return "none";
   }
+  console.log("backend user : "+req.user.username);
   res.status(200).json({user: req.user.username});
+});
+ 
+router.get('/get/apps/:username', function(req, res) {
+    var username = req.params.username;
+    console.log("username : " + username);
+    User.findOne({username: username}, function(err, userDoc){
+      console.log(userDoc);
+      res.status(200).json(userDoc);
+    });
 });
 
 router.post('/create/app/:username', function(req, res) {
@@ -79,7 +89,7 @@ router.post('/create/app/:username', function(req, res) {
           runtime_env: req.body.runtime_env,
           internal_port: req.body.internal_port,
           external_port: req.body.external_port,
-          vamp_port: 9000,
+          vamp_port: req.body.external_port,
           max_instance: req.body.max_instance,
           min_instance: req.body.min_instance
         }

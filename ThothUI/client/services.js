@@ -5,7 +5,7 @@ angular.module('myApp').factory('AuthService',
     // create user variable
     var user = null;
 
-    var user_obj;
+    var user_obj = "none";
 
 
     // return available functions for use in controllers
@@ -16,7 +16,9 @@ angular.module('myApp').factory('AuthService',
       logout: logout,
       register: register,
       getUser: getUser,
-      createApp: createApp
+      createApp: createApp,
+      getUsername: getUsername,
+      getDBUser: getDBUser
     });
 
     function isLoggedIn() {
@@ -31,6 +33,10 @@ angular.module('myApp').factory('AuthService',
       return user;
     }
 
+    function getUsername() {
+      return user_obj;
+    }
+
     function login(username, password) {
 
       // create a new instance of deferred
@@ -42,7 +48,7 @@ angular.module('myApp').factory('AuthService',
         .success(function (data, status) {
           if(status === 200 && data.status){
             user = true;
-            console.log("user status : "+ isLoggedIn());
+            user_obj = username;
             deferred.resolve();
           } else {
             user = false;
@@ -111,12 +117,26 @@ angular.module('myApp').factory('AuthService',
       $http.get('/user/profile')
       .success(function (data) {
         console.log("user from backend (service) :"+data.user)
-        user_obj = data.user; 
+        user_obj = data.user;
         deferred.resolve(data);
       })
       .error(function (data) {
         deferred.reject("error");
       });
+
+      return deferred.promise;
+    }
+
+    function getDBUser() {
+      var deferred = $q.defer();
+      
+      $http.get("/user/get/apps/"+user_obj)
+        .success(function(data){
+          deferred.resolve(data);
+        })
+        .error(function(data){
+          deferred.reject("error");
+        });
 
       return deferred.promise;
     }
@@ -134,7 +154,7 @@ angular.module('myApp').factory('AuthService',
         port: user_app.internal_port
       };
 
-      $http.post('https://paas.jigko.net/rc/create/', rc_obj)
+      $http.post('https://thoth.jigko.net/rc/create/', rc_obj)
         .success(function(data) {
           console.log("success to created RC");
           console.dir(data.port);

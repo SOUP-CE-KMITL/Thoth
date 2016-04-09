@@ -51,38 +51,31 @@
 	   		<tr>
 	   			<th>Topic</th>
 	   			<th>Value</th>
-	   			<td>Action</td>
 	   		</tr>
 	   		<tr>
 	   			<td>Application name</td>
 	   			<td>{{app.name}}</td>
-	   			<td></td>
 	   		</tr>
 	   		<tr>
 	   			<td>user </td>
 	   			<td>{{app.namespace}}</td>
-	   			<td></td>
 	   		</tr>
 	   		<tr>
 	   			<td>Internal port </td>
 	   			<td>{{app.internal_port}} </td>
-	   			<td></td>
 	   		</tr>
 	   		<tr>
 	   			<td>number of instance</td>
 	   			<td>
 	   				{{app.replicas}}
 	   			</td>
-	   			<td>
-	   				<a class="btn btn-success btn-fab btn-fab-mini floating-btn">
-				   		<span class="glyphicon glyphicon-plus floating-icon"></span>
-				   	</a>
-				   	<a class="btn btn-danger btn-fab btn-fab-mini floating-btn">
-				   		<span class="glyphicon glyphicon-minus floating-icon"></span>
-				   	</a>
-	   			</td>
 	   		</tr>
 	   	</table>
+	   	<div class="text-center">
+	   		<a class="btn btn-raised btn-primary btn-lg" href="http://thoth.jigko.net:{{app.vamp_port}}/">
+	   			go to your web  !
+	   		</a>
+	   	</div>
 	  </div>
 	 </div>
 	</div>
