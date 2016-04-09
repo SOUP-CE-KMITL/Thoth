@@ -23,9 +23,9 @@ type State struct {
 }
 
 type Action struct {
-	Plus  float64 `json:"plus"`
-	Stay  float64 `json:"stay"`
-	Minus float64 `json:"minus"`
+	Plus  int64 `json:"plus"`
+	Stay  int64 `json:"stay"`
+	Minus int64 `json:"minus"`
 }
 
 type QLearn struct {
@@ -50,7 +50,7 @@ func (q QLearn) ChooseAction() int {
 	} else {
 		fmt.Println("Go Best")
 		action := q.States[toKey(q.CurrentState)]
-		maxR := math.Max(action.Plus, math.Max(action.Stay, action.Minus))
+		maxR := int64(math.Max(float64(action.Plus), math.Max(float64(action.Stay), float64(action.Minus))))
 		if action.Minus == maxR {
 			nextAction = -1
 		} else if action.Plus == maxR {
@@ -77,30 +77,31 @@ func (q *QLearn) GoNextState(action int) {
 	// TODO: What about cpu,mem,etc..
 }
 */
-func (q QLearn) MaximumOp(state State) float64 {
+func (q QLearn) MaximumOp(state State) int64 {
 	// Find Best action then return it Q-Matrix
 	action := q.States[toKey(state)]
-	max := math.Max(action.Plus, math.Max(action.Stay, action.Minus))
+	max := math.Max(float64(action.Plus), math.Max(float64(action.Stay), float64(action.Minus)))
 	fmt.Println("Max ", action)
 	fmt.Println("Max=", max)
-	return max
+	return int64(max)
 }
 
-func (q *QLearn) Reward(state State, action int, nowStatus map[string]float64) float64 {
-	reward := 0.0
+func (q *QLearn) Reward(state State, action int, nowStatus map[string]int64) int64 {
+	var reward int64 = 0
 	// ACTION
 	if action == 1 {
 		reward -= 10
 	} else if action == -1 {
 		reward += 10
 	} else {
-		reward += 0
+		reward += 5
 	}
 	// Replicas - More replicas more penalty
-	reward += 1 - nowStatus["replicas"]
+	reward += 5 - nowStatus["replicas"]*int64(5)
+
 	// Replicas 1-1=0
-	if nowStatus["replicas"] == 1 {
-		reward -= 100
+	if nowStatus["replicas"]-int64(action) == 0 {
+		reward -= 20
 	}
 
 	// RTime
@@ -110,11 +111,11 @@ func (q *QLearn) Reward(state State, action int, nowStatus map[string]float64) f
 	reward -= nowStatus["r5xx"]
 
 	// R(current,action)+gamma*MaximumOp
-	reward += q.Gamma * q.MaximumOp(state)
+	reward += int64(q.Gamma * float64(q.MaximumOp(state)))
 	fmt.Println("Reward ", reward)
 	// Update Q-Matrix
 	qAction := q.States[toKey(state)]
-	if action == 0 {
+	if action == 1 {
 		qAction.Plus += reward
 		q.States[toKey(state)] = qAction
 	} else if action == -1 {
@@ -137,9 +138,9 @@ func (q *QLearn) Init() {
 }
 
 // Change current state according to real cpu,mem,etc....
-func (q *QLearn) SetCurrentState(cpu, mem, rps, rtime float64, r5xx, replicas int) {
+func (q *QLearn) SetCurrentState(cpu, mem, rps, rtime, r5xx int64, replicas int) {
 	// TODO: Create Fn to set all this value
-	if cpu > 30 {
+	if cpu > 40 {
 		q.CurrentState.CPUH = true
 	} else {
 		q.CurrentState.CPUH = false
@@ -151,7 +152,7 @@ func (q *QLearn) SetCurrentState(cpu, mem, rps, rtime float64, r5xx, replicas in
 		q.CurrentState.MemH = false
 	}
 
-	if rps > 50 {
+	if int(rps)/replicas > 100 {
 		q.CurrentState.RpsH = true
 	} else {
 		q.CurrentState.RpsH = false

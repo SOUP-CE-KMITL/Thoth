@@ -24,12 +24,12 @@ var username string = "thoth"
 var password string = "thoth"
 
 func main() {
-	agent := learn.QLearn{Gamma: 0.4, Epsilon: 0.4}
+	agent := learn.QLearn{Gamma: 0.3, Epsilon: 0.3}
 	agent.Init()
 	if err := agent.Load("ql.da"); err != nil {
 		fmt.Println("Load Fail", err)
 	}
-	agent.Epsilon = 0.4
+	agent.Epsilon = 0.3
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -79,7 +79,7 @@ func main() {
 			firstRun = false
 
 			lastState = agent.CurrentState
-			agent.SetCurrentState(res["cpu"], res["memory"], res["rps"], res["rtime"], int(res["r5xx"]), replicas)
+			agent.SetCurrentState(res["cpu"], res["memory"], res["rps"], res["rtime"], res["r5xx"], replicas)
 			action := agent.ChooseAction()
 
 			if action+replicas != 0 {
