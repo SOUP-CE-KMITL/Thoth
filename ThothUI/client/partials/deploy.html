@@ -25,12 +25,14 @@
         </div>
         <div class="panel-body">
           <div class="btn-group btn-group-justified btn-group-raised">
+            <!--
             <a ng-click="tab='dockerhub'" class="btn">
               DockerHub
             </a>
             <a ng-click="tab='github'" class="btn">
               GitHub
             </a>
+            -->
           </div>
           <div ng-switch on="tab">
             <!-- dockerhub -->
@@ -41,8 +43,9 @@
                   <input id="reference" placeholder="<user name>/<application name>" type="text" class="form-control" ng-model="registerForm.dockerhub" />
                 </div>
                 <div class="form-group">  
-                  <label for="reference" ><span class="glyphicon glyphicon-download"></span>  Image Name</label>
-                  <input id="reference" placeholder="nginx" type="text" class="form-control"
+                  <label for="reference" ><span class="glyphicon glyphicon-download"></span>
+                  Application Name</label>
+                  <input id="reference" placeholder="my-nginx" type="text" class="form-control"
                   ng-model="registerForm.image_name" />
                 </div>
               </div>
