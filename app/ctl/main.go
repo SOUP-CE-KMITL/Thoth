@@ -16,6 +16,7 @@ import (
 	"math"
 	"math/rand"
 	"os"
+	"os/signal"
 	"strconv"
 	"time"
 )
@@ -23,21 +24,33 @@ import (
 var username string = "thoth"
 var password string = "thoth"
 
-type fannObj struct{
+type fannObj struct {
 	rcName string
-	input []fann.FannType
+	input  []fann.FannType
 	output []fann.FannType
-} 
+}
 
 func z_score(avg int64, sd float64, val int64) fann.FannType {
 	if sd != 0 {
 		return fann.FannType((float64(val) - float64(avg)) / sd)
-	}else{
-		return fann.FannType(0);
+	} else {
+		return fann.FannType(0)
 	}
 }
 
+var ann *fann.Ann
+
 func main() {
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	go func() {
+		for sig := range c {
+			// sig is a ^C, handle it
+			fmt.Println(sig)
+			ann.Save("fann.dat")
+			os.Exit(0)
+		}
+	}()
 	// Connect InfluxDB
 	influxDB, err := client.NewHTTPClient(client.HTTPConfig{
 		Addr:     thoth.InfluxdbApi,
@@ -49,32 +62,46 @@ func main() {
 		panic(err)
 	}
 
+	// FANN Init
+	if _, err := os.Stat("fann.dat"); err == nil {
+		// path/to/whatever exists
+		fmt.Println("Load fann.dat")
+		ann = fann.CreateFromFile("fann.dat")
+	} else {
+		fmt.Println("Init FANN")
+		const num_layers = 3
+		const num_neurons_hidden = 10
+		const desired_error = 0.001
 
-	// TODO:it's need to calculate this for all RC 
+		ann = fann.CreateStandard(num_layers, []uint32{5, num_neurons_hidden, 1})
+		ann.SetActivationFunctionHidden(fann.SIGMOID_SYMMETRIC)
+		ann.SetActivationFunctionOutput(fann.SIGMOID_SYMMETRIC)
+	}
+	// TODO:it's need to calculate this for all RC
 	avg_day := profil.GetProfilLast(influxDB, "thoth", "eight-puzzle", "1d")
 	sd_day := profil.GetProfilStdLast(influxDB, "thoth", "eight-puzzle", "1d")
-		
+
 	for {
 		// Get all user RCLen
 		RC := profil.GetUserRC()
 		RCLen := len(RC)
 
-		f_obj := make([]fannObj, RCLen);
+		f_obj := make([]fannObj, RCLen)
 
 		// Getting App Metric
 		for i := 0; i < RCLen; i++ {
 			// Get 15 min avarage of all attribute for feed as input.
 			resUsage15min := profil.GetProfilLast(influxDB, RC[i].Namespace, RC[i].Name, "15min")
-			fmt.Println("count = ", i);
+			fmt.Println("count = ", i)
 			f_obj[i].rcName = RC[i].Name
 			// TODO : calculate z value for each attribute
-			f_obj[i].input = []fann.FannType{z_score(avg_day["cpu"] ,sd_day["cpu"] ,resUsage15min["cpu"]),
-			 								z_score(avg_day["memory"] ,sd_day["memory"] ,resUsage15min["memory"]),
-			 								z_score(avg_day["rps"] ,sd_day["rps"] ,resUsage15min["rps"]),
-			 								z_score(avg_day["rtime"] ,sd_day["rtime"] ,resUsage15min["rtime"]),
-			 								z_score(avg_day["r2xx"] ,sd_day["r2xx"] ,resUsage15min["r2xx"]),
-			 								z_score(avg_day["r5xx"] ,sd_day["r5xx"] ,resUsage15min["r5xx"]),
-			 								z_score(avg_day["replicas"] ,sd_day["replicas"] ,resUsage15min["replicas"])}
+			f_obj[i].input = []fann.FannType{z_score(avg_day["cpu"], sd_day["cpu"], resUsage15min["cpu"]),
+				z_score(avg_day["memory"], sd_day["memory"], resUsage15min["memory"]),
+				z_score(avg_day["rps"], sd_day["rps"], resUsage15min["rps"]),
+				z_score(avg_day["rtime"], sd_day["rtime"], resUsage15min["rtime"]),
+				z_score(avg_day["r2xx"], sd_day["r2xx"], resUsage15min["r2xx"]),
+				z_score(avg_day["r5xx"], sd_day["r5xx"], resUsage15min["r5xx"]),
+				z_score(avg_day["replicas"], sd_day["replicas"], resUsage15min["replicas"])}
 			f_obj[i].output = []fann.FannType{0}
 
 			replicas, err := profil.GetReplicas(RC[i].Namespace, RC[i].Name)
@@ -141,7 +168,7 @@ func main() {
 					if minReplicas < replicas {
 						// Scale -1
 						fmt.Println("Scale-1")
-						f_obj[i].output = []fann.FannType{-1}	
+						f_obj[i].output = []fann.FannType{-1}
 						if _, err := thoth.ScaleOutViaCli(replicas-1, RC[i].Namespace, RC[i].Name); err != nil {
 							panic(err)
 						}
@@ -159,46 +186,20 @@ func main() {
 		runFann(f_obj)
 		//-----------
 		fmt.Println("Sleep TODO:Change to 5 Minnn")
-		time.Sleep(5 * time.Minute)
+		time.Sleep(1 * time.Minute)
 	}
 }
 
-func runFann(f_obj []fannObj) {
-	const num_layers = 3
-	const num_neurons_hidden = 10
-	const desired_error = 0.001
+func runFann(fObj []fannObj) {
 
-	train_data := fann.ReadTrainFromFile("file.csv")
-	
-
-	fmt.Println("train data = ", &train_data);
-	//	test_data := fann.ReadTrainFromFile("../../datasets/robot.test")
-
-	var momentum float32
-	//	for momentum = 0.0; momentum < 0.7; momentum += 0.1 {
-	fmt.Printf("============= momentum = %fann =============\n", momentum)
-
-	ann := fann.CreateStandard(num_layers, []uint32{train_data.GetNumInput(), num_neurons_hidden, train_data.GetNumOutput()})
-	/*
-		ann.SetTrainingAlgorithm(fann.TRAIN_INCREMENTAL)
-		ann.SetLearningMomentum(momentum)
-	*/
-	ann.SetActivationFunctionHidden(fann.SIGMOID_SYMMETRIC)
-	ann.SetActivationFunctionOutput(fann.SIGMOID_SYMMETRIC)
-	// iterate to train data 
-	for  i := range f_obj {
-		ann.Train(f_obj[i].input, f_obj[i].output)	
+	// iterate to train data
+	for i := range fObj {
+		ann.Train(fObj[i].input, fObj[i].output)
+		fmt.Println("Train Data ", fObj)
 	}
-	
+
 	//ann.TrainOnData(train_data, 2000, 500, desired_error)
-
-	fmt.Printf("MSE error on train data: %f\n", ann.TestData(train_data))
-	// fmt.Printf("MSE error on test data : %f\n", ann.Run(test_data))
-	ann.Destroy()
-	//	}
-
-	train_data.Destroy()
-	//test_data.Destroy()
+	fmt.Printf("MSE : %f\n", ann.GetMSE())
 }
 
 func annGoBrain() {
