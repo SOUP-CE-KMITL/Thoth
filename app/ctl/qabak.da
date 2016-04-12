@@ -1,1 +1,0 @@
-{"gamma":0.4,"epsilon":0.6,"states":{"false false false false false 1":{"plus":0,"stay":0,"minus":0},"true false false false false 1":{"plus":0,"stay":0,"minus":0}},"CurrentState":{"cpu":true,"mem":false,"rps":false,"rtime":false,"r5xx":false,"replicas":1}}

@@ -24,12 +24,12 @@ var username string = "thoth"
 var password string = "thoth"
 
 func main() {
-	agent := learn.QLearn{Gamma: 0.3, Epsilon: 0.3}
+	agent := learn.QLearn{Gamma: 0.3}
 	agent.Init()
 	if err := agent.Load("ql.da"); err != nil {
 		fmt.Println("Load Fail", err)
 	}
-	agent.Epsilon = 0.3
+	agent.Epsilon = 0.0
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -56,6 +56,7 @@ func main() {
 	firstRun := true
 	lastState := learn.State{}
 	lastAction := 0
+	var action int
 	for {
 		// Get all user RC
 		RC := profil.GetUserRC()
@@ -74,25 +75,34 @@ func main() {
 
 			if !firstRun {
 				// Reward Last state
-				agent.Reward(lastState, lastAction, res)
+				// TODO:test
+				//	agent.Reward(lastState, lastAction, res)
 			}
+
+			agent.SetCurrentState(res["cpu"], res["memory"], res["rps"], res["rtime"], res["r5xx"], replicas)
+			action = agent.ChooseAction()
+			lastState = agent.CurrentState
 			firstRun = false
 
-			lastState = agent.CurrentState
-			agent.SetCurrentState(res["cpu"], res["memory"], res["rps"], res["rtime"], res["r5xx"], replicas)
-			action := agent.ChooseAction()
-
-			if action+replicas != 0 {
+			if action+replicas > 0 {
 				if _, err := thoth.ScaleOutViaCli(replicas+action, RC[i].Namespace, RC[i].Name); err != nil {
 					fmt.Println(err)
 				}
 			}
 			lastAction = action
 			fmt.Println(agent)
+			fmt.Println("C", agent.CurrentState.CPUH,
+				"M", agent.CurrentState.MemH,
+				"R", agent.CurrentState.RpsH,
+				"T", agent.CurrentState.RtimeH,
+				"5", agent.CurrentState.R5xxH)
 		}
 		//-----------
-		fmt.Println("Sleep TODO:Change to 5 Min")
+		fmt.Println("Sleep TODO:Change to 5 Min\n")
 		time.Sleep(60 * time.Second)
+
+		fmt.Println(lastState)
+		fmt.Println(lastAction)
 	}
 }
 
