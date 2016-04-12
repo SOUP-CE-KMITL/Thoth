@@ -1,2 +1,2 @@
 #!/bin/bash
-locust --host=http://localhost:9001
+locust --host=http://localhost:9001 --master
