@@ -51,10 +51,10 @@ func (q QLearn) ChooseAction() int {
 		fmt.Println("Go Best")
 		action := q.States[toKey(q.CurrentState)]
 		maxR := int64(math.Max(float64(action.Plus), math.Max(float64(action.Stay), float64(action.Minus))))
-		if action.Minus == maxR {
-			nextAction = -1
-		} else if action.Plus == maxR {
+		if action.Plus == maxR {
 			nextAction = +1
+		} else if action.Minus == maxR {
+			nextAction = -1
 		} else { // Stay
 			nextAction = 0
 		}

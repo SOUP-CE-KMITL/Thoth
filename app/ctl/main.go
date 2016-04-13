@@ -29,7 +29,7 @@ func main() {
 	if err := agent.Load("ql.da"); err != nil {
 		fmt.Println("Load Fail", err)
 	}
-	agent.Epsilon = 0.0
+	agent.Epsilon = 0.3
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -76,7 +76,7 @@ func main() {
 			if !firstRun {
 				// Reward Last state
 				// TODO:test
-				//	agent.Reward(lastState, lastAction, res)
+				agent.Reward(lastState, lastAction, res)
 			}
 
 			agent.SetCurrentState(res["cpu"], res["memory"], res["rps"], res["rtime"], res["r5xx"], replicas)
