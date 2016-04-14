@@ -70,7 +70,7 @@ func main() {
 			}
 
 			// TODO : Chane time interval
-			res := profil.GetProfilLast(influxDB, RC[i].Namespace, RC[i].Name, "1m")
+			res := profil.GetProfilLast(influxDB, RC[i].Namespace, RC[i].Name, "5m")
 			fmt.Println(res)
 
 			if !firstRun {
@@ -99,7 +99,7 @@ func main() {
 		}
 		//-----------
 		fmt.Println("Sleep TODO:Change to 5 Min\n")
-		time.Sleep(60 * time.Second)
+		time.Sleep(300 * time.Second)
 
 		fmt.Println(lastState)
 		fmt.Println(lastAction)
