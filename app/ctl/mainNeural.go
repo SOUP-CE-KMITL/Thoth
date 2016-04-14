@@ -93,22 +93,22 @@ func main() {
 			fmt.Println("CPU ", cpu10Min)
 			if cpu10Min > 70 {
 				fmt.Println("Response check")
-				if response10Min > responseDay { // TODO:Need to check WPI too
-					// Save WPI
-					fmt.Println("Scale+1")
-					if err := profil.WriteRPI(influxDB, RC[i].Namespace, RC[i].Name, metrics.Request, replicas); err != nil {
+				//	if response10Min > responseDay { // TODO:Need to check WPI too
+				// Save WPI
+				fmt.Println("Scale+1")
+				if err := profil.WriteRPI(influxDB, RC[i].Namespace, RC[i].Name, metrics.Request, replicas); err != nil {
+					panic(err)
+					log.Println(err)
+				}
+				// Scale +1
+				// TODO: Limit
+				if replicas < 10 {
+					action = 1
+					if _, err := thoth.ScaleOutViaCli(replicas+1, RC[i].Namespace, RC[i].Name); err != nil {
 						panic(err)
-						log.Println(err)
-					}
-					// Scale +1
-					// TODO: Limit
-					if replicas < 10 {
-						action = 1
-						if _, err := thoth.ScaleOutViaCli(replicas+1, RC[i].Namespace, RC[i].Name); err != nil {
-							panic(err)
-						}
 					}
 				}
+				//	}
 			} else if replicas > 1 {
 				// = rpi/replicas
 				var rpiMax float64
@@ -140,20 +140,22 @@ func main() {
 			// Run (Predict)
 			predict := ann.Run(resUsage10min)
 			if predict != 0 {
-				if predict == 1 {
-					if _, err := thoth.ScaleOutViaCli(replicas+1, RC[i].Namespace, RC[i].Name); err != nil {
-						fmt.Println(err)
+				/*
+					if predict == 1 {
+						if _, err := thoth.ScaleOutViaCli(replicas+1, RC[i].Namespace, RC[i].Name); err != nil {
+							fmt.Println(err)
+						}
+					} else if predict == -1 && replicas != 1 {
+						if _, err := thoth.ScaleOutViaCli(replicas+1, RC[i].Namespace, RC[i].Name); err != nil {
+							fmt.Println(err)
+						}
 					}
-				} else if predict == -1 && replicas != 1 {
-					if _, err := thoth.ScaleOutViaCli(replicas+1, RC[i].Namespace, RC[i].Name); err != nil {
-						fmt.Println(err)
-					}
-				}
+				*/
 			}
 			//-----------
 		}
 
 		fmt.Println("Sleep TODO:Change to 5 Minnn")
-		time.Sleep(60 * time.Second)
+		time.Sleep(8 * time.Second)
 	}
 }
