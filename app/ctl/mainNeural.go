@@ -44,10 +44,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-
+	round := 0
+	correct := 0
 	// TODO:it's need to calculate this for all RC
-	ann.Avg = profil.GetProfilLast(influxDB, "thoth", "eight-puzzle", "3d")
-	ann.StdDev = profil.GetProfilStdLast(influxDB, "thoth", "eight-puzzle", "3d")
+	ann.Avg = profil.GetProfilLast(influxDB, "thoth", "eight-puzzle", "4d")
+	ann.StdDev = profil.GetProfilStdLast(influxDB, "thoth", "eight-puzzle", "4d")
 	fmt.Println("AVG ", ann.Avg)
 	fmt.Println("STDDEV ", ann.StdDev)
 
@@ -58,6 +59,7 @@ func main() {
 
 		// Getting App Metric
 		for i := 0; i < RCLen; i++ {
+			round++
 			action := 0.0
 
 			replicas, err := profil.GetReplicas(RC[i].Namespace, RC[i].Name)
@@ -65,7 +67,7 @@ func main() {
 			if err != nil {
 				panic(err)
 			}
-			fmt.Println(replicas)
+			fmt.Println("Replicas:", replicas)
 
 			// Check Resposne time & Label & Save WPI
 			var responseDay, response10Min float64
@@ -102,12 +104,14 @@ func main() {
 				}
 				// Scale +1
 				// TODO: Limit
+
 				if replicas < 10 {
 					action = 1
-					if _, err := thoth.ScaleOutViaCli(replicas+1, RC[i].Namespace, RC[i].Name); err != nil {
-						panic(err)
-					}
+					//	if _, err := thoth.ScaleOutViaCli(replicas+1, RC[i].Namespace, RC[i].Name); err != nil {
+					//		panic(err)
+					//	}
 				}
+
 				//	}
 			} else if replicas > 1 {
 				// = rpi/replicas
@@ -125,9 +129,9 @@ func main() {
 						// Scale -1
 						fmt.Println("Scale-1")
 						action = -1
-						if _, err := thoth.ScaleOutViaCli(replicas-1, RC[i].Namespace, RC[i].Name); err != nil {
-							panic(err)
-						}
+						//if _, err := thoth.ScaleOutViaCli(replicas-1, RC[i].Namespace, RC[i].Name); err != nil {
+						//	panic(err)
+						//}
 					}
 				}
 			}
@@ -140,22 +144,24 @@ func main() {
 			// Run (Predict)
 			predict := ann.Run(resUsage10min)
 			if predict != 0 {
-				/*
-					if predict == 1 {
-						if _, err := thoth.ScaleOutViaCli(replicas+1, RC[i].Namespace, RC[i].Name); err != nil {
-							fmt.Println(err)
-						}
-					} else if predict == -1 && replicas != 1 {
-						if _, err := thoth.ScaleOutViaCli(replicas+1, RC[i].Namespace, RC[i].Name); err != nil {
-							fmt.Println(err)
-						}
+				if predict == 1 {
+					if _, err := thoth.ScaleOutViaCli(replicas+1, RC[i].Namespace, RC[i].Name); err != nil {
+						fmt.Println(err)
 					}
-				*/
+				} else if predict == -1 && replicas > 1 {
+					if _, err := thoth.ScaleOutViaCli(replicas-1, RC[i].Namespace, RC[i].Name); err != nil {
+						fmt.Println(err)
+					}
+				}
 			}
+			if predict == int(action) {
+				correct++
+			}
+			fmt.Println("Stats Round: ", round, " Correct:", correct, " Accuracy: ", (correct*100)/round, "%")
 			//-----------
 		}
 
 		fmt.Println("Sleep TODO:Change to 5 Minnn")
-		time.Sleep(8 * time.Second)
+		time.Sleep(300 * time.Second)
 	}
 }
