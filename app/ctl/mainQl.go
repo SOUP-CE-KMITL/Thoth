@@ -29,7 +29,7 @@ func main() {
 	if err := agent.Load("ql.da"); err != nil {
 		fmt.Println("Load Fail", err)
 	}
-	agent.Epsilon = 0.3
+	agent.Epsilon = 0.1
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
@@ -99,7 +99,7 @@ func main() {
 		}
 		//-----------
 		fmt.Println("Sleep TODO:Change to 5 Min\n")
-		time.Sleep(300 * time.Second)
+		time.Sleep(60 * time.Second)
 
 		fmt.Println(lastState)
 		fmt.Println(lastAction)

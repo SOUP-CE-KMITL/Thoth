@@ -4,3 +4,4 @@
 /thothEyes/node_modules
 /thothEyes/public/bower_components
 *.swp
+vendor/

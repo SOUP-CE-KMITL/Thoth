@@ -1,0 +1,24 @@
+package: github.com/SOUP-CE-KMITL/Thoth
+import:
+- package: github.com/ant0ine/go-json-rest
+  subpackages:
+  - rest
+- package: github.com/fsouza/go-dockerclient
+- package: github.com/goml/gobrain
+- package: github.com/google/cadvisor
+  subpackages:
+  - client
+  - info/v1
+- package: github.com/gorilla/mux
+- package: github.com/influxdata/influxdb
+  subpackages:
+  - client/v2
+- package: github.com/rs/cors
+- package: github.com/shirou/gopsutil
+  subpackages:
+  - cpu
+  - disk
+  - docker
+  - mem
+  - net
+- package: github.com/white-pony/go-fann

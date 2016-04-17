@@ -51,10 +51,10 @@ func (q QLearn) ChooseAction() int {
 		fmt.Println("Go Best")
 		action := q.States[toKey(q.CurrentState)]
 		maxR := int64(math.Max(float64(action.Plus), math.Max(float64(action.Stay), float64(action.Minus))))
-		if action.Plus == maxR {
-			nextAction = +1
-		} else if action.Minus == maxR {
+		if action.Minus == maxR {
 			nextAction = -1
+		} else if action.Plus == maxR {
+			nextAction = +1
 		} else { // Stay
 			nextAction = 0
 		}
@@ -163,8 +163,8 @@ func (q *QLearn) Reward(state State, action int, nowStatus map[string]int64) int
 		}
 	*/
 	// Goal/High state reward
-	goalReward := 0
 	if q.CurrentState.RpsH > 0 && q.CurrentState.Replicas > 1 {
+		goalReward := 0
 		if !q.CurrentState.CPUH {
 			goalReward += 30
 		}
@@ -172,30 +172,32 @@ func (q *QLearn) Reward(state State, action int, nowStatus map[string]int64) int
 		if !q.CurrentState.MemH {
 			goalReward += 30
 		}
+		reward += int64(goalReward)
 	} else {
-		cpuCost := nowStatus["cpu"] / 10
-		memCost := nowStatus["mem"] / 10
-		reward -= int64(cpuCost)
-		reward -= int64(memCost)
-
 		// Low state reward
-		if action == -1 {
-			reward += 10
+		if q.CurrentState.CPUH {
+			cpuCost := nowStatus["cpu"] / 10
+			reward -= int64(cpuCost * 3)
+		}
+
+		if q.CurrentState.MemH {
+			memCost := nowStatus["mem"] / 10
+			reward -= int64(memCost * 3)
 		}
 	}
-	reward += int64(goalReward)
 
-	reward += int64(q.CurrentState.RpsH * 5)
+	reward += int64(q.CurrentState.RpsH * 15)
 
 	// Cost reward
 	replicasCost := int64((q.CurrentState.Replicas - 1) * 15)
+	reward -= replicasCost
 
 	if action == 1 {
-		reward -= replicasCost
+		reward -= 2
 	} else if action == 0 {
-		reward -= replicasCost
-	} else {
-		reward += replicasCost
+		reward += 2
+	} else if action == -1 {
+		reward += 3
 	}
 
 	if action == -1 && nowStatus["replicas"] == 1 {
