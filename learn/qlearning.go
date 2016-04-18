@@ -51,12 +51,12 @@ func (q QLearn) ChooseAction() int {
 		fmt.Println("Go Best")
 		action := q.States[toKey(q.CurrentState)]
 		maxR := int64(math.Max(float64(action.Plus), math.Max(float64(action.Stay), float64(action.Minus))))
-		if action.Minus == maxR {
-			nextAction = -1
+		if action.Stay == maxR {
+			nextAction = 0
 		} else if action.Plus == maxR {
 			nextAction = +1
-		} else { // Stay
-			nextAction = 0
+		} else { // minus
+			nextAction = -1
 		}
 	}
 	fmt.Println("Action :", nextAction)
@@ -163,6 +163,7 @@ func (q *QLearn) Reward(state State, action int, nowStatus map[string]int64) int
 		}
 	*/
 	// Goal/High state reward
+	fmt.Print(" rew00", reward)
 	if q.CurrentState.RpsH > 0 && q.CurrentState.Replicas > 1 {
 		goalReward := 0
 		if !q.CurrentState.CPUH {
@@ -173,25 +174,44 @@ func (q *QLearn) Reward(state State, action int, nowStatus map[string]int64) int
 			goalReward += 30
 		}
 		reward += int64(goalReward)
-	} else {
-		// Low state reward
-		if q.CurrentState.CPUH {
-			cpuCost := nowStatus["cpu"] / 10
-			reward -= int64(cpuCost * 3)
-		}
-
-		if q.CurrentState.MemH {
-			memCost := nowStatus["mem"] / 10
-			reward -= int64(memCost * 3)
-		}
+		fmt.Print(" +goal", goalReward)
+	}
+	fmt.Print(" rew", reward)
+	// Low state reward
+	if q.CurrentState.CPUH {
+		cpuCost := nowStatus["cpu"] / 10
+		cpuCost = cpuCost * 3
+		fmt.Print(" -cpu", cpuCost)
+		reward -= int64(cpuCost)
 	}
 
-	reward += int64(q.CurrentState.RpsH * 15)
+	fmt.Print(" rew", reward)
+	if q.CurrentState.MemH {
+		memCost := nowStatus["mem"] / 10
+		memCost = memCost * 3
+		fmt.Print(" -mem", memCost)
+		reward -= int64(memCost)
+	}
 
-	// Cost reward
+	fmt.Print(" rew", reward)
+	rpsReward := int64(q.CurrentState.RpsH * 15)
+	fmt.Print(" +rps", rpsReward)
+	reward += rpsReward
+
+	fmt.Print(" rew", reward)
+	// Rtime reward
+	if q.CurrentState.RtimeH {
+		reward -= 5
+	} else {
+		reward += 5
+	}
+
+	// replicasCost
 	replicasCost := int64((q.CurrentState.Replicas - 1) * 15)
+	fmt.Print(" -replicas", replicasCost)
 	reward -= replicasCost
 
+	fmt.Print(" rew", reward)
 	if action == 1 {
 		reward -= 2
 	} else if action == 0 {
@@ -200,7 +220,8 @@ func (q *QLearn) Reward(state State, action int, nowStatus map[string]int64) int
 		reward += 3
 	}
 
-	if action == -1 && nowStatus["replicas"] == 1 {
+	fmt.Print(" rew", reward)
+	if action == -1 && state.Replicas == 1 {
 		reward -= 100
 	}
 

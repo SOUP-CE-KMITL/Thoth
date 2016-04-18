@@ -29,7 +29,7 @@ func main() {
 	if err := agent.Load("ql.da"); err != nil {
 		fmt.Println("Load Fail", err)
 	}
-	agent.Epsilon = 0.1
+	agent.Epsilon = 0.0
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
