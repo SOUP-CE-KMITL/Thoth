@@ -4,17 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/SOUP-CE-KMITL/Thoth"
-	"github.com/shirou/gopsutil/cpu"
-	"github.com/shirou/gopsutil/disk"
+	/*
+		"github.com/shirou/gopsutil/cpu"
+		"github.com/shirou/gopsutil/disk"
+	*/
 	"github.com/shirou/gopsutil/docker"
-	"github.com/shirou/gopsutil/mem"
-	"github.com/shirou/gopsutil/net"
+	/*
+		"github.com/shirou/gopsutil/mem"
+		"github.com/shirou/gopsutil/net"
+	*/
 	"io/ioutil"
 	"net/http"
 	"os/exec"
 	"strconv"
 	"strings"
-	"time"
+	//"time"
 )
 
 func GetAllSVC() (thoth.ServiceList, error) {
@@ -71,7 +75,8 @@ func GetAllRC() (interface{}, error) {
 	return objRc, err
 }
 
-// Get every RC except in default (where kubernetes run)
+// Get every RC except in default (where kubernetes module run)
+// only rc that have pod in running phase
 func GetUserRC() []thoth.RC {
 	allRc, err := GetAllRC()
 	if err != nil {
@@ -187,6 +192,7 @@ func GetReplicas(namespace, name string) (int, error) {
 /**
 	read node resource usage
 **/
+/*
 func GetNodeResource(w http.ResponseWriter, r *http.Request) {
 	// get this node memory
 	memory, _ := mem.VirtualMemory()
@@ -219,6 +225,7 @@ func GetNodeResource(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Fprint(w, string(node_json))
 }
+*/
 
 // list all pods
 func GetPods() string {
@@ -362,4 +369,64 @@ func GetCpu(containerId string) (float64, error) {
 	//fmt.Println("get CPU ", cpuPercent2)
 	cpuPercent = cpuPercent[0 : len(cpuPercent)-1]
 	return strconv.ParseFloat(cpuPercent, 32)
+}
+
+func GetAllPod() (thoth.PodList, error) {
+	response, err := http.Get(thoth.KubeApi + "/api/v1/pods")
+	if err != nil {
+		panic(err)
+	}
+	body, err := ioutil.ReadAll(response.Body)
+	response.Body.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	objPod := thoth.PodList{}
+	if err := json.Unmarshal([]byte(body), &objPod); err != nil {
+		panic(err)
+	}
+	return objPod, err
+}
+
+func GetAllRunningPod() map[string]bool {
+	allPod, err := GetAllPod()
+	if err != nil {
+		return nil
+	}
+	runningPod := make(map[string]bool)
+	for _, pod := range allPod.Items {
+		if pod.Metadata.Namespace != "default" {
+			if pod.Status.Phase == "Running" {
+				name := pod.Metadata.Namespace + "/" + pod.Metadata.Labels.App
+				runningPod[name] = true
+			}
+		}
+	}
+	return runningPod
+}
+
+func GetRunningPodStatus(namespace string) []string {
+	response, err := http.Get(thoth.KubeApi + "/api/v1/namespaces/" + namespace + "/pods")
+	if err != nil {
+		panic(err)
+	}
+	body, err := ioutil.ReadAll(response.Body)
+	response.Body.Close()
+	if err != nil {
+		panic(err)
+	}
+
+	objPod := thoth.PodList{}
+	if err := json.Unmarshal([]byte(body), &objPod); err != nil {
+		panic(err)
+	}
+
+	var runningPod []string
+	for _, pod := range objPod.Items {
+		if pod.Status.Phase == "Running" {
+			runningPod = append(runningPod, pod.Metadata.Labels.App)
+		}
+	}
+	return runningPod
 }

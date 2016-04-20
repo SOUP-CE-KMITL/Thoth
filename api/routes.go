@@ -109,4 +109,10 @@ var routes = Routes{
 		"/error/app",
 		getErrorApp,
 	},
+	Route{
+		"getRunStatus",
+		"GET",
+		"/app/{namespace}/run",
+		GetRunStatus,
+	},
 }

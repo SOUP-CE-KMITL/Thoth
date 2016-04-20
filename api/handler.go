@@ -799,3 +799,14 @@ func RandomTCPPort() int {
 	}
 	return -1
 }
+
+// Return Array of Succesfull running pod
+func GetRunStatus(w http.ResponseWriter, r *http.Request) {
+	reqParam := mux.Vars(r)
+	namespace := reqParam["namespace"]
+	fmt.Println(namespace)
+	runningPodStatus := profil.GetRunningPodStatus(namespace)
+	res, err := json.Marshal(runningPodStatus)
+	fmt.Println(err)
+	fmt.Fprint(w, string(res))
+}
