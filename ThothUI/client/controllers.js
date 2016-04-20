@@ -200,12 +200,21 @@ angular.module('myApp').controller('AppResourceUsageController',
 
               for(var i = 0; i < api_app.items.length; i++){
                 // get application profile
+                var port = 0;
                 apps[i] = {};
                 apps[i].name = api_app.items[i].metadata.name;
                 apps[i].namespace = api_app.items[i].metadata.namespace;
                 apps[i].internal_port = api_app.items[i].spec.template.spec.containers[0].ports[0].containerPort;
                 apps[i].replicas = api_app.items[i].spec.replicas
-                apps[i].vamp_port = apps_port[i].vamp_port
+                
+                for(var j=0; j < apps_port.length; j++){
+                  var check_str = apps_port[j].app_name;
+                  if(check_str.localeCompare(apps[i].name)){
+                    apps[i].vamp_port = apps_port[j].vamp_port
+                    break;
+                  }
+                }
+
                 // initail array
                 apps[i].data = [];
                 apps[i].data[0] = {};
