@@ -158,7 +158,7 @@ angular.module('myApp').factory('AuthService',
         .success(function(data) {
           console.log("success to created RC");
           console.dir(data.port);
-          user_app.external_port = data.port;
+          user_app.external_port = data.port - 21000;
           // adding external port and proxy port receive from api
           $http.post('/user/create/app/'+user_obj, user_app)
           .success(function (data) {
