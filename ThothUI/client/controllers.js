@@ -210,7 +210,7 @@ angular.module('myApp').controller('AppResourceUsageController',
                 for(var j=0; j < apps_port.length; j++){
                   var check_str = apps_port[j].app_name;
                   if(check_str === apps[i].name){
-                    console("check_str : "+check_str+" app[i].name : "+apps[i].name)
+                    console.log("check_str : "+check_str+" app[i].name : "+apps[i].name)
                     apps[i].vamp_port = apps_port[j].vamp_port
                     break;
                   }
