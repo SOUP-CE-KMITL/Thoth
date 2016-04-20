@@ -7,7 +7,7 @@ var User = new Schema({
   username: String,
   password: String,
   app:[{
-	app_name: { Type: String, index: { unique: true }}
+	app_name: { Type: String, index: { unique: true }},
 	image_name: String,
 	runtime_env: String,
 	internal_port: Number,
