@@ -102,7 +102,8 @@ angular.module('myApp').controller('deployController',
       // call create app from service
       AuthService.createApp(user_app).then(function (response) {
         console.dir("response from api : " + response);
-        $location.path('/deploy');
+        // $location.path('/deploy');
+        $('#myModal').modal('show')
         $scope.registerForm = {};
       })
       // handle error
