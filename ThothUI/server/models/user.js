@@ -7,9 +7,8 @@ var User = new Schema({
   username: String,
   password: String,
   app:[{
-	dockerhub: String,
+	app_name: { Type: String, index: { unique: true }}
 	image_name: String,
-	github_repo: String,
 	runtime_env: String,
 	internal_port: Number,
 	external_port: Number,

@@ -83,9 +83,8 @@ router.post('/create/app/:username', function(req, res) {
 
         // calculate vamp port from external_port
         var user_app = {
-          dockerhub: req.body.dockerhub,
+          app_name: req.body.app_name,
           image_name: req.body.image_name,
-          github_repo: req.body.github_repo,
           runtime_env: req.body.runtime_env,
           internal_port: req.body.internal_port,
           external_port: req.body.external_port,

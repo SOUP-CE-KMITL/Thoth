@@ -90,8 +90,8 @@ angular.module('myApp').controller('deployController',
     
     $scope.app_register = function () {
       var user_app = {
-        dockerhub: $scope.registerForm.dockerhub,
-        image_hub: $scope.registerForm.image_name,
+        image_name: $scope.registerForm.image_name,
+        app_name: $scope.registerForm.app_name,
         github_repo: $scope.registerForm.github_repo,
         runtime_env: $scope.registerForm.runtime_env,
         internal_port: $scope.registerForm.internal_port,
@@ -194,7 +194,7 @@ angular.module('myApp').controller('AppResourceUsageController',
 
             var apps = [];
             // http get application lists.
-            $http.get("https://thoth.jigko.net/apps/"+user.user)
+            $http.get("https://paas.jigko.net/apps/"+user.user)
             .success(function(response) {
               var api_app = response;
 
@@ -234,7 +234,7 @@ angular.module('myApp').controller('AppResourceUsageController',
               setInterval(function(){
                 if (!$scope.run) return;
                 for(var c = 0; c < apps.length; c++){
-                  app_datas[c] = $http.get("https://thoth.jigko.net/app/"+apps[c].name+"/metrics/"+user.user)
+                  app_datas[c] = $http.get("https://paas.jigko.net/app/"+apps[c].name+"/metrics/"+user.user)
                 }
                 // request resource usage from api
                 $q.all(app_datas).then(function(response) {

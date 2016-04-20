@@ -147,14 +147,14 @@ angular.module('myApp').factory('AuthService',
       
       // send essential infor for create replicaion controller
       var rc_obj = {
-        name: user_app.image_hub,
-        replicas: 1,
+        name: user_app.app_name,
+        replicas: user_app.min_instance,
         namespace: user_obj,
-        image: user_app.dockerhub,
+        image: user_app.image_name,
         port: user_app.internal_port
       };
 
-      $http.post('https://thoth.jigko.net/rc/create/', rc_obj)
+      $http.post('https://paas.jigko.net/rc/create/', rc_obj)
         .success(function(data) {
           console.log("success to created RC");
           console.dir(data.port);
